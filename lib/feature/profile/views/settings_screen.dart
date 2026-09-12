@@ -1,0 +1,512 @@
+import 'package:e_square_ott_app/constants/app_colors.dart';
+import 'package:e_square_ott_app/constants/app_text_styles.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _autoplay = true;
+  String _videoQuality = 'Auto';
+  String _appLanguage = 'English';
+
+  // Selected content languages (used by the bottom sheet)
+  List<String> _selectedContentLanguages = [];
+
+  void _openContentLanguageSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ContentLanguageSheet(
+          initialSelected: _selectedContentLanguages,
+          onSave: (selected) {
+            setState(() => _selectedContentLanguages = selected);
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.loginBgGradient,
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomBackButton(
+                        onTap: () {
+                          Get.back();
+                        },
+                      ),
+                      SizedBox(width: 14),
+                      Text("Settings", style: AppTextStyles.text18Bold),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        _SettingsSection(
+                          label: 'PLAYBACK',
+                          children: [
+                            _SettingsRow(
+                              title: 'Autoplay next episode',
+                              subtitle: 'Automatically continue your story',
+                              trailing: Switch(
+                                value: _autoplay,
+                                activeColor: AppColors.white,
+                                activeTrackColor: AppColors.primary,
+                                inactiveThumbColor: AppColors.textSecondary,
+                                inactiveTrackColor: AppColors.cardBackground,
+                                onChanged: (v) => setState(() => _autoplay = v),
+                              ),
+                            ),
+                            _SettingsRow(
+                              title: 'Video quality',
+                              subtitle: 'Choose your default quality',
+                              trailing: _SettingsDropdownChip(
+                                value: _videoQuality,
+                                options: const [
+                                  'Auto',
+                                  'Low',
+                                  'Medium',
+                                  'High',
+                                ],
+                                onSelected: (v) =>
+                                    setState(() => _videoQuality = v),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _SettingsSection(
+                          label: 'LANGUAGE',
+                          children: [
+                            _SettingsRow(
+                              title: 'App language',
+                              subtitle: 'Choose your preferred language',
+                              trailing: _SettingsDropdownChip(
+                                value: _appLanguage,
+                                options: const ['English', 'Hindi', 'Punjabi'],
+                                onSelected: (v) =>
+                                    setState(() => _appLanguage = v),
+                              ),
+                            ),
+                            _SettingsRow(
+                              title: 'Content language',
+                              subtitle: 'Choose one or more languages',
+                              onTap: _openContentLanguageSheet,
+                              trailing: const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: AppColors.textSecondary,
+                              ),
+                              isLast: true,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final String label;
+  final List<Widget> children;
+
+  const _SettingsSection({required this.label, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+  final bool isLast;
+  final VoidCallback? onTap;
+
+  const _SettingsRow({
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+    this.isLast = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                trailing,
+              ],
+            ),
+          ),
+        ),
+        if (!isLast) const Divider(height: 1, color: AppColors.divider),
+      ],
+    );
+  }
+}
+
+class _SettingsDropdownChip extends StatelessWidget {
+  final String value;
+  final List<String> options;
+  final ValueChanged<String> onSelected;
+
+  const _SettingsDropdownChip({
+    required this.value,
+    required this.options,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      color: AppColors.cardBackground,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      onSelected: onSelected,
+      itemBuilder: (context) => options
+          .map(
+            (o) => PopupMenuItem<String>(
+              value: o,
+              child: Text(o, style: const TextStyle(color: Colors.white)),
+            ),
+          )
+          .toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary,
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// =======================================================================
+/// CONTENT LANGUAGE — BOTTOM SHEET
+/// =======================================================================
+class ContentLanguageSheet extends StatefulWidget {
+  final List<String> initialSelected;
+  final ValueChanged<List<String>> onSave;
+  final List<String> languages;
+
+  const ContentLanguageSheet({
+    super.key,
+    required this.initialSelected,
+    required this.onSave,
+    this.languages = const [
+      'English',
+      'Hindi',
+      'Tamil',
+      'Telugu',
+      'Kannada',
+      'Malayalam',
+    ],
+  });
+
+  @override
+  State<ContentLanguageSheet> createState() => _ContentLanguageSheetState();
+}
+
+class _ContentLanguageSheetState extends State<ContentLanguageSheet> {
+  late Set<String> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialSelected.toSet();
+  }
+
+  void _toggle(String language) {
+    setState(() {
+      if (_selected.contains(language)) {
+        _selected.remove(language);
+      } else {
+        _selected.add(language);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool canSave = _selected.isNotEmpty;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
+    // Split languages into rows of 2 for the chip grid.
+    final List<Widget> rows = [];
+    for (var i = 0; i < widget.languages.length; i += 2) {
+      final first = widget.languages[i];
+      final second = (i + 1 < widget.languages.length)
+          ? widget.languages[i + 1]
+          : null;
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: _LanguageChip(
+                  label: first,
+                  selected: _selected.contains(first),
+                  onTap: () => _toggle(first),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: second == null
+                    ? const SizedBox.shrink()
+                    : _LanguageChip(
+                        label: second,
+                        selected: _selected.contains(second),
+                        onTap: () => _toggle(second),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 24, 20, 20 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Content Language',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Select the languages you want to see across your Home feed.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 20),
+          ...rows,
+          const SizedBox(height: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: canSave
+                ? () {
+                    widget.onSave(_selected.toList());
+                    Navigator.of(context).pop();
+                  }
+                : null,
+            child: Container(
+              width: double.infinity,
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canSave ? AppColors.primary : AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                'Save Preference',
+                style: TextStyle(
+                  color: canSave ? Colors.white : AppColors.textSecondary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: InkWell(
+              onTap: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _LanguageChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : AppColors.textSecondary.withOpacity(0.25),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : AppColors.textSecondary,
+                fontSize: 13.5,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? Colors.white : Colors.transparent,
+                border: Border.all(
+                  color: selected ? Colors.white : AppColors.textSecondary,
+                  width: 1.5,
+                ),
+              ),
+              child: selected
+                  ? Icon(Icons.check, size: 13, color: AppColors.primary)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
