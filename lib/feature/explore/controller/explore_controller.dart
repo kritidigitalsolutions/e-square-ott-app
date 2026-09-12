@@ -1,3 +1,4 @@
+import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
@@ -60,13 +61,6 @@ class ExploreController extends GetxController {
   }
 
   void watchNow(ExploreItemModel item) {
-    Get.snackbar(
-      'Playing Trailer',
-      'Starting playback for ${item.title}...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+    Get.toNamed(Routes.dramaPlayer, arguments: item);
   }
 }

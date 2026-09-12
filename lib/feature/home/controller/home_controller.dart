@@ -196,7 +196,8 @@ class HomeController extends GetxController {
     return allNewReleasesList.where((m) {
       final matchesGenre =
           genre == 'All' || (m.genre?.toLowerCase() == genre.toLowerCase());
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           m.title.toLowerCase().contains(query) ||
           (m.genre?.toLowerCase().contains(query) ?? false);
       return matchesGenre && matchesQuery;
@@ -406,23 +407,11 @@ class HomeController extends GetxController {
 
   void openNotifications() {
     unreadNotifications.value = 0;
-    Get.snackbar(
-      'Notifications',
-      'You have caught up with all updates!',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-    );
+    Get.toNamed(Routes.notificationPage);
   }
 
   void onMovieTap(MovieModel movie) {
-    Get.snackbar(
-      movie.title,
-      'Opening player for ${movie.title}...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-    );
+    Get.toNamed(Routes.dramaPlayer, arguments: movie);
   }
 
   void removeContinueWatching(String id) {
@@ -438,13 +427,7 @@ class HomeController extends GetxController {
   }
 
   void resumeWatching(MovieModel movie) {
-    Get.snackbar(
-      'Resuming',
-      'Playing ${movie.title} (${movie.episodeInfo ?? "Latest Episode"})',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-    );
+    Get.toNamed(Routes.dramaPlayer, arguments: movie);
   }
 
   // ── Selected Category & Category Dramas List (matching Category Dramas Screen)

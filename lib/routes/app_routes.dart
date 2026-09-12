@@ -19,6 +19,15 @@ abstract class Routes {
   static const watchHistory = _Paths.watchHistory;
   static const privacyPolicy = _Paths.privacyPolicy;
   static const termCondition = _Paths.termCondition;
+  static const logout = _Paths.logout;
+  static const deleteAccount1 = _Paths.deleteAccount1;
+  static const deleteAccount2 = _Paths.deleteAccount2;
+  static const subscriptionPage = _Paths.subscriptionPage;
+  static const confirmSubscriptionPage = _Paths.confirmSubscriptionPage;
+  static const dramaPlayer = _Paths.dramaPlayer;
+  static const notificationPage = _Paths.notificationPage;
+  static const notificationSetting = _Paths.notificationSetting;
+  static const episodeCompleted = _Paths.episodeCompleted;
 }
 
 abstract class _Paths {
@@ -40,4 +49,13 @@ abstract class _Paths {
   static const watchHistory = "/watch-history";
   static const privacyPolicy = "/privacy-Policy";
   static const termCondition = "/term-Condition";
+  static const logout = "/logout";
+  static const deleteAccount1 = "/delete-account-1";
+  static const deleteAccount2 = "/delete-account-2";
+  static const subscriptionPage = "/subscription";
+  static const confirmSubscriptionPage = "/confirmSubcription";
+  static const dramaPlayer = "/drama-player";
+  static const notificationPage = "/notification";
+  static const notificationSetting = "/notification-setting";
+  static const episodeCompleted = "/episode-completed";
 }
