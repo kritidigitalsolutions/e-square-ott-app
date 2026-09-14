@@ -4,44 +4,14 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_buttons.dart';
+import '../controller/subscription_controller.dart';
 
-enum SubscriptionPlanType { monthly, yearly }
-
-class SubscriptionPage extends StatefulWidget {
+class SubscriptionPage extends StatelessWidget {
   const SubscriptionPage({super.key});
 
   @override
-  State<SubscriptionPage> createState() => _SubscriptionPageState();
-}
-
-class _SubscriptionPageState extends State<SubscriptionPage> {
-  SubscriptionPlanType _selectedPlan = SubscriptionPlanType.monthly;
-  bool _isLoading = false;
-
-  void _handleContinue() async {
-    setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Get.snackbar(
-        'Subscription Activated',
-        _selectedPlan == SubscriptionPlanType.monthly
-            ? 'You have subscribed to Monthly Plan (₹199/month).'
-            : 'You have subscribed to Yearly Plan (₹1,499/year).',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF1E1E26),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isMonthly = _selectedPlan == SubscriptionPlanType.monthly;
+    final subController = Get.find<SubscriptionController>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -142,31 +112,37 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                         const SizedBox(height: 28),
 
                         // ── Plan 1: Monthly Plan Card
-                        PlanOptionCard(
-                          title: 'Monthly Plan',
-                          price: '₹199',
-                          period: '/ month',
-                          isSelected: isMonthly,
-                          onTap: () {
-                            setState(() {
-                              _selectedPlan = SubscriptionPlanType.monthly;
-                            });
-                          },
-                        ),
+                        Obx(() {
+                          final isMonthly =
+                              subController.selectedPlan.value ==
+                              SubscriptionPlanType.monthly;
+                          return PlanOptionCard(
+                            title: 'Monthly Plan',
+                            price: '₹199',
+                            period: '/ month',
+                            isSelected: isMonthly,
+                            onTap: () => subController.selectPlan(
+                              SubscriptionPlanType.monthly,
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 14),
 
                         // ── Plan 2: Yearly Plan Card
-                        PlanOptionCard(
-                          title: 'Yearly Plan',
-                          price: '₹1,499',
-                          period: '/ year',
-                          isSelected: !isMonthly,
-                          onTap: () {
-                            setState(() {
-                              _selectedPlan = SubscriptionPlanType.yearly;
-                            });
-                          },
-                        ),
+                        Obx(() {
+                          final isYearly =
+                              subController.selectedPlan.value ==
+                              SubscriptionPlanType.yearly;
+                          return PlanOptionCard(
+                            title: 'Yearly Plan',
+                            price: '₹1,499',
+                            period: '/ year',
+                            isSelected: isYearly,
+                            onTap: () => subController.selectPlan(
+                              SubscriptionPlanType.yearly,
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 24),
 
                         // ── Features 2x2 Grid
@@ -216,18 +192,23 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                         const SizedBox(height: 28),
 
                         // ── Action Button (Reusable AppButton)
-                        AppButton(
-                          label: isMonthly
-                              ? 'Continue with Monthly'
-                              : 'Continue with Yearly',
-                          onPressed: () {
-                            Get.toNamed(Routes.confirmSubscriptionPage);
-                          },
-                          isLoading: _isLoading,
-                          backgroundColor: AppColors.primary,
-                          height: 52,
-                          borderRadius: 14,
-                        ),
+                        Obx(() {
+                          final isMonthly =
+                              subController.selectedPlan.value ==
+                              SubscriptionPlanType.monthly;
+                          return AppButton(
+                            label: isMonthly
+                                ? 'Continue with Monthly'
+                                : 'Continue with Yearly',
+                            onPressed: () {
+                              Get.toNamed(Routes.confirmSubscriptionPage);
+                            },
+                            isLoading: subController.isLoading.value,
+                            backgroundColor: AppColors.primary,
+                            height: 52,
+                            borderRadius: 14,
+                          );
+                        }),
                         const SizedBox(height: 14),
 
                         // ── Cancellation Disclaimer Note

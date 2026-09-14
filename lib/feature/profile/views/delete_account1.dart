@@ -3,19 +3,17 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
-import 'delete_account2.dart';
+import '../../../shared/widgets/custom_bottomsheet.dart';
 
 class DeleteAccount1 extends StatelessWidget {
   const DeleteAccount1({super.key});
 
   /// Helper to show this delete confirmation as a bottom sheet
   static Future<T?> showBottomSheet<T>(BuildContext context) {
-    return showModalBottomSheet<T>(
+    return CustomBottomSheet.show<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) => const DeleteAccount1BottomSheetContent(),
+      child: const DeleteAccount1BottomSheetContent(),
     );
   }
 
@@ -43,10 +41,7 @@ class DeleteAccount1 extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0A0A0E),
-                    Color(0xFF000000),
-                  ],
+                  colors: [Color(0xFF0A0A0E), Color(0xFF000000)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -59,7 +54,10 @@ class DeleteAccount1 extends StatelessWidget {
               children: [
                 // Top App Bar / Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       GestureDetector(
@@ -102,7 +100,10 @@ class DeleteAccount1 extends StatelessWidget {
                   child: Center(
                     child: SingleChildScrollView(
                       physics: BouncingScrollPhysics(),
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       child: DeleteAccount1ContentCard(),
                     ),
                   ),
@@ -129,10 +130,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0B0B0F),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: const Color(0xFF1E1E28),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFF1E1E28), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.6),
@@ -155,10 +153,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: const Color(0xFF160E12),
-              border: Border.all(
-                color: const Color(0xFFE42429),
-                width: 1.8,
-              ),
+              border: Border.all(color: const Color(0xFFE42429), width: 1.8),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFE42429).withValues(alpha: 0.22),
@@ -214,7 +209,8 @@ class DeleteAccount1ContentCard extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: ' account will\npermanently remove your profile and viewing data.',
+                    text:
+                        ' account will\npermanently remove your profile and viewing data.',
                   ),
                 ],
               ),
@@ -229,10 +225,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF140D10),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: const Color(0xFF4A181C),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFF4A181C), width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,10 +261,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF0C1017),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: const Color(0xFF0091EA),
-                width: 1.2,
-              ),
+              border: Border.all(color: const Color(0xFF0091EA), width: 1.2),
             ),
             child: Column(
               children: [
@@ -280,9 +270,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
                   isFirst: true,
                 ),
                 _buildDivider(),
-                _buildChecklistItem(
-                  text: 'Watch History will be deleted',
-                ),
+                _buildChecklistItem(text: 'Watch History will be deleted'),
                 _buildDivider(),
                 _buildChecklistItem(
                   text: 'Profile & preferences will be deleted',
@@ -336,11 +324,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(
-            Icons.close_rounded,
-            color: Color(0xFFE42429),
-            size: 16,
-          ),
+          const Icon(Icons.close_rounded, color: Color(0xFFE42429), size: 16),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
 
 class AuthController extends GetxController {
   // ── Phone input state
@@ -202,12 +203,9 @@ class AuthController extends GetxController {
     otpFocusNodes[0].requestFocus();
     _startOtpCountdown();
     // TODO: call resend OTP API
-    Get.snackbar(
-      'OTP Sent',
+    AppSnackbar.success(
       'A new OTP has been sent to your number.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
+      title: 'OTP Sent',
     );
   }
 

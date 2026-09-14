@@ -3,18 +3,18 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_bottomsheet.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
 
 class DeleteAccount2 extends StatefulWidget {
   const DeleteAccount2({super.key});
 
   /// Helper to show this confirmation as a bottom sheet
   static Future<T?> showBottomSheet<T>(BuildContext context) {
-    return showModalBottomSheet<T>(
+    return CustomBottomSheet.show<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) => const DeleteAccount2BottomSheetContent(),
+      child: const DeleteAccount2BottomSheetContent(),
     );
   }
 
@@ -163,13 +163,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
   void _handleDelete() async {
     final text = _textController.text.trim();
     if (text.toUpperCase() != 'DELETE') {
-      Get.snackbar(
-        'Confirmation Required',
+      AppSnackbar.warning(
         'Please type "DELETE" in the input field to proceed.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF1F1F26),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
+        title: 'Confirmation Required',
       );
       return;
     }
@@ -182,13 +178,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
     await Future.delayed(const Duration(milliseconds: 1000));
 
     if (mounted) {
-      Get.snackbar(
-        'Account Deleted',
+      AppSnackbar.info(
         'Your account and all associated data have been permanently removed.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.primary,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
+        title: 'Account Deleted',
       );
 
       // Navigate back to login

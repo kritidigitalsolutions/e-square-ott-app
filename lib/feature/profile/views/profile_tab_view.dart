@@ -4,6 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_buttons.dart';
+import '../../home/controller/home_controller.dart';
 import '../controller/profile_controller.dart';
 
 class ProfileTabView extends StatelessWidget {
@@ -26,30 +27,100 @@ class ProfileTabView extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Top Header matching screenshot (< Profile Your Entertainment² space  [Avatar])
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              child: Row(
                 children: [
-                  Text(
-                    "Profile",
-                    style: AppTextStyles.text20Bold.copyWith(
-                      color: AppColors.textPrimary,
+                  // Back button
+                  GestureDetector(
+                    onTap: () {
+                      if (Get.isRegistered<HomeController>()) {
+                        Get.find<HomeController>().currentNavIndex.value = 0;
+                      } else {
+                        Get.back();
+                      }
+                    },
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16161E),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    "Your Entertainment² space",
-                    style: AppTextStyles.text14Medium.copyWith(
-                      color: AppColors.textSecondary,
+                  const SizedBox(width: 14),
+
+                  // Title & Subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Profile".tr,
+                          style: AppTextStyles.text22Bold.copyWith(
+                            color: AppColors.textPrimary,
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Your Entertainment² space".tr,
+                          style: AppTextStyles.text13Medium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // User Avatar at top right
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        AppImages.banner1,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFF2A2A38),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white70,
+                            size: 24,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+
+            // ── Scrollable Profile Content
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -59,7 +130,7 @@ class ProfileTabView extends StatelessWidget {
 
                     // ── Section 1: Your Library
                     Text(
-                      'Your Library',
+                      'Your Library'.tr,
                       style: AppTextStyles.text16Bold.copyWith(
                         color: Colors.white,
                       ),
@@ -68,12 +139,12 @@ class ProfileTabView extends StatelessWidget {
                     _buildGroupedCard([
                       _ProfileMenuItem(
                         icon: Icons.bookmark_border_rounded,
-                        title: 'Saved Series',
+                        title: 'Saved Series'.tr,
                         onTap: controller.openSavedSeries,
                       ),
                       _ProfileMenuItem(
                         icon: Icons.history_rounded,
-                        title: 'Watch history',
+                        title: 'Watch history'.tr,
                         onTap: controller.openWatchHistory,
                       ),
                     ]),
@@ -81,7 +152,7 @@ class ProfileTabView extends StatelessWidget {
 
                     // ── Section 2: Account
                     Text(
-                      'Account',
+                      'Account'.tr,
                       style: AppTextStyles.text16Bold.copyWith(
                         color: Colors.white,
                       ),
@@ -89,23 +160,23 @@ class ProfileTabView extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildGroupedCard([
                       _ProfileMenuItem(
-                        icon: Icons.workspace_premium_outlined,
-                        title: 'Subscription',
+                        icon: Icons.military_tech_rounded,
+                        title: 'Subscription'.tr,
                         onTap: controller.openSubscription,
                       ),
                       _ProfileMenuItem(
                         icon: Icons.notifications_none_rounded,
-                        title: 'Notification',
+                        title: 'Notification'.tr,
                         onTap: controller.openNotification,
                       ),
                       _ProfileMenuItem(
                         icon: Icons.settings_outlined,
-                        title: 'Settings',
+                        title: 'Settings'.tr,
                         onTap: controller.openSettings,
                       ),
                       _ProfileMenuItem(
                         icon: Icons.notifications_active_outlined,
-                        title: 'Notification Settings',
+                        title: 'Notification Settings'.tr,
                         onTap: controller.openNotificationSettings,
                       ),
                     ]),
@@ -114,13 +185,13 @@ class ProfileTabView extends StatelessWidget {
                     // ── Section 3: Policies & Terms
                     _buildGroupedCard([
                       _ProfileMenuItem(
-                        icon: Icons.shield_outlined,
-                        title: 'Privacy Policy',
+                        icon: Icons.verified_user_outlined,
+                        title: 'Privacy Policy'.tr,
                         onTap: controller.openPrivacyPolicy,
                       ),
                       _ProfileMenuItem(
                         icon: Icons.description_outlined,
-                        title: 'Terms & Conditions',
+                        title: 'Terms & Conditions'.tr,
                         onTap: controller.openTermsAndConditions,
                       ),
                     ]),
@@ -128,38 +199,11 @@ class ProfileTabView extends StatelessWidget {
 
                     // ── Delete Account Button (Red solid)
                     AppButton(
-                      label: 'Delete Account',
+                      label: 'Delete Account'.tr,
                       onPressed: controller.showDeleteAccountDialog,
                       backgroundColor: AppColors.primary,
                       height: 50,
-                      borderRadius: 10,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Log Out Button (Dark outlined)
-                    GestureDetector(
-                      onTap: controller.logout,
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        height: 50,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF14141A),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: const Color(0xFF383848),
-                            width: 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Log Out',
-                            style: AppTextStyles.text16SemiBold.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
+                      borderRadius: 12,
                     ),
                     const SizedBox(height: 16),
                   ],

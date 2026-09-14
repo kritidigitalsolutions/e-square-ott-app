@@ -36,7 +36,7 @@ class SearchTabView extends StatelessWidget {
                 children: [
                   // Header Title
                   Text(
-                    'Search',
+                    'Search'.tr,
                     style: AppTextStyles.text24Bold.copyWith(
                       color: AppColors.textPrimary,
                     ),
@@ -45,7 +45,7 @@ class SearchTabView extends StatelessWidget {
 
                   // Subtitle
                   Text(
-                    'Find your next story',
+                    'Find a story that matches your mood'.tr,
                     style: AppTextStyles.text14Medium.copyWith(
                       color: const Color(0xFF8A8A8A),
                     ),
@@ -98,7 +98,7 @@ class SearchTabView extends StatelessWidget {
               cursorColor: AppColors.primary,
               style: AppTextStyles.text14Medium.copyWith(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Search series, episodes, genres...',
+                hintText: 'Search dramas, genres...'.tr,
                 hintStyle: AppTextStyles.text14.copyWith(
                   color: const Color(0xFF6E6E7E),
                 ),

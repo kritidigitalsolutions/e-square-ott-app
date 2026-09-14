@@ -1,5 +1,7 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
+import 'package:e_square_ott_app/core/localization/locale_controller.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_bottomsheet.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,29 +16,26 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoplay = true;
   String _videoQuality = 'Auto';
-  String _appLanguage = 'English';
 
   // Selected content languages (used by the bottom sheet)
   List<String> _selectedContentLanguages = [];
 
   void _openContentLanguageSheet() {
-    showModalBottomSheet(
+    CustomBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return ContentLanguageSheet(
-          initialSelected: _selectedContentLanguages,
-          onSave: (selected) {
-            setState(() => _selectedContentLanguages = selected);
-          },
-        );
-      },
+      child: ContentLanguageSheet(
+        initialSelected: _selectedContentLanguages,
+        onSave: (selected) {
+          setState(() => _selectedContentLanguages = selected);
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final localeController = Get.find<LocaleController>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -63,8 +62,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Get.back();
                         },
                       ),
-                      SizedBox(width: 14),
-                      Text("Settings", style: AppTextStyles.text18Bold),
+                      const SizedBox(width: 14),
+                      Text("Settings".tr, style: AppTextStyles.text18Bold),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -72,11 +71,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: ListView(
                       children: [
                         _SettingsSection(
-                          label: 'PLAYBACK',
+                          label: 'PLAYBACK'.tr,
                           children: [
                             _SettingsRow(
-                              title: 'Autoplay next episode',
-                              subtitle: 'Automatically continue your story',
+                              title: 'Autoplay next episode'.tr,
+                              subtitle: 'Automatically continue your story'.tr,
                               trailing: Switch(
                                 value: _autoplay,
                                 activeColor: AppColors.white,
@@ -87,8 +86,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                             _SettingsRow(
-                              title: 'Video quality',
-                              subtitle: 'Choose your default quality',
+                              title: 'Video quality'.tr,
+                              subtitle: 'Choose your default quality'.tr,
                               trailing: _SettingsDropdownChip(
                                 value: _videoQuality,
                                 options: const [
@@ -105,21 +104,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 20),
                         _SettingsSection(
-                          label: 'LANGUAGE',
+                          label: 'LANGUAGE'.tr,
                           children: [
                             _SettingsRow(
-                              title: 'App language',
-                              subtitle: 'Choose your preferred language',
-                              trailing: _SettingsDropdownChip(
-                                value: _appLanguage,
-                                options: const ['English', 'Hindi', 'Punjabi'],
-                                onSelected: (v) =>
-                                    setState(() => _appLanguage = v),
+                              title: 'App language'.tr,
+                              subtitle: 'Choose your preferred language'.tr,
+                              trailing: Obx(
+                                () => _SettingsDropdownChip(
+                                  value: localeController.currentLanguage.value,
+                                  options: LocaleController.supportedLanguages,
+                                  onSelected: (v) {
+                                    localeController.changeLanguage(v);
+                                  },
+                                ),
                               ),
                             ),
                             _SettingsRow(
-                              title: 'Content language',
-                              subtitle: 'Choose one or more languages',
+                              title: 'Content language'.tr,
+                              subtitle: 'Choose one or more languages'.tr,
                               onTap: _openContentLanguageSheet,
                               trailing: const Icon(
                                 Icons.keyboard_arrow_down,
@@ -390,18 +392,21 @@ class _ContentLanguageSheetState extends State<ContentLanguageSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Content Language',
-            style: TextStyle(
+          Text(
+            'Content language'.tr,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Select the languages you want to see across your Home feed.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          Text(
+            'Select the languages you want to see across your Home feed.'.tr,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 20),
           ...rows,
@@ -423,7 +428,7 @@ class _ContentLanguageSheetState extends State<ContentLanguageSheet> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Save Preference',
+                'Save Preference'.tr,
                 style: TextStyle(
                   color: canSave ? Colors.white : AppColors.textSecondary,
                   fontSize: 15,
@@ -436,9 +441,9 @@ class _ContentLanguageSheetState extends State<ContentLanguageSheet> {
           Center(
             child: InkWell(
               onTap: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
+              child: Text(
+                'Cancel'.tr,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13.5,
                 ),

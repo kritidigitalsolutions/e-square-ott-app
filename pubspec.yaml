@@ -36,6 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.7.2
   carousel_slider: ^5.1.2
+  animations: ^3.0.0
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  lottie: ^3.5.1
 
 
 dev_dependencies:
@@ -49,11 +54,13 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -64,6 +71,7 @@ flutter:
   assets:
     - assets/
     - assets/auth/
+    - assets/animation/
 
   # Custom fonts configuration
   fonts:

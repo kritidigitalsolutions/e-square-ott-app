@@ -46,7 +46,7 @@ class CategoriesScreen extends GetView<HomeController> {
 
                         // Title
                         Text(
-                          'Categories',
+                          'Categories'.tr,
                           style: AppTextStyles.text24Bold.copyWith(
                             color: Colors.white,
                           ),
@@ -55,7 +55,7 @@ class CategoriesScreen extends GetView<HomeController> {
 
                         // Subtitle
                         Text(
-                          'Find a story that matches your mood',
+                          'Find a story that matches your mood'.tr,
                           style: AppTextStyles.text14Medium.copyWith(
                             color: const Color(0xFF8A8A8A),
                           ),

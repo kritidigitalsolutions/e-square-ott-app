@@ -1,9 +1,8 @@
-import 'package:e_square_ott_app/constants/app_colors.dart';
-import 'package:e_square_ott_app/constants/app_text_styles.dart';
-import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/route_manager.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import '../../../constants/app_colors.dart';
+import '../../../constants/app_text_styles.dart';
 
 class NotificationSetting {
   final String key;
@@ -28,7 +27,6 @@ class NotificationSettingPage extends StatefulWidget {
 }
 
 class _NotificationSettingPageState extends State<NotificationSettingPage> {
-  // Replace with real data from your controller/provider.
   final List<NotificationSetting> alertSettings = [
     NotificationSetting(
       key: "new_episodes",
@@ -54,90 +52,113 @@ class _NotificationSettingPageState extends State<NotificationSettingPage> {
     setState(() {
       alertSettings[index].isEnabled = value;
     });
-    // TODO: persist this change via your controller/API.
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.loginBgGradient,
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomBackButton(onTap: () => Get.back()),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          "Notifications Settings",
-                          style: AppTextStyles.text24Bold.copyWith(
-                            color: AppColors.white,
-                            height: 1.18,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF09090D),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+
+              // ── Header (Back Button + Two-line Title)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Back button card
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16161E),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 18,
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Multi-line Title matching screenshot
+                    Expanded(
+                      child: Text(
+                        "Notifications\nSettings",
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1.15,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 36),
+
+              // ── Section Label (ALERTS)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "A L E R T S",
+                  style: TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.45),
+                    letterSpacing: 2.2,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-                // Section label
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    "ALERTS",
-                    style: AppTextStyles.text12.copyWith(
-                      color: AppColors.white.withOpacity(0.5),
-                      letterSpacing: 3,
-                    ),
+              // ── Alert Toggle Options List
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: alertSettings.length,
+                  separatorBuilder: (_, __) => Divider(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    height: 36,
+                    thickness: 1,
                   ),
+                  itemBuilder: (context, index) {
+                    final item = alertSettings[index];
+                    return _AlertToggleRow(
+                      title: item.title,
+                      subtitle: item.subtitle,
+                      value: item.isEnabled,
+                      onChanged: (value) => _toggleSetting(index, value),
+                    );
+                  },
                 ),
-
-                const SizedBox(height: 8),
-
-                // Alerts list
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    itemCount: alertSettings.length,
-                    separatorBuilder: (_, __) => Divider(
-                      color: AppColors.white.withOpacity(0.1),
-                      height: 32,
-                    ),
-                    itemBuilder: (context, index) {
-                      final item = alertSettings[index];
-                      return _AlertToggleRow(
-                        title: item.title,
-                        subtitle: item.subtitle,
-                        value: item.isEnabled,
-                        onChanged: (value) => _toggleSetting(index, value),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -161,36 +182,47 @@ class _AlertToggleRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Title & Subtitle
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: AppTextStyles.text18.copyWith(color: AppColors.white),
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  letterSpacing: 0.1,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: AppTextStyles.text14.copyWith(
-                  color: AppColors.white.withOpacity(0.5),
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white.withValues(alpha: 0.4),
+                  height: 1.3,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        Transform.scale(
-          scale: 0.9,
-          child: Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: Colors.white,
-            activeTrackColor: const Color(0xFFE53935),
-            inactiveThumbColor: Colors.grey.shade400,
-            inactiveTrackColor: Colors.grey.shade800,
-            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-          ),
+        const SizedBox(width: 16),
+
+        // iOS-style Custom Red Switch matching design
+        Switch.adaptive(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Colors.white,
+          activeTrackColor: AppColors.primary,
+          inactiveThumbColor: const Color(0xFF8E8E93),
+          inactiveTrackColor: const Color(0xFF2C2C36),
+          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ],
     );

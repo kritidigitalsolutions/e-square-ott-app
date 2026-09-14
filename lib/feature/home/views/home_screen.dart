@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../shared/widgets/custom_animation.dart';
+import '../../../shared/widgets/custom_dialog.dart';
 import '../../explore/views/explore_tab_view.dart';
 import '../../profile/views/profile_tab_view.dart';
 import '../controller/home_controller.dart';
@@ -13,11 +15,24 @@ class HomeScreen extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF0D0D12),
-        body: Stack(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        // If on Explore (1), Profile (2), or Search (3) tab → Go directly back to Home (0)
+        if (controller.currentNavIndex.value != 0) {
+          controller.currentNavIndex.value = 0;
+        } else {
+          // If on Home tab (0) → Show custom animated exit dialog
+          CustomDialog.showExitDialog(context);
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: const Color(0xFF0D0D12),
+          body: Stack(
           children: [
             // ── Background ambient gradient
             Positioned.fill(
@@ -37,32 +52,45 @@ class HomeScreen extends GetView<HomeController> {
               ),
             ),
 
-            // ── Main Tab Views
+            // ── Main Tab Views with CustomAnimation
             Obx(() {
-              switch (controller.currentNavIndex.value) {
+              final index = controller.currentNavIndex.value;
+              Widget currentTab;
+              switch (index) {
                 case 0:
-                  return const SafeArea(
+                  currentTab = const SafeArea(
                     bottom: false,
                     child: HomeTabView(),
                   );
+                  break;
                 case 1:
-                  return const ExploreTabView();
+                  currentTab = const ExploreTabView();
+                  break;
                 case 2:
-                  return const SafeArea(
+                  currentTab = const SafeArea(
                     bottom: false,
                     child: ProfileTabView(),
                   );
+                  break;
                 case 3:
-                  return const SafeArea(
+                  currentTab = const SafeArea(
                     bottom: false,
                     child: SearchTabView(),
                   );
+                  break;
                 default:
-                  return const SafeArea(
+                  currentTab = const SafeArea(
                     bottom: false,
                     child: HomeTabView(),
                   );
               }
+
+              return CustomAnimation.fadeThrough(
+                child: KeyedSubtree(
+                  key: ValueKey<int>(index),
+                  child: currentTab,
+                ),
+              );
             }),
 
             // ── Floating Bottom Navigation Bar
@@ -75,6 +103,7 @@ class HomeScreen extends GetView<HomeController> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

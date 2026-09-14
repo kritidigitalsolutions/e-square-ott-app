@@ -4,7 +4,7 @@ class AppImages {
   // Base paths
   static const String _basePath = 'assets';
   static const String _authPath = 'assets/auth';
-
+  static const String _animationPath = 'assets/animation';
   // App Logo
   static const String appLogo = '$_basePath/logo.png';
 
@@ -15,4 +15,5 @@ class AppImages {
 
   // Auth Images / Icons (Placeholder paths for auth assets)
   static const String bg = '$_authPath/bg.png';
+  static const String loading = "$_animationPath/loading.json";
 }

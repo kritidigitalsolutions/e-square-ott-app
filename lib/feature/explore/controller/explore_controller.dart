@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
 import '../models/explore_item_model.dart';
 
 class ExploreController extends GetxController {
@@ -50,14 +51,17 @@ class ExploreController extends GetxController {
 
   void toggleMyList(ExploreItemModel item) {
     item.isInMyList.value = !item.isInMyList.value;
-    Get.snackbar(
-      item.isInMyList.value ? 'Added to List' : 'Removed from List',
-      '${item.title} has been ${item.isInMyList.value ? 'added to' : 'removed from'} your watchlist.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+    if (item.isInMyList.value) {
+      AppSnackbar.success(
+        '${item.title} has been added to your watchlist.',
+        title: 'Added to List',
+      );
+    } else {
+      AppSnackbar.info(
+        '${item.title} has been removed from your watchlist.',
+        title: 'Removed from List',
+      );
+    }
   }
 
   void watchNow(ExploreItemModel item) {

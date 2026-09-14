@@ -24,28 +24,28 @@ class CustomBottomNavBar extends GetView<HomeController> {
           children: [
             _buildNavItem(
               0,
-              'Home',
+              'Home'.tr,
               Icons.home_rounded,
               Icons.home_outlined,
               activeIndex,
             ),
             _buildNavItem(
               1,
-              'Explore',
+              'Explore'.tr,
               Icons.smart_display_rounded,
               Icons.smart_display_outlined,
               activeIndex,
             ),
             _buildNavItem(
               2,
-              'Profile',
+              'Profile'.tr,
               Icons.person_rounded,
               Icons.person_outline_rounded,
               activeIndex,
             ),
             _buildNavItem(
               3,
-              'Search',
+              'Search'.tr,
               Icons.search_rounded,
               Icons.search_rounded,
               activeIndex,

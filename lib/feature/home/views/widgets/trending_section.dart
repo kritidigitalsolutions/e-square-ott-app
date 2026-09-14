@@ -13,7 +13,7 @@ class TrendingSection extends GetView<HomeController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Trending', onTap: () {}),
+        _buildSectionHeader('Trending Now'.tr, onTap: () {}),
         const SizedBox(height: 14),
 
         // 2x2 Grid using Column of Rows for optimal performance

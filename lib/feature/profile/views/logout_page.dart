@@ -3,18 +3,17 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_bottomsheet.dart';
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
 
   /// Helper to show this logout confirmation as a bottom sheet
   static Future<T?> showBottomSheet<T>(BuildContext context) {
-    return showModalBottomSheet<T>(
+    return CustomBottomSheet.show<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (context) => const LogoutBottomSheetContent(),
+      child: const LogoutBottomSheetContent(),
     );
   }
 

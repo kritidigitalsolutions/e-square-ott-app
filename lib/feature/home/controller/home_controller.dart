@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
 import '../models/category_model.dart';
 import '../models/movie_model.dart';
 
@@ -416,13 +417,9 @@ class HomeController extends GetxController {
 
   void removeContinueWatching(String id) {
     continueWatchingList.removeWhere((item) => item.id == id);
-    Get.snackbar(
-      'Removed',
+    AppSnackbar.info(
       'Series removed from Continue Watching',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1C1C1C),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
+      title: 'Removed',
     );
   }
 

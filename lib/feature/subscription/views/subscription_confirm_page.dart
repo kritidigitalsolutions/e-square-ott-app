@@ -3,19 +3,19 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_buttons.dart';
+import '../controller/subscription_controller.dart';
 
 class SubscriptionConfirmPage extends StatefulWidget {
   const SubscriptionConfirmPage({super.key});
 
   /// Helper to show this confirmation as a bottom sheet
   static Future<T?> showBottomSheet<T>(BuildContext context) {
-    return showModalBottomSheet<T>(
+    return CustomBottomSheet.show<T>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) => const SubscriptionConfirmBottomSheetContent(),
+      child: const SubscriptionConfirmBottomSheetContent(),
     );
   }
 
@@ -109,34 +109,21 @@ class SubscriptionConfirmCard extends StatefulWidget {
 }
 
 class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
-  bool _isLoading = false;
-
   void _handlePayment() async {
-    setState(() => _isLoading = true);
+    final subController = Get.find<SubscriptionController>();
+    final success = await subController.subscribe();
 
-    // Simulate payment processing
-    await Future.delayed(const Duration(milliseconds: 1000));
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-
-      Get.snackbar(
-        'Payment Successful',
-        'Welcome to Entertainment² Premium! All content is now unlocked.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF1E1E26),
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      );
-
-      // Navigate back to Home
-      Get.offAllNamed(Routes.home);
+    if (success && mounted) {
+      Get.until((route) =>
+          route.settings.name != Routes.confirmSubscriptionPage &&
+          route.settings.name != Routes.subscriptionPage);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final subController = Get.find<SubscriptionController>();
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
@@ -221,14 +208,16 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
           const SizedBox(height: 32),
 
           // ── Primary Action: Continue to Pay Button (Using AppButton)
-          AppButton(
-            label: 'Continue to Pay',
-            onPressed: _isLoading ? null : _handlePayment,
-            isLoading: _isLoading,
-            backgroundColor: AppColors.primary,
-            height: 52,
-            borderRadius: 14,
-          ),
+          Obx(() {
+            return AppButton(
+              label: 'Continue to Pay',
+              onPressed: subController.isLoading.value ? null : _handlePayment,
+              isLoading: subController.isLoading.value,
+              backgroundColor: AppColors.primary,
+              height: 52,
+              borderRadius: 14,
+            );
+          }),
           const SizedBox(height: 14),
 
           // ── Secondary Action: Change Plan Button

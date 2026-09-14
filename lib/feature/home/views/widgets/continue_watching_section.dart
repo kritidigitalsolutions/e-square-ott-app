@@ -25,7 +25,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
             onTap: () => Get.toNamed(Routes.continueWatching),
             behavior: HitTestBehavior.opaque,
             child: Text(
-              'Continue Watching',
+              'Continue Watching'.tr,
               style: AppTextStyles.text16Bold.copyWith(color: Colors.white),
             ),
           ),
@@ -72,7 +72,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'View All',
+                        'See All'.tr,
                         textAlign: TextAlign.center,
                         style: AppTextStyles.text11Medium.copyWith(
                           color: const Color(0xFF8A8A8A),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
-
+import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_bottomsheet.dart';
+import '../../subscription/controller/subscription_controller.dart';
 import '../controller/explore_controller.dart';
 import '../models/explore_item_model.dart';
 
@@ -127,7 +129,7 @@ class _ExploreCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
 
-              // ── Buttons Row: [ ▶ Watch Now ]  [ + My List ]
+              // ── Buttons Row: [ ▶ Watch Now ]  [ 📑 Episodes ]  [ + My List ]
               Row(
                 children: [
                   // Watch Now Button
@@ -135,8 +137,8 @@ class _ExploreCard extends StatelessWidget {
                     onTap: () => exploreController.watchNow(item),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                        horizontal: 14,
+                        vertical: 11,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
@@ -155,12 +157,12 @@ class _ExploreCard extends StatelessWidget {
                           const Icon(
                             Icons.play_arrow_rounded,
                             color: Colors.white,
-                            size: 20,
+                            size: 18,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Text(
                             'Watch Now',
-                            style: AppTextStyles.text14SemiBold.copyWith(
+                            style: AppTextStyles.text13SemiBold.copyWith(
                               color: Colors.white,
                             ),
                           ),
@@ -168,7 +170,44 @@ class _ExploreCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
+
+                  // Episodes Switcher Button
+                  GestureDetector(
+                    onTap: () => _openEpisodesSheet(context, item),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF181822).withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFF383848),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.video_library_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Episodes',
+                            style: AppTextStyles.text13SemiBold.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
 
                   // + My List Button
                   Obx(() {
@@ -177,8 +216,8 @@ class _ExploreCard extends StatelessWidget {
                       onTap: () => exploreController.toggleMyList(item),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 12,
+                          horizontal: 12,
+                          vertical: 11,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF141414).withValues(alpha: 0.8),
@@ -196,11 +235,11 @@ class _ExploreCard extends StatelessWidget {
                             Icon(
                               inList ? Icons.check_rounded : Icons.add_rounded,
                               color: inList ? AppColors.primary : Colors.white,
-                              size: 18,
+                              size: 16,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
-                              inList ? 'In My List' : '+ My List',
+                              inList ? 'In List' : '+ List',
                               style: AppTextStyles.text13SemiBold.copyWith(
                                 color: inList
                                     ? AppColors.primary
@@ -218,6 +257,287 @@ class _ExploreCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // ── Episodes Bottom Sheet for Reel/Explore View
+  void _openEpisodesSheet(BuildContext context, ExploreItemModel item) {
+    final List<Map<String, dynamic>> episodes = [
+      {
+        'title': 'Episode 01 · The Beginning',
+        'duration': '2:08',
+        'status': 'Watched',
+        'isLocked': false,
+      },
+      {
+        'title': 'Episode 02 · Hidden Whispers',
+        'duration': '2:15',
+        'status': 'Watched',
+        'isLocked': false,
+      },
+      {
+        'title': 'Episode 03 · The Betrayal',
+        'duration': '2:20',
+        'status': 'Watched',
+        'isLocked': false,
+      },
+      {
+        'title': 'Episode 04 · Forbidden Fire',
+        'duration': '2:18',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 05 · Shattered Vows',
+        'duration': '2:12',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 06 · The Confrontation',
+        'duration': '2:25',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 07 · The Secret',
+        'duration': '2:14',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 08 · Dangerous Game',
+        'duration': '2:30',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 09 · A Dark Lie',
+        'duration': '2:10',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 10 · Redemption',
+        'duration': '2:22',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 11 · The Final Trap',
+        'duration': '2:40',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+      {
+        'title': 'Episode 12 · Forever Mine',
+        'duration': '2:50',
+        'status': 'Locked',
+        'isLocked': true,
+      },
+    ];
+
+    CustomBottomSheet.show(
+      context: context,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.65,
+        decoration: const BoxDecoration(
+          color: Color(0xFF141419),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: "Episodes · 12" + "Close"
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Episodes · ${episodes.length}',
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF22222E),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF323242),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Text(
+                        'Close',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // List of episodes
+              Expanded(
+                child: Obx(() {
+                  final subController = Get.find<SubscriptionController>();
+                  final isSubscribed = subController.isSubscribed.value;
+
+                  return ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: episodes.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 18, color: Color(0xFF242432)),
+                    itemBuilder: (context, index) {
+                      final ep = episodes[index];
+                      final isCurrent = index == 0;
+                      final isLocked = !isSubscribed && index >= 3;
+
+                      return InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.toNamed(
+                            Routes.dramaPlayer,
+                            arguments: {
+                              'title': item.title,
+                              'description': item.description,
+                              'image': item.image,
+                              'initialEpisodeIndex': index,
+                            },
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              // Episode Thumbnail with Play icon overlay
+                              Container(
+                                width: 62,
+                                height: 62,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: isCurrent
+                                      ? Border.all(
+                                          color: AppColors.primary,
+                                          width: 2,
+                                        )
+                                      : Border.all(
+                                          color: const Color(0xFF282836),
+                                          width: 1,
+                                        ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.asset(
+                                        item.image,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, e, s) => Container(
+                                          color: const Color(0xFF22222E),
+                                        ),
+                                      ),
+                                      Container(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                      ),
+                                      Center(
+                                        child: Container(
+                                          width: 22,
+                                          height: 22,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black.withValues(
+                                              alpha: 0.55,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.play_arrow_rounded,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+
+                              // Episode Title & status
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ep['title'],
+                                      style: TextStyle(
+                                        fontFamily: AppTextStyles.fontFamily,
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: isCurrent
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isCurrent
+                                          ? '${ep['duration']} · Now Playing'
+                                          : '${ep['duration']} · ${ep['status']}',
+                                      style: const TextStyle(
+                                        fontFamily: AppTextStyles.fontFamily,
+                                        color: Color(0xFF8E8E9E),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Trailing Lock Icon
+                              if (isLocked)
+                                const Icon(
+                                  Icons.lock_outline_rounded,
+                                  color: Color(0xFF8E8E9E),
+                                  size: 19,
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

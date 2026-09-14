@@ -6,6 +6,7 @@ import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_buttons.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../explore/models/explore_item_model.dart';
 import '../models/movie_model.dart';
 
@@ -63,45 +64,40 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
     setState(() {
       _isInMyList = !_isInMyList;
     });
-    Get.snackbar(
-      _isInMyList ? 'Added to List' : 'Removed from List',
-      _isInMyList
-          ? '$_seriesTitle has been added to your Saved Series.'
-          : '$_seriesTitle has been removed from your Saved Series.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1E1E26),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
-    );
+    if (_isInMyList) {
+      AppSnackbar.success(
+        '$_seriesTitle has been added to your Saved Series.',
+        title: 'Added to List',
+      );
+    } else {
+      AppSnackbar.info(
+        '$_seriesTitle has been removed from your Saved Series.',
+        title: 'Removed from List',
+      );
+    }
   }
 
   void _toggleRate() {
     setState(() {
       _isLiked = !_isLiked;
     });
-    Get.snackbar(
-      _isLiked ? 'Rated Drama' : 'Rating Removed',
-      _isLiked
-          ? 'Thank you for liking this drama!'
-          : 'Your rating has been updated.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1E1E26),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
-    );
+    if (_isLiked) {
+      AppSnackbar.success(
+        'Thank you for liking this drama!',
+        title: 'Rated Drama',
+      );
+    } else {
+      AppSnackbar.info(
+        'Your rating has been updated.',
+        title: 'Rating Removed',
+      );
+    }
   }
 
   void _shareDrama() {
-    Get.snackbar(
-      'Share Drama',
+    AppSnackbar.info(
       'Sharing link for $_seriesTitle copied to clipboard!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF1E1E26),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
+      title: 'Share Drama',
     );
   }
 
@@ -173,9 +169,9 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                         const SizedBox(height: 24),
 
                         // ── Subtitle: "You've completed"
-                        const Text(
-                          "You’ve completed",
-                          style: TextStyle(
+                        Text(
+                          "You’ve completed".tr,
+                          style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             color: Colors.white70,
                             fontSize: 18,
@@ -202,7 +198,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
 
                         // ── Primary Action: "Explore More Dramas" (Red Button)
                         AppButton(
-                          label: 'Explore More Dramas',
+                          label: 'Explore More Dramas'.tr,
                           onPressed: () {
                             Get.offAllNamed(Routes.home);
                           },

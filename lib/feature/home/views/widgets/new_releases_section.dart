@@ -18,7 +18,7 @@ class NewReleasesSection extends GetView<HomeController> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: _buildSectionHeader(
-            'New Releases',
+            'New Releases'.tr,
             onTap: () => Get.toNamed(Routes.newReleases),
           ),
         ),
