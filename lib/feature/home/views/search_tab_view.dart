@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -82,25 +83,43 @@ class SearchTabView extends StatelessWidget {
   // ── Search Input Bar Widget
   Widget _buildSearchInputField(SearchTabController controller) {
     return Container(
-      height: 48,
+      height: 50,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF14141E).withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           const SizedBox(width: 14),
-          const Icon(Icons.search_rounded, color: Color(0xFF6E6E7E), size: 20),
-          const SizedBox(width: 10),
+          const FaIcon(
+            FontAwesomeIcons.magnifyingGlass,
+            color: Color(0xFF8E8E9E),
+            size: 16,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: controller.searchTextController,
               cursorColor: AppColors.primary,
-              style: AppTextStyles.text14Medium.copyWith(color: Colors.white),
+              style: AppTextStyles.text14Medium.copyWith(
+                color: Colors.white,
+                letterSpacing: 0.2,
+              ),
               decoration: InputDecoration(
                 hintText: 'Search dramas, genres...'.tr,
                 hintStyle: AppTextStyles.text14.copyWith(
-                  color: const Color(0xFF6E6E7E),
+                  color: const Color(0xFF5A5A6E),
                 ),
                 border: InputBorder.none,
                 isDense: true,
@@ -114,11 +133,11 @@ class SearchTabView extends StatelessWidget {
                 onTap: controller.clearSearch,
                 behavior: HitTestBehavior.opaque,
                 child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: Color(0xFF8A8A8A),
-                    size: 18,
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: FaIcon(
+                    FontAwesomeIcons.xmark,
+                    color: Color(0xFF8A8A9E),
+                    size: 15,
                   ),
                 ),
               );
@@ -164,7 +183,7 @@ class SearchTabView extends StatelessWidget {
                         child: Text(
                           'Clear All',
                           style: AppTextStyles.text13Medium.copyWith(
-                            color: const Color(0xFF8A8A8A),
+                            color: const Color(0xFF8A8A9E),
                           ),
                         ),
                       ),
@@ -178,25 +197,31 @@ class SearchTabView extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: controller.recentSearches.length,
-                  separatorBuilder: (context, index) => const Divider(
+                  separatorBuilder: (context, index) => Divider(
                     height: 1,
                     thickness: 0.8,
-                    color: Color(0xFF22222E),
+                    color: Colors.white.withValues(alpha: 0.06),
                   ),
                   itemBuilder: (context, index) {
                     final item = controller.recentSearches[index];
                     return InkWell(
                       onTap: () => controller.selectSearchQuery(item),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(8),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Row(
                           children: [
+                            const FaIcon(
+                              FontAwesomeIcons.clockRotateLeft,
+                              size: 14,
+                              color: Color(0xFF6E6E82),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 item,
                                 style: AppTextStyles.text14Medium.copyWith(
-                                  color: const Color(0xFF8A8A8A),
+                                  color: const Color(0xFFC0C0D0),
                                 ),
                               ),
                             ),
@@ -204,10 +229,10 @@ class SearchTabView extends StatelessWidget {
                               onTap: () => controller.removeRecentSearch(index),
                               behavior: HitTestBehavior.opaque,
                               child: const Padding(
-                                padding: EdgeInsets.all(4.0),
-                                child: Icon(
-                                  Icons.close_rounded,
-                                  size: 16,
+                                padding: EdgeInsets.all(6.0),
+                                child: FaIcon(
+                                  FontAwesomeIcons.xmark,
+                                  size: 13,
                                   color: Color(0xFF6E6E7E),
                                 ),
                               ),
@@ -241,32 +266,51 @@ class SearchTabView extends StatelessWidget {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF14141E).withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.07),
+                    width: 0.8,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      item['number']!,
-                      style: const TextStyle(
-                        fontFamily: AppTextStyles.fontFamily,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          item['title']!,
-                          style: AppTextStyles.text14Medium.copyWith(
-                            color: const Color(0xFFD0D0DC),
-                          ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        item['number']!,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 34), // Balance spacing with number
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        item['title']!,
+                        style: AppTextStyles.text14SemiBold.copyWith(
+                          color: const Color(0xFFE0E0EC),
+                        ),
+                      ),
+                    ),
+                    const FaIcon(
+                      FontAwesomeIcons.chevronRight,
+                      size: 12,
+                      color: Color(0xFF6E6E7E),
+                    ),
                   ],
                 ),
               ),
@@ -352,10 +396,10 @@ class SearchTabView extends StatelessWidget {
                 errorBuilder: (_, e, s) => Container(
                   color: const Color(0xFF1E1E28),
                   child: const Center(
-                    child: Icon(
-                      Icons.movie_outlined,
+                    child: FaIcon(
+                      FontAwesomeIcons.film,
                       color: Color(0xFF4A4A5A),
-                      size: 28,
+                      size: 24,
                     ),
                   ),
                 ),
@@ -419,10 +463,12 @@ class SearchTabView extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFF2E2E3E), width: 1),
                 ),
-                child: const Icon(
-                  Icons.search_off_rounded,
-                  color: Color(0xFF8A8A9A),
-                  size: 32,
+                child: const Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.magnifyingGlass,
+                    color: Color(0xFF8A8A9A),
+                    size: 26,
+                  ),
                 ),
               ),
               const SizedBox(height: 18),

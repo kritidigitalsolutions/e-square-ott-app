@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
@@ -265,14 +266,14 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      FaIcon(
                                         _isLiked
-                                            ? Icons.thumb_up_rounded
-                                            : Icons.thumb_up_alt_outlined,
+                                            ? FontAwesomeIcons.solidThumbsUp
+                                            : FontAwesomeIcons.thumbsUp,
                                         color: _isLiked
                                             ? const Color(0xFFE42429)
                                             : Colors.white,
-                                        size: 18,
+                                        size: 16,
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
@@ -311,10 +312,10 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
-                                      Icon(
-                                        Icons.share_outlined,
+                                      FaIcon(
+                                        FontAwesomeIcons.shareNodes,
                                         color: Colors.white,
-                                        size: 18,
+                                        size: 16,
                                       ),
                                       SizedBox(width: 8),
                                       Text(
@@ -416,13 +417,25 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                       color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    child: Text(
-                      '▶ ${drama['plays']}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.play,
+                          color: Colors.white,
+                          size: 8,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          drama['plays']!,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -451,10 +464,10 @@ class _RadiantCheckmarkBadge extends StatelessWidget {
             size: const Size(96, 96),
             painter: _RadiatingTicksPainter(),
           ),
-          const Icon(
-            Icons.check_rounded,
+          const FaIcon(
+            FontAwesomeIcons.check,
             color: Color(0xFF76D275),
-            size: 46,
+            size: 40,
           ),
         ],
       ),

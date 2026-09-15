@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart';
 class AppAnimations {
   AppAnimations._();
 
-  static const String _animationPath = 'assets/animations';
+  static const String _animationPath = 'assets/animation';
 
   static const String loading = "$_animationPath/loading.json";
 }
@@ -16,7 +16,7 @@ class LoadingWidget extends StatelessWidget {
 
   const LoadingWidget({
     super.key,
-    this.size = 120,
+    this.size = 90,
     this.message,
     this.messageColor,
   });
@@ -34,6 +34,16 @@ class LoadingWidget extends StatelessWidget {
               AppAnimations.loading,
               fit: BoxFit.contain,
               repeat: true,
+              errorBuilder: (_, __, ___) => const Center(
+                child: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.8,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE42429)),
+                  ),
+                ),
+              ),
             ),
           ),
           if (message != null) ...[

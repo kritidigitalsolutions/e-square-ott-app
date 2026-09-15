@@ -26,12 +26,29 @@ class MyApp extends StatelessWidget {
         title: 'E-Square OTT',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.dark(
+          useMaterial3: true,
+          brightness: Brightness.dark,
+          colorScheme: const ColorScheme.dark(
             primary: AppColors.primary,
             surface: AppColors.surface,
+            onPrimary: Colors.white,
+            onSurface: AppColors.textPrimary,
           ),
           scaffoldBackgroundColor: AppColors.background,
           fontFamily: 'AfacadFlux',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          dividerColor: AppColors.divider,
+          textSelectionTheme: const TextSelectionThemeData(
+            cursorColor: AppColors.primary,
+            selectionColor: Color(0x66E42429),
+            selectionHandleColor: AppColors.primary,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+          ),
         ),
         translations: AppTranslations(),
         locale: localeController.currentLocale.value,

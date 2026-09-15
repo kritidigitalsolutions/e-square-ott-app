@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
@@ -568,10 +569,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                               alpha: 0.55,
                                             ),
                                           ),
-                                          child: const Icon(
-                                            Icons.play_arrow_rounded,
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.play,
                                             color: Colors.white,
-                                            size: 16,
+                                            size: 10,
                                           ),
                                         ),
                                       ),
@@ -617,10 +618,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
                               // Trailing Lock Icon
                               if (isLocked)
-                                const Icon(
-                                  Icons.lock_outline_rounded,
+                                const FaIcon(
+                                  FontAwesomeIcons.lock,
                                   color: Color(0xFF8E8E9E),
-                                  size: 19,
+                                  size: 14,
                                 ),
                             ],
                           ),
@@ -793,10 +794,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                             shape: BoxShape.circle,
                             color: Color(0xFF2D231E),
                           ),
-                          child: const Icon(
-                            Icons.lock_rounded,
+                          child: const FaIcon(
+                            FontAwesomeIcons.lock,
                             color: Color(0xFFFFA726), // Amber Gold
-                            size: 24,
+                            size: 18,
                           ),
                         ),
                       ),
@@ -936,10 +937,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           // Options button -> opens Playback Settings Sheet
           IconButton(
             onPressed: _openPlaybackSettings,
-            icon: const Icon(
-              Icons.more_vert_rounded,
+            icon: const FaIcon(
+              FontAwesomeIcons.ellipsisVertical,
               color: Colors.white,
-              size: 24,
+              size: 18,
             ),
           ),
         ],
@@ -987,11 +988,11 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.chevron_right_rounded,
+                      SizedBox(width: 6),
+                      FaIcon(
+                        FontAwesomeIcons.chevronRight,
                         color: Color(0xFFE42429),
-                        size: 16,
+                        size: 12,
                       ),
                     ],
                   ),
@@ -1021,12 +1022,12 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Icon(
-                          Icons.check_circle_outline_rounded,
+                        FaIcon(
+                          FontAwesomeIcons.circleCheck,
                           color: Colors.white,
-                          size: 15,
+                          size: 13,
                         ),
-                        SizedBox(width: 5),
+                        SizedBox(width: 6),
                         Text(
                           'Finish Series',
                           style: TextStyle(
@@ -1311,14 +1312,14 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
+                                    FaIcon(
                                       _isLiked
-                                          ? Icons.thumb_up_rounded
-                                          : Icons.thumb_up_alt_outlined,
+                                          ? FontAwesomeIcons.solidThumbsUp
+                                          : FontAwesomeIcons.thumbsUp,
                                       color: _isLiked
                                           ? const Color(0xFFE42429)
                                           : Colors.white,
-                                      size: 18,
+                                      size: 16,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -1357,10 +1358,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: const [
-                                    Icon(
-                                      Icons.share_outlined,
+                                    FaIcon(
+                                      FontAwesomeIcons.shareNodes,
                                       color: Colors.white,
-                                      size: 18,
+                                      size: 16,
                                     ),
                                     SizedBox(width: 8),
                                     Text(
@@ -1459,13 +1460,25 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                       color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    child: Text(
-                      '▶ ${drama['plays']}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.play,
+                          color: Colors.white,
+                          size: 8,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          drama['plays']!,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1494,7 +1507,11 @@ class _RadiantCheckmarkBadge extends StatelessWidget {
             size: const Size(96, 96),
             painter: _RadiatingTicksPainter(),
           ),
-          const Icon(Icons.check_rounded, color: Color(0xFF76D275), size: 46),
+          const FaIcon(
+            FontAwesomeIcons.check,
+            color: Color(0xFF76D275),
+            size: 40,
+          ),
         ],
       ),
     );

@@ -16,16 +16,18 @@ class AppSizes {
   static const double p48 = 48.0;
 
   // Border Radii
-  static const double radiusSmall = 6.0;
+  static const double radiusSmall = 8.0;
   static const double radiusMedium = 12.0;
   static const double radiusLarge = 16.0;
   static const double radiusExtraLarge = 24.0;
+  static const double radiusSuper = 28.0;
   static const double radiusCircular = 100.0;
 
   static BorderRadius get borderRadiusSmall => BorderRadius.circular(radiusSmall);
   static BorderRadius get borderRadiusMedium => BorderRadius.circular(radiusMedium);
   static BorderRadius get borderRadiusLarge => BorderRadius.circular(radiusLarge);
   static BorderRadius get borderRadiusExtraLarge => BorderRadius.circular(radiusExtraLarge);
+  static BorderRadius get borderRadiusSuper => BorderRadius.circular(radiusSuper);
   static BorderRadius get borderRadiusCircular => BorderRadius.circular(radiusCircular);
 
   // Icon Sizes

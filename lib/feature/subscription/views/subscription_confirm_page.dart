@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -83,7 +84,7 @@ class _SubscriptionConfirmPageState extends State<SubscriptionConfirmPage> {
                     child: SingleChildScrollView(
                       physics: BouncingScrollPhysics(),
                       padding: EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: 14,
                         vertical: 16,
                       ),
                       child: SubscriptionConfirmCard(),
@@ -127,7 +128,7 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 30),
       decoration: BoxDecoration(
         color: const Color(0xFF14141A),
         borderRadius: BorderRadius.circular(28),
@@ -147,19 +148,34 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
         children: [
           const SizedBox(height: 8),
 
-          // ── White Checkmark Icon Badge
+          // ── Glowing Radiant Checkmark Icon Badge
           Container(
-            width: 72,
-            height: 72,
+            width: 76,
+            height: 76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2.5),
+              color: const Color(0xFF160E12),
+              border: Border.all(
+                color: const Color(0xFFE42429),
+                width: 2.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFE42429).withValues(alpha: 0.35),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
             child: const Center(
-              child: Icon(Icons.check_rounded, color: Colors.white, size: 42),
+              child: FaIcon(
+                FontAwesomeIcons.check,
+                color: Colors.white,
+                size: 34,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
           // ── Title
           const Text(
@@ -173,7 +189,7 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // ── Subtitle / Description
           Padding(
@@ -181,16 +197,16 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
-                  color: const Color(0xFF9E9EA8),
+                  color: Color(0xFF9E9EA8),
                   fontSize: 14.0,
                   fontWeight: FontWeight.w400,
                   height: 1.45,
                 ),
-                children: const [
-                  TextSpan(text: 'Your '),
-                  TextSpan(
+                children: [
+                  const TextSpan(text: 'Your '),
+                  const TextSpan(
                     text: 'Entertainment\u00B2',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
@@ -199,13 +215,13 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
                   ),
                   TextSpan(
                     text:
-                        ' Premium membership is ready. Complete payment to unlock the full library.',
+                        ' ${subController.selectedPlan.value == SubscriptionPlanType.monthly ? "Monthly (₹199/mo)" : "Yearly (₹1,499/yr)"} membership is ready. Complete payment to unlock the full library.',
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 30),
 
           // ── Primary Action: Continue to Pay Button (Using AppButton)
           Obx(() {
@@ -228,9 +244,12 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
               height: 52,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E24),
+                color: const Color(0xFF1A1A24),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E36), width: 1),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
               ),
               child: const Center(
                 child: Text(
@@ -238,7 +257,7 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
                   style: TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
 class SavedSeriesModel {
@@ -116,7 +117,13 @@ class _SavedSeriesTile extends StatelessWidget {
               width: 56,
               height: 56,
               color: AppColors.primary,
-              child: const Icon(Icons.image, color: AppColors.textSecondary),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.image,
+                  color: AppColors.textSecondary,
+                  size: 22,
+                ),
+              ),
             ),
           ),
         ),
@@ -172,8 +179,8 @@ class _WatchButton extends StatelessWidget {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.play_arrow_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 4),
+            FaIcon(FontAwesomeIcons.play, color: Colors.white, size: 12),
+            SizedBox(width: 6),
             Text(
               'Continue',
               style: TextStyle(

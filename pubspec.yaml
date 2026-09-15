@@ -41,6 +41,8 @@ dependencies:
     sdk: flutter
   intl: ^0.20.2
   lottie: ^3.5.1
+  font_awesome_flutter: ^11.0.0
+  flutter_staggered_animations: ^1.0.0
 
 
 dev_dependencies:

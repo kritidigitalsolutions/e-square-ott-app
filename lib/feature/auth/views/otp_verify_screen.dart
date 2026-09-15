@@ -269,29 +269,41 @@ class _OtpBox extends StatelessWidget {
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
           cursorColor: AppColors.primary,
-          style: AppTextStyles.text24Bold.copyWith(color: Colors.white),
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: AppTextStyles.text24Bold.copyWith(
+            color: Colors.white,
+            letterSpacing: 1.0,
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(1),
+          ],
           onChanged: (val) {
             onChanged(val);
           },
           decoration: InputDecoration(
             counterText: '',
             filled: true,
-            fillColor: const Color(0xFF202020),
+            fillColor: const Color(0xFF14141E),
             contentPadding: EdgeInsets.zero,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF2E2E2E), width: 1),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF2E2E2E), width: 1),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
                 color: AppColors.primary,
-                width: 1.5,
+                width: 1.6,
               ),
             ),
           ),

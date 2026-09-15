@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
@@ -253,12 +254,12 @@ class LoginScreen extends GetView<AuthController> {
                 ),
               ),
               Positioned(
-                bottom: 10,
-                right: 8,
-                child: Icon(
-                  Icons.play_arrow_rounded,
+                bottom: 12,
+                right: 10,
+                child: FaIcon(
+                  FontAwesomeIcons.play,
                   color: AppColors.primary,
-                  size: 22,
+                  size: 14,
                 ),
               ),
             ],
@@ -311,31 +312,45 @@ class _PhoneInputField extends StatelessWidget {
       () => Container(
         height: 52,
         decoration: BoxDecoration(
-          color: const Color(0xFF1C1C1C),
-          borderRadius: BorderRadius.circular(8),
+          color: const Color(0xFF14141E),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: controller.phoneFocusNode.hasFocus
-                ? AppColors.primary.withValues(alpha: 0.6)
-                : const Color(0xFF2E2E2E),
-            width: 1,
+                ? AppColors.primary
+                : Colors.white.withValues(alpha: 0.1),
+            width: controller.phoneFocusNode.hasFocus ? 1.4 : 1.0,
           ),
+          boxShadow: controller.phoneFocusNode.hasFocus
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 14,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
             // Country code selector
             GestureDetector(
               onTap: controller.toggleDropdown,
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 height: double.infinity,
-                decoration: const BoxDecoration(
-                  border: Border(right: BorderSide(color: Color(0xFF2E2E2E))),
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
                 ),
                 child: Row(
                   children: [
                     Text(
                       controller.selectedCountryCode.value,
-                      style: AppTextStyles.text14Medium.copyWith(
+                      style: AppTextStyles.text14SemiBold.copyWith(
                         color: Colors.white,
                       ),
                     ),
@@ -343,10 +358,10 @@ class _PhoneInputField extends StatelessWidget {
                     AnimatedRotation(
                       turns: controller.showDropdown.value ? 0.5 : 0.0,
                       duration: const Duration(milliseconds: 200),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: Color(0xFF6E6E6E),
-                        size: 18,
+                      child: const FaIcon(
+                        FontAwesomeIcons.chevronDown,
+                        color: Color(0xFF8E8E9E),
+                        size: 12,
                       ),
                     ),
                   ],
@@ -361,7 +376,10 @@ class _PhoneInputField extends StatelessWidget {
                 focusNode: controller.phoneFocusNode,
                 keyboardType: TextInputType.phone,
                 cursorColor: AppColors.primary,
-                style: AppTextStyles.text14.copyWith(color: Colors.white),
+                style: AppTextStyles.text14Medium.copyWith(
+                  color: Colors.white,
+                  letterSpacing: 0.4,
+                ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(12),
@@ -369,7 +387,7 @@ class _PhoneInputField extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Enter phone number',
                   hintStyle: AppTextStyles.text14.copyWith(
-                    color: const Color(0xFF4A4A4A),
+                    color: const Color(0xFF5A5A6E),
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14),
@@ -393,53 +411,80 @@ class _CountryDropdown extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1C1C),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF2E2E2E)),
+        color: const Color(0xFF14141E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: controller.countryCodes.map((country) {
+          final isSelected =
+              controller.selectedCountryCode.value == country['code'];
+
           return InkWell(
             onTap: () => controller.selectCountryCode(country['code']!),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
               child: Row(
                 children: [
-                  Text(country['flag']!, style: const TextStyle(fontSize: 18)),
+                  // Country ISO short badge pill (replacing emojis)
+                  Container(
+                    width: 32,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.2)
+                          : const Color(0xFF222230),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary.withValues(alpha: 0.4)
+                            : Colors.white.withValues(alpha: 0.08),
+                        width: 1,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      country['short'] ?? '',
+                      style: TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? AppColors.primary : Colors.white70,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       country['name']!,
-                      style: AppTextStyles.text14.copyWith(color: Colors.white),
+                      style: AppTextStyles.text14Medium.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   Text(
                     country['code']!,
                     style: AppTextStyles.text14.copyWith(
-                      color: const Color(0xFF8A8A8A),
+                      color: const Color(0xFF8A8A9E),
                     ),
                   ),
-                  Obx(
-                    () =>
-                        controller.selectedCountryCode.value == country['code']
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Icon(
-                              Icons.check_rounded,
-                              color: AppColors.primary,
-                              size: 16,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
+                  if (isSelected)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: FaIcon(
+                        FontAwesomeIcons.check,
+                        color: AppColors.primary,
+                        size: 13,
+                      ),
+                    ),
                 ],
               ),
             ),

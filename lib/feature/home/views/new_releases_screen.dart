@@ -305,9 +305,13 @@ class NewReleasesScreen extends GetView<HomeController> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           color: const Color(0xFF161620),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(13),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -318,7 +322,7 @@ class NewReleasesScreen extends GetView<HomeController> {
                 errorBuilder: (_, e, s) => Container(
                   color: const Color(0xFF22222E),
                   child: const Icon(
-                    Icons.movie,
+                    Icons.movie_outlined,
                     color: Colors.white30,
                     size: 32,
                   ),
@@ -328,36 +332,36 @@ class NewReleasesScreen extends GetView<HomeController> {
               // Badges on Top
               Positioned(
                 top: 6,
-                left: 6,
                 right: 6,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // Dark Plays Badge (e.g. 3.5k)
-                    _buildDarkBadge('▶ ${movie.plays}'),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 10,
+                      ),
+                      const SizedBox(width: 1),
+                      Text(
+                        movie.plays,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDarkBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 7.5,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

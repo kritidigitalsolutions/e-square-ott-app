@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -87,10 +88,10 @@ class _NotificationSettingPageState extends State<NotificationSettingPage> {
                           ),
                         ),
                         child: const Center(
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
+                          child: FaIcon(
+                            FontAwesomeIcons.chevronLeft,
                             color: Colors.white,
-                            size: 18,
+                            size: 15,
                           ),
                         ),
                       ),

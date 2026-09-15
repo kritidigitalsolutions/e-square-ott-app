@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 
@@ -43,40 +44,44 @@ class AppSnackbar {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: const Color(0xFF141414).withOpacity(0.92),
+              color: const Color(0xFF101018).withValues(alpha: 0.94),
               border: Border.all(
-                color: Colors.white.withOpacity(0.08),
-                width: 1,
+                color: config.accent.withValues(alpha: 0.3),
+                width: 1.2,
               ),
-            ),
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left accent strip
-                Container(
-                  width: 3,
-                  height: 38,
-                  margin: const EdgeInsets.only(right: 12, top: 1),
-                  decoration: BoxDecoration(
-                    color: config.accent,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: config.accent.withOpacity(0.6),
-                        blurRadius: 8,
-                        spreadRadius: 0.5,
-                      ),
-                    ],
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: config.accent.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
                 ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: config.accent.withOpacity(0.15),
+                    color: config.accent.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: config.accent.withValues(alpha: 0.35),
+                      width: 1,
+                    ),
                   ),
-                  child: Icon(config.icon, color: config.accent, size: 18),
+                  child: FaIcon(
+                    config.icon as FaIconData?,
+                    color: config.accent,
+                    size: 15,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -87,34 +92,37 @@ class AppSnackbar {
                       Text(
                         title,
                         style: const TextStyle(
+                          fontFamily: 'AfacadFlux',
                           color: Colors.white,
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.1,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         message,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 12.5,
+                          fontFamily: 'AfacadFlux',
+                          color: Colors.white.withValues(alpha: 0.78),
+                          fontSize: 13,
                           fontWeight: FontWeight.w400,
-                          height: 1.35,
+                          height: 1.3,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => Get.closeCurrentSnackbar(),
+                  behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: Colors.white.withOpacity(0.35),
-                      size: 17,
+                    padding: const EdgeInsets.all(4),
+                    child: FaIcon(
+                      FontAwesomeIcons.xmark,
+                      color: Colors.white.withValues(alpha: 0.4),
+                      size: 15,
                     ),
                   ),
                 ),
@@ -124,23 +132,16 @@ class AppSnackbar {
         ),
       ),
       backgroundColor: Colors.transparent,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       padding: EdgeInsets.zero,
       snackPosition: SnackPosition.TOP,
       snackStyle: SnackStyle.FLOATING,
       duration: const Duration(seconds: 3),
       forwardAnimationCurve: Curves.easeOutQuart,
       reverseAnimationCurve: Curves.easeInCubic,
-      animationDuration: const Duration(milliseconds: 450),
+      animationDuration: const Duration(milliseconds: 400),
       isDismissible: true,
       dismissDirection: DismissDirection.horizontal,
-      boxShadows: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.4),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        ),
-      ],
     );
   }
 
@@ -148,22 +149,22 @@ class AppSnackbar {
     switch (type) {
       case SnackType.success:
         return _SnackConfig(
-          icon: Icons.check_rounded,
+          icon: FontAwesomeIcons.check,
           accent: const Color(0xFF2ED573),
         );
       case SnackType.error:
         return _SnackConfig(
-          icon: Icons.priority_high_rounded,
+          icon: FontAwesomeIcons.circleExclamation,
           accent: const Color(0xFFFF4757),
         );
       case SnackType.info:
         return _SnackConfig(
-          icon: Icons.info_rounded,
+          icon: FontAwesomeIcons.circleInfo,
           accent: const Color(0xFF3B9EFF),
         );
       case SnackType.warning:
         return _SnackConfig(
-          icon: Icons.warning_rounded,
+          icon: FontAwesomeIcons.triangleExclamation,
           accent: const Color(0xFFFFA502),
         );
     }
@@ -171,7 +172,7 @@ class AppSnackbar {
 }
 
 class _SnackConfig {
-  final IconData icon;
+  final FaIconData icon; // was: FalconData
   final Color accent;
   _SnackConfig({required this.icon, required this.accent});
 }

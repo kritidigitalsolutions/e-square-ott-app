@@ -1,8 +1,9 @@
-import 'package:e_square_ott_app/routes/app_pages.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/subscription_controller.dart';
 
@@ -55,13 +56,13 @@ class SubscriptionPage extends StatelessWidget {
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 12,
                       vertical: 8,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
 
                         // ── Main Headline
                         const Text(
@@ -75,11 +76,11 @@ class SubscriptionPage extends StatelessWidget {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
 
                         // ── Subtitle
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: RichText(
                             textAlign: TextAlign.center,
                             text: TextSpan(
@@ -109,7 +110,7 @@ class SubscriptionPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
                         // ── Plan 1: Monthly Plan Card
                         Obx(() {
@@ -126,7 +127,7 @@ class SubscriptionPage extends StatelessWidget {
                             ),
                           );
                         }),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
 
                         // ── Plan 2: Yearly Plan Card
                         Obx(() {
@@ -143,22 +144,22 @@ class SubscriptionPage extends StatelessWidget {
                             ),
                           );
                         }),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
 
                         // ── Features 2x2 Grid
                         Row(
                           children: const [
                             Expanded(
                               child: SubscriptionFeatureCard(
-                                icon: Icon(
-                                  Icons.all_inclusive_rounded,
+                                icon: FaIcon(
+                                  FontAwesomeIcons.infinity,
                                   color: Colors.white,
-                                  size: 24,
+                                  size: 20,
                                 ),
                                 label: 'Unlimited episodes',
                               ),
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: 10),
                             Expanded(
                               child: SubscriptionFeatureCard(
                                 icon: _AdFreeIconBadge(),
@@ -167,7 +168,7 @@ class SubscriptionPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
                         Row(
                           children: const [
                             Expanded(
@@ -176,20 +177,20 @@ class SubscriptionPage extends StatelessWidget {
                                 label: 'High-quality\nstreaming',
                               ),
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: 10),
                             Expanded(
                               child: SubscriptionFeatureCard(
-                                icon: Icon(
-                                  Icons.add_rounded,
+                                icon: FaIcon(
+                                  FontAwesomeIcons.circlePlus,
                                   color: Colors.white,
-                                  size: 24,
+                                  size: 20,
                                 ),
                                 label: 'New stories added\nregularly',
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
 
                         // ── Action Button (Reusable AppButton)
                         Obx(() {
@@ -209,11 +210,11 @@ class SubscriptionPage extends StatelessWidget {
                             borderRadius: 14,
                           );
                         }),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
 
                         // ── Cancellation Disclaimer Note
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             'Cancel anytime. Your membership automatically renews unless cancelled before the renewal date.',
                             style: TextStyle(
@@ -264,7 +265,7 @@ class PlanOptionCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF140D10) : const Color(0xFF14141A),
           borderRadius: BorderRadius.circular(16),

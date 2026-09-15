@@ -1,116 +1,187 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
 import '../models/movie_model.dart';
 
-class ContinueWatchingScreen extends GetView<HomeController> {
+class ContinueWatchingScreen extends StatefulWidget {
   const ContinueWatchingScreen({super.key});
+
+  @override
+  State<ContinueWatchingScreen> createState() => _ContinueWatchingScreenState();
+}
+
+class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
+  final HomeController controller = Get.find<HomeController>();
+  String _selectedFilter = 'All';
+  bool _isGridView = true;
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0D0D12),
+        backgroundColor: const Color(0xFF06060A),
         body: Stack(
           children: [
-            // ── Background Ambient Gradient
+            // Deep Atmosphere Background
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: AppColors.loginBgGradient,
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF120E1A),
+                      Color(0xFF08070D),
+                      Color(0xFF050508),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.0, 0.45, 1.0],
+                  ),
                 ),
               ),
             ),
 
-            // ── Main Content
+            // Scarlet Glow Blob
+            Positioned(
+              top: -90,
+              right: -70,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE50914).withValues(alpha: 0.14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE50914).withValues(alpha: 0.2),
+                      blurRadius: 130,
+                      spreadRadius: 45,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Top Header (Back Button + Title)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        CustomBackButton(
-                          onTap: () => Get.back(),
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          'Continue Watching',
-                          style: AppTextStyles.text22Bold.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // ── Cards List Area
+                  _buildTopNavBar(context),
+                  _buildControlsRow(),
+                  const SizedBox(height: 10),
                   Expanded(
                     child: Obx(() {
-                      final items = controller.continueWatchingList;
+                      final allItems = controller.continueWatchingList;
+                      final filteredItems = _selectedFilter == 'All'
+                          ? allItems.toList()
+                          : allItems
+                                .where(
+                                  (m) =>
+                                      (m.genre?.toLowerCase() ?? '') ==
+                                      _selectedFilter.toLowerCase(),
+                                )
+                                .toList();
 
-                      if (items.isEmpty) {
+                      if (allItems.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      if (filteredItems.isEmpty) {
                         return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 32),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 72,
-                                  height: 72,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1C1C26),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: const Color(0xFF2E2E3E),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.video_library_outlined,
-                                    color: Color(0xFF8A8A9A),
-                                    size: 32,
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Text(
-                                  'No items in Continue Watching',
-                                  style: AppTextStyles.text18Bold.copyWith(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Shows you start watching will appear here so you can easily resume anytime.',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.text13Medium.copyWith(
-                                    color: const Color(0xFF8A8A8A),
-                                  ),
-                                ),
-                              ],
+                          child: Text(
+                            'No shows found in "$_selectedFilter"',
+                            style: const TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Color(0xFF8E8E9F),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         );
                       }
 
-                      return ListView.builder(
+                      return CustomScrollView(
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return _buildContinueWatchingItemCard(items[index]);
-                        },
+                        slivers: [
+                          if (_selectedFilter == 'All' &&
+                              filteredItems.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  4,
+                                  16,
+                                  18,
+                                ),
+                                child: _SpotlightHeroCard(
+                                  movie: filteredItems[0],
+                                  onResume: () => controller.resumeWatching(
+                                    filteredItems[0],
+                                  ),
+                                  onDelete: () =>
+                                      controller.removeContinueWatching(
+                                        filteredItems[0].id,
+                                      ),
+                                ),
+                              ),
+                            ),
+
+                          if (_selectedFilter == 'All' &&
+                              filteredItems.length > 1)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 3.5,
+                                      height: 14,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE50914),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'More In Progress (${filteredItems.length - 1})',
+                                      style: const TextStyle(
+                                        fontFamily: AppTextStyles.fontFamily,
+                                        color: Colors.white,
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                          if (_isGridView)
+                            _buildGridSliver(
+                              _selectedFilter == 'All' &&
+                                      filteredItems.isNotEmpty
+                                  ? filteredItems.sublist(1)
+                                  : filteredItems,
+                            )
+                          else
+                            _buildListSliver(
+                              _selectedFilter == 'All' &&
+                                      filteredItems.isNotEmpty
+                                  ? filteredItems.sublist(1)
+                                  : filteredItems,
+                            ),
+
+                          const SliverToBoxAdapter(child: SizedBox(height: 36)),
+                        ],
                       );
                     }),
                   ),
@@ -123,64 +194,813 @@ class ContinueWatchingScreen extends GetView<HomeController> {
     );
   }
 
-  // ── Continue Watching Item Card matching Screenshot
-  Widget _buildContinueWatchingItemCard(MovieModel movie) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
+  Widget _buildTopNavBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // ── Upper Row: Thumbnail + Info
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Movie Thumbnail Poster with Top Play Badge
-              Container(
-                width: 90,
-                height: 110,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: const Color(0xFF161620),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Stack(
-                    fit: StackFit.expand,
+              CustomBackButton(onTap: () => Get.back()),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Image.asset(
-                        movie.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, e, s) => Container(
-                          color: const Color(0xFF22222E),
-                          child: const Icon(
-                            Icons.movie,
-                            color: Colors.white30,
-                            size: 28,
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE50914),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFE50914,
+                              ).withValues(alpha: 0.8),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'CONTINUE WATCHING',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Color(0xFFE50914),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Resume Playing',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Obx(() {
+            final count = controller.continueWatchingList.length;
+            if (count == 0) return const SizedBox.shrink();
+
+            return GestureDetector(
+              onTap: () => _showClearConfirmation(context),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const FaIcon(
+                      FontAwesomeIcons.trashCan,
+                      color: Color(0xFFB0B0C0),
+                      size: 11,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Clear ($count)',
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Color(0xFFD0D0E0),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildControlsRow() {
+    final filters = ['All', 'Romance', 'Drama', 'Action', 'Thriller'];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: filters.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 7),
+                itemBuilder: (context, index) {
+                  final filter = filters[index];
+                  final isSelected = _selectedFilter == filter;
+
+                  return GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() => _selectedFilter = filter);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFE50914)
+                            : const Color(0xFF141420),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFFF4D58)
+                              : Colors.white.withValues(alpha: 0.07),
+                          width: 1,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFE50914,
+                                  ).withValues(alpha: 0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: Center(
+                        child: Text(
+                          filter,
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF9E9EAE),
+                            fontSize: 11.5,
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFF141420),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                _buildToggleButton(
+                  icon: FontAwesomeIcons.tableCellsLarge,
+                  isActive: _isGridView,
+                  onTap: () => setState(() => _isGridView = true),
+                ),
+                _buildToggleButton(
+                  icon: FontAwesomeIcons.list,
+                  isActive: !_isGridView,
+                  onTap: () => setState(() => _isGridView = false),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleButton({
+    required FaIconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 30,
+        height: 28,
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFFE50914) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: FaIcon(
+            icon,
+            color: isActive ? Colors.white : const Color(0xFF8E8E9F),
+            size: 11.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridSliver(List<MovieModel> items) {
+    if (items.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.64,
+        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final movie = items[index];
+          return _GridContinueWatchingCard(
+            movie: movie,
+            onTap: () => controller.resumeWatching(movie),
+            onDelete: () => controller.removeContinueWatching(movie.id),
+          );
+        }, childCount: items.length),
+      ),
+    );
+  }
+
+  Widget _buildListSliver(List<MovieModel> items) {
+    if (items.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final movie = items[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Dismissible(
+              key: ValueKey(movie.id),
+              direction: DismissDirection.endToStart,
+              onDismissed: (_) => controller.removeContinueWatching(movie.id),
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE50914),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const FaIcon(
+                  FontAwesomeIcons.trashCan,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              child: _ListContinueWatchingCard(
+                movie: movie,
+                onTap: () => controller.resumeWatching(movie),
+                onDelete: () => controller.removeContinueWatching(movie.id),
+              ),
+            ),
+          );
+        }, childCount: items.length),
+      ),
+    );
+  }
+
+  void _showClearConfirmation(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141420),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE50914).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFE50914).withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.trashCan,
+                    color: Color(0xFFE50914),
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Clear Watch History?',
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This will remove all items from your continue watching queue.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  color: Color(0xFF8E8E9F),
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E2D),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            width: 1,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                        ),
+                        child: const Center(
                           child: Text(
-                            '▶ ${movie.plays}',
-                            style: const TextStyle(
+                            'Cancel',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
                               color: Colors.white,
-                              fontSize: 7.5,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        controller.clearAllContinueWatching();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE50914), Color(0xFFB81D24)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFE50914,
+                              ).withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Clear All',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: const Color(0xFF141422),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    blurRadius: 24,
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.film,
+                  color: Color(0xFF6E6E82),
+                  size: 34,
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Text(
+              'No Shows In Progress',
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Colors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Shows you start watching will appear here with your saved resume progress.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF8A8A9C),
+                fontSize: 13,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 26),
+            GestureDetector(
+              onTap: () => Get.back(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 13,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE50914), Color(0xFFB81D24)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE50914).withValues(alpha: 0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'Explore Trending Shows',
+                  style: TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SpotlightHeroCard extends StatefulWidget {
+  final MovieModel movie;
+  final VoidCallback onResume;
+  final VoidCallback onDelete;
+
+  const _SpotlightHeroCard({
+    required this.movie,
+    required this.onResume,
+    required this.onDelete,
+  });
+
+  @override
+  State<_SpotlightHeroCard> createState() => _SpotlightHeroCardState();
+}
+
+class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final movie = widget.movie;
+    final progress = (movie.progress ?? 0.72).clamp(0.0, 1.0);
+    final percent = (progress * 100).toInt();
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onResume();
+      },
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      // onTapCancel: (_) => setState(() => _isPressed = false),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          height: 195,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: const Color(0xFFE50914).withValues(alpha: 0.35),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE50914).withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.7),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(21),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  movie.image,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  errorBuilder: (_, e, s) =>
+                      Container(color: const Color(0xFF181824)),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.25),
+                        Colors.black.withValues(alpha: 0.55),
+                        const Color(0xFF07070A).withValues(alpha: 0.96),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 12,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE50914),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFE50914,
+                              ).withValues(alpha: 0.6),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FaIcon(
+                              FontAwesomeIcons.fire,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                            SizedBox(width: 5),
+                            Text(
+                              'LAST WATCHED',
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          movie.episodeInfo ?? 'Episode 4 of 36',
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE50914), Color(0xFFB81D24)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE50914).withValues(alpha: 0.7),
+                          blurRadius: 18,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 3),
+                        child: FaIcon(
+                          FontAwesomeIcons.play,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 14,
+                  right: 14,
+                  bottom: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        movie.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const FaIcon(
+                                FontAwesomeIcons.clock,
+                                color: Color(0xFFB0B0C0),
+                                size: 10,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                movie.remainingTime ?? '18 min remaining',
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Color(0xFFD0D0E0),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '$percent%',
+                            style: const TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Color(0xFFFF4D58),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Container(
+                          height: 4,
+                          width: double.infinity,
+                          color: Colors.white.withValues(alpha: 0.15),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: progress,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF5260),
+                                    Color(0xFFE50914),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -188,104 +1008,522 @@ class ContinueWatchingScreen extends GetView<HomeController> {
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 14),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-              // ── Details (Title, Delete Icon, Episode, Progress Bar, Remaining)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title + Delete Icon
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            movie.title,
-                            style: AppTextStyles.text16Bold.copyWith(
-                              color: Colors.white,
-                              height: 1.25,
+class _GridContinueWatchingCard extends StatefulWidget {
+  final MovieModel movie;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _GridContinueWatchingCard({
+    required this.movie,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  State<_GridContinueWatchingCard> createState() =>
+      _GridContinueWatchingCardState();
+}
+
+class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final movie = widget.movie;
+    final progress = (movie.progress ?? 0.65).clamp(0.0, 1.0);
+    final percent = (progress * 100).toInt();
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      // onTapCancel: (_) => setState(() => _isPressed = false),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF131320),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        movie.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, e, s) => Container(
+                          color: const Color(0xFF1E1E2C),
+                          child: const Center(
+                            child: FaIcon(
+                              FontAwesomeIcons.film,
+                              color: Colors.white24,
+                              size: 24,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => controller.removeContinueWatching(movie.id),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.8),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.35, 1.0],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE50914),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFE50914,
+                                ).withValues(alpha: 0.6),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            movie.episodeInfo != null
+                                ? movie.episodeInfo!.split(' of ').first
+                                : 'EP 3',
+                            style: const TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            widget.onDelete();
+                          },
                           behavior: HitTestBehavior.opaque,
-                          child: const Padding(
-                            padding: EdgeInsets.only(left: 8, bottom: 4),
-                            child: Icon(
-                              Icons.delete_outline_rounded,
-                              color: Color(0xFFB0B0C0),
-                              size: 20,
+                          child: Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: FaIcon(
+                                FontAwesomeIcons.trashCan,
+                                color: Color(0xFFB0B0C0),
+                                size: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.65),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFE50914,
+                                ).withValues(alpha: 0.4),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 2),
+                              child: FaIcon(
+                                FontAwesomeIcons.play,
+                                color: Colors.white,
+                                size: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 6,
+                        bottom: 6,
+                        child: Row(
+                          children: [
+                            const FaIcon(
+                              FontAwesomeIcons.clock,
+                              color: Colors.white70,
+                              size: 8.5,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              movie.remainingTime ?? '12m left',
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        movie.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$percent% watched',
+                            style: const TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Color(0xFF9E9EAE),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const FaIcon(
+                            FontAwesomeIcons.circleChevronRight,
+                            color: Color(0xFFE50914),
+                            size: 11,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                ClipRRect(
+                  child: SizedBox(
+                    height: 3,
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        Container(color: Colors.white.withValues(alpha: 0.1)),
+                        FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progress,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFFFF3B4E), Color(0xFFE50914)],
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-
-                    // Episode Count
-                    Text(
-                      movie.episodeInfo ?? 'Episode 3 of 42',
-                      style: AppTextStyles.text13Medium.copyWith(
-                        color: const Color(0xFF8A8A8A),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Progress Bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: movie.progress ?? 0.65,
-                        minHeight: 3.5,
-                        backgroundColor: const Color(0xFF33333F),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Time Remaining
-                    Text(
-                      movie.remainingTime ?? '12 min remaining',
-                      style: AppTextStyles.text12Medium.copyWith(
-                        color: const Color(0xFF8A8A8A),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ListContinueWatchingCard extends StatefulWidget {
+  final MovieModel movie;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _ListContinueWatchingCard({
+    required this.movie,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  State<_ListContinueWatchingCard> createState() =>
+      _ListContinueWatchingCardState();
+}
+
+class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final movie = widget.movie;
+    final progress = (movie.progress ?? 0.65).clamp(0.0, 1.0);
+    final percent = (progress * 100).toInt();
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      // onTapCancel: (_) => setState(() => _isPressed = false),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF12121D),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.07),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-
-          // ── Full-Width Red "Resume Watching" Button
-          GestureDetector(
-            onTap: () => controller.resumeWatching(movie),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              height: 44,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: Text(
-                  'Resume Watching',
-                  style: AppTextStyles.text14Bold.copyWith(
-                    color: Colors.white,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(11),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 105,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(movie.image, fit: BoxFit.cover),
+                              Positioned(
+                                top: 5,
+                                left: 5,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE50914),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    movie.episodeInfo != null
+                                        ? movie.episodeInfo!.split(' of ').first
+                                        : 'EP 3',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                  ),
+                                  child: const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(left: 2),
+                                      child: FaIcon(
+                                        FontAwesomeIcons.play,
+                                        color: Colors.white,
+                                        size: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    movie.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontFamily: AppTextStyles.fontFamily,
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    widget.onDelete();
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: FaIcon(
+                                      FontAwesomeIcons.trashCan,
+                                      color: Color(0xFF8E8E9F),
+                                      size: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              movie.episodeInfo ?? 'Episode 3 of 42',
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Color(0xFF9E9EAE),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  movie.remainingTime ?? '12 min left',
+                                  style: const TextStyle(
+                                    fontFamily: AppTextStyles.fontFamily,
+                                    color: Color(0xFF8E8E9F),
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 9,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE50914),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'Resume',
+                                    style: TextStyle(
+                                      fontFamily: AppTextStyles.fontFamily,
+                                      color: Colors.white,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+                Container(
+                  height: 3,
+                  width: double.infinity,
+                  color: Colors.white.withValues(alpha: 0.08),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: progress,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFFF3B4E), Color(0xFFE50914)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

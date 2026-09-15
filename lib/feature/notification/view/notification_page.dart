@@ -3,6 +3,7 @@ import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
 
@@ -150,10 +151,10 @@ class _NotificationPageState extends State<NotificationPage> {
                             ),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.tune_rounded,
+                            child: FaIcon(
+                              FontAwesomeIcons.sliders,
                               color: Colors.white,
-                              size: 20,
+                              size: 16,
                             ),
                           ),
                         ),
@@ -209,9 +210,10 @@ class _NotificationPageState extends State<NotificationPage> {
                                         ),
                                         borderRadius: BorderRadius.circular(14),
                                       ),
-                                      child: const Icon(
-                                        Icons.delete_outline,
+                                      child: const FaIcon(
+                                        FontAwesomeIcons.trashCan,
                                         color: Colors.white,
+                                        size: 18,
                                       ),
                                     ),
                                     child: _NotificationCard(item: item),
@@ -235,10 +237,10 @@ class _NotificationPageState extends State<NotificationPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.notifications_none_rounded,
-            size: 64,
-            color: AppColors.white.withOpacity(0.5),
+          FaIcon(
+            FontAwesomeIcons.bell,
+            size: 54,
+            color: AppColors.white.withOpacity(0.4),
           ),
           const SizedBox(height: 12),
           Text(
@@ -263,9 +265,29 @@ class _NotificationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(item.isRead ? 0.04 : 0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.white.withOpacity(0.1)),
+        color: item.isRead
+            ? const Color(0xFF12121A).withValues(alpha: 0.7)
+            : const Color(0xFF18141C).withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: item.isRead
+              ? Colors.white.withValues(alpha: 0.06)
+              : AppColors.primary.withValues(alpha: 0.35),
+          width: item.isRead ? 0.8 : 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          if (!item.isRead)
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              blurRadius: 16,
+              spreadRadius: 1,
+            ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,24 +296,43 @@ class _NotificationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.title,
-                  style: AppTextStyles.text18Bold.copyWith(
-                    color: AppColors.white,
-                  ),
+                Row(
+                  children: [
+                    if (!item.isRead) ...[
+                      Container(
+                        width: 7,
+                        height: 7,
+                        margin: const EdgeInsets.only(right: 7),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: AppTextStyles.text16SemiBold.copyWith(
+                          color: Colors.white,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   item.message,
-                  style: AppTextStyles.text14.copyWith(
-                    color: AppColors.white.withOpacity(0.8),
+                  style: AppTextStyles.text13Medium.copyWith(
+                    color: const Color(0xFFB0B0C0),
+                    height: 1.35,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   item.time,
-                  style: AppTextStyles.text12.copyWith(
-                    color: AppColors.white.withOpacity(0.45),
+                  style: AppTextStyles.text11Medium.copyWith(
+                    color: const Color(0xFF6E6E82),
                   ),
                 ),
               ],
@@ -299,20 +340,22 @@ class _NotificationCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
             child: Image.asset(
               item.thumbnail,
-              width: 64,
-              height: 88,
+              width: 60,
+              height: 82,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
-                width: 64,
-                height: 88,
-                color: AppColors.white.withOpacity(0.1),
-                child: Icon(
-                  Icons.image_not_supported_outlined,
-                  color: AppColors.white.withOpacity(0.4),
-                  size: 20,
+                width: 60,
+                height: 82,
+                color: const Color(0xFF22222E),
+                child: const Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.film,
+                    color: Color(0xFF5A5A6E),
+                    size: 18,
+                  ),
                 ),
               ),
             ),

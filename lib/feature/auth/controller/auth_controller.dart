@@ -32,14 +32,14 @@ class AuthController extends GetxController {
   /// Whether all OTP digits are filled
   final RxBool isOtpComplete = false.obs;
 
-  // ── Country codes list
+  // ── Country codes list (No emojis, clean ISO shortcodes)
   final countryCodes = <Map<String, String>>[
-    {'code': '+91', 'flag': '🇮🇳', 'name': 'India'},
-    {'code': '+1', 'flag': '🇺🇸', 'name': 'USA'},
-    {'code': '+44', 'flag': '🇬🇧', 'name': 'UK'},
-    {'code': '+971', 'flag': '🇦🇪', 'name': 'UAE'},
-    {'code': '+61', 'flag': '🇦🇺', 'name': 'Australia'},
-    {'code': '+65', 'flag': '🇸🇬', 'name': 'Singapore'},
+    {'code': '+91', 'short': 'IN', 'name': 'India'},
+    {'code': '+1', 'short': 'US', 'name': 'USA'},
+    {'code': '+44', 'short': 'GB', 'name': 'UK'},
+    {'code': '+971', 'short': 'AE', 'name': 'UAE'},
+    {'code': '+61', 'short': 'AU', 'name': 'Australia'},
+    {'code': '+65', 'short': 'SG', 'name': 'Singapore'},
   ];
 
   // ── Profile Setup state

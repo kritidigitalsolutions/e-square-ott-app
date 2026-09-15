@@ -4,6 +4,7 @@ import 'package:e_square_ott_app/core/localization/locale_controller.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_bottomsheet.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -123,9 +124,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: 'Content language'.tr,
                               subtitle: 'Choose one or more languages'.tr,
                               onTap: _openContentLanguageSheet,
-                              trailing: const Icon(
-                                Icons.keyboard_arrow_down,
+                              trailing: const FaIcon(
+                                FontAwesomeIcons.chevronDown,
                                 color: AppColors.textSecondary,
+                                size: 12,
                               ),
                               isLast: true,
                             ),
@@ -156,21 +158,26 @@ class _SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          padding: const EdgeInsets.only(left: 6, bottom: 10),
           child: Text(
             label,
             style: const TextStyle(
-              color: AppColors.textPrimary,
+              fontFamily: AppTextStyles.fontFamily,
+              color: AppColors.primary,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
+            color: const Color(0xFF14141E).withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(children: children),
@@ -201,6 +208,7 @@ class _SettingsRow extends StatelessWidget {
       children: [
         InkWell(
           onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
@@ -212,8 +220,9 @@ class _SettingsRow extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
                           color: AppColors.textPrimary,
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -221,8 +230,9 @@ class _SettingsRow extends StatelessWidget {
                       Text(
                         subtitle,
                         style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 12.5,
                         ),
                       ),
                     ],
@@ -234,7 +244,12 @@ class _SettingsRow extends StatelessWidget {
             ),
           ),
         ),
-        if (!isLast) const Divider(height: 1, color: AppColors.divider),
+        if (!isLast)
+          Divider(
+            height: 1,
+            thickness: 0.8,
+            color: Colors.white.withValues(alpha: 0.06),
+          ),
       ],
     );
   }
@@ -254,22 +269,36 @@ class _SettingsDropdownChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      color: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: const Color(0xFF1C1C28),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       onSelected: onSelected,
       itemBuilder: (context) => options
           .map(
             (o) => PopupMenuItem<String>(
               value: o,
-              child: Text(o, style: const TextStyle(color: Colors.white)),
+              child: Text(
+                o,
+                style: const TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           )
           .toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: const Color(0xFF222232).withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -277,15 +306,17 @@ class _SettingsDropdownChip extends StatelessWidget {
             Text(
               value,
               style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
                 color: AppColors.textPrimary,
                 fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.keyboard_arrow_down,
+            const SizedBox(width: 6),
+            const FaIcon(
+              FontAwesomeIcons.chevronDown,
               color: AppColors.textSecondary,
-              size: 18,
+              size: 11,
             ),
           ],
         ),
@@ -506,7 +537,13 @@ class _LanguageChip extends StatelessWidget {
                 ),
               ),
               child: selected
-                  ? Icon(Icons.check, size: 13, color: AppColors.primary)
+                  ? const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.check,
+                        size: 10,
+                        color: AppColors.primary,
+                      ),
+                    )
                   : null,
             ),
           ],

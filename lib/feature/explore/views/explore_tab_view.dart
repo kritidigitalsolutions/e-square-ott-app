@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -16,19 +17,16 @@ class ExploreTabView extends StatelessWidget {
     // Ensure ExploreController is initialized
     final controller = Get.put(ExploreController());
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: PageView.builder(
-        controller: controller.pageController,
-        scrollDirection: Axis.vertical,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: controller.onPageChanged,
-        itemCount: controller.exploreList.length,
-        itemBuilder: (context, index) {
-          final item = controller.exploreList[index];
-          return _ExploreCard(item: item);
-        },
-      ),
+    return PageView.builder(
+      controller: controller.pageController,
+      scrollDirection: Axis.vertical,
+      physics: const BouncingScrollPhysics(),
+      onPageChanged: controller.onPageChanged,
+      itemCount: controller.exploreList.length,
+      itemBuilder: (context, index) {
+        final item = controller.exploreList[index];
+        return _ExploreCard(item: item);
+      },
     );
   }
 }
@@ -52,7 +50,11 @@ class _ExploreCard extends StatelessWidget {
           errorBuilder: (_, e, s) => Container(
             color: const Color(0xFF161620),
             child: const Center(
-              child: Icon(Icons.movie, size: 60, color: Colors.white24),
+              child: FaIcon(
+                FontAwesomeIcons.film,
+                size: 48,
+                color: Colors.white24,
+              ),
             ),
           ),
         ),
@@ -78,7 +80,7 @@ class _ExploreCard extends StatelessWidget {
         Positioned(
           left: 20,
           right: 20,
-          bottom: 96, // Space above floating bottom navigation bar
+          bottom: 24, // Clean spacing right above the docked BottomAppBar
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -129,7 +131,7 @@ class _ExploreCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
 
-              // ── Buttons Row: [ ▶ Watch Now ]  [ 📑 Episodes ]  [ + My List ]
+              // ── Buttons Row: [ Watch Now ]  [ Episodes ]  [ + My List ]
               Row(
                 children: [
                   // Watch Now Button
@@ -137,16 +139,16 @@ class _ExploreCard extends StatelessWidget {
                     onTap: () => exploreController.watchNow(item),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
+                        horizontal: 16,
                         vertical: 11,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(10),
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.4),
-                            blurRadius: 12,
+                            blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -154,15 +156,15 @@ class _ExploreCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.play_arrow_rounded,
+                          const FaIcon(
+                            FontAwesomeIcons.play,
                             color: Colors.white,
-                            size: 18,
+                            size: 14,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 8),
                           Text(
                             'Watch Now',
-                            style: AppTextStyles.text13SemiBold.copyWith(
+                            style: AppTextStyles.text14Bold.copyWith(
                               color: Colors.white,
                             ),
                           ),
@@ -177,12 +179,12 @@ class _ExploreCard extends StatelessWidget {
                     onTap: () => _openEpisodesSheet(context, item),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 14,
                         vertical: 11,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF181822).withValues(alpha: 0.85),
-                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFF181822).withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: const Color(0xFF383848),
                           width: 1,
@@ -191,12 +193,12 @@ class _ExploreCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.video_library_rounded,
+                          const FaIcon(
+                            FontAwesomeIcons.layerGroup,
                             color: Colors.white,
-                            size: 16,
+                            size: 14,
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 7),
                           Text(
                             'Episodes',
                             style: AppTextStyles.text13SemiBold.copyWith(
@@ -216,30 +218,34 @@ class _ExploreCard extends StatelessWidget {
                       onTap: () => exploreController.toggleMyList(item),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                          horizontal: 13,
                           vertical: 11,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF141414).withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(10),
+                          color: inList
+                              ? AppColors.primary.withValues(alpha: 0.15)
+                              : const Color(0xFF141418).withValues(alpha: 0.88),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: inList
                                 ? AppColors.primary
-                                : const Color(0xFF4E4E4E),
+                                : const Color(0xFF383848),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              inList ? Icons.check_rounded : Icons.add_rounded,
+                            FaIcon(
+                              inList
+                                  ? FontAwesomeIcons.check
+                                  : FontAwesomeIcons.plus,
                               color: inList ? AppColors.primary : Colors.white,
-                              size: 16,
+                              size: 14,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
-                              inList ? 'In List' : '+ List',
+                              inList ? 'In List' : 'List',
                               style: AppTextStyles.text13SemiBold.copyWith(
                                 color: inList
                                     ? AppColors.primary
@@ -472,10 +478,10 @@ class _ExploreCard extends StatelessWidget {
                                               alpha: 0.55,
                                             ),
                                           ),
-                                          child: const Icon(
-                                            Icons.play_arrow_rounded,
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.play,
                                             color: Colors.white,
-                                            size: 16,
+                                            size: 10,
                                           ),
                                         ),
                                       ),
@@ -521,10 +527,10 @@ class _ExploreCard extends StatelessWidget {
 
                               // Trailing Lock Icon
                               if (isLocked)
-                                const Icon(
-                                  Icons.lock_outline_rounded,
+                                const FaIcon(
+                                  FontAwesomeIcons.lock,
                                   color: Color(0xFF8E8E9E),
-                                  size: 19,
+                                  size: 14,
                                 ),
                             ],
                           ),

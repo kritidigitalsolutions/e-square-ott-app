@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 class CustomBottomSheet {
   static Future<T?> show<T>({
@@ -7,20 +9,19 @@ class CustomBottomSheet {
     required Widget child,
     bool isDismissible = true,
     bool enableDrag = true,
-    bool showDragHandle = false,
-    Color barrierColor = const Color(0xB3000000), // Black ~70%
-    Color backgroundColor = Colors.white,
+    bool showDragHandle = true,
+    Color barrierColor = const Color(0xCC000000),
+    Color backgroundColor = const Color(0xFF141419),
+    Color accentColor = const Color(0xFFE50914), // swap for your brand color
     double? maxHeight,
-    Duration openDelay = const Duration(
-      milliseconds: 60,
-    ), // NEW: beat before spring-in
+    Duration openDelay = const Duration(milliseconds: 60),
   }) {
     return showGeneralDialog<T>(
       context: context,
       barrierDismissible: false,
       barrierLabel: 'CustomBottomSheet',
       barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 380),
+      transitionDuration: const Duration(milliseconds: 420),
       pageBuilder: (context, animation, secondaryAnimation) {
         return _BottomSheetContent(
           isDismissible: isDismissible,
@@ -28,6 +29,7 @@ class CustomBottomSheet {
           showDragHandle: showDragHandle,
           backgroundColor: backgroundColor,
           barrierColor: barrierColor,
+          accentColor: accentColor,
           maxHeight: maxHeight,
           openDelay: openDelay,
           child: child,
@@ -47,6 +49,7 @@ class _BottomSheetContent extends StatefulWidget {
   final bool showDragHandle;
   final Color backgroundColor;
   final Color barrierColor;
+  final Color accentColor;
   final double? maxHeight;
   final Duration openDelay;
 
@@ -57,6 +60,7 @@ class _BottomSheetContent extends StatefulWidget {
     required this.showDragHandle,
     required this.backgroundColor,
     required this.barrierColor,
+    required this.accentColor,
     required this.openDelay,
     this.maxHeight,
   });
@@ -68,14 +72,21 @@ class _BottomSheetContent extends StatefulWidget {
 class _BottomSheetContentState extends State<_BottomSheetContent>
     with TickerProviderStateMixin {
   late AnimationController _controller;
-  // separate, faster barrier controller so the scrim can lead slightly
   late AnimationController _barrierController;
   double _dragExtent = 0;
+  bool _hapticFired = false;
+  bool _isDragging = false;
 
-  static const _spring = SpringDescription(
+  // Lower damping = more overshoot/bounce — gives that premium "pop" on open
+  static const _entrySpring = SpringDescription(
     mass: 1,
-    stiffness: 280,
-    damping: 26,
+    stiffness: 320,
+    damping: 22,
+  );
+  static const _settleSpring = SpringDescription(
+    mass: 1,
+    stiffness: 300,
+    damping: 28,
   );
 
   @override
@@ -83,19 +94,20 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: const Duration(milliseconds: 420),
     );
     _barrierController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 280),
     );
 
-    // barrier fades in immediately (no delay) — gives the "something is about to
-    // happen" cue instantly, while the sheet itself waits a beat then springs in.
     _barrierController.forward();
 
     Future.delayed(widget.openDelay, () {
-      if (mounted) _controller.animateWith(SpringSimulation(_spring, 0, 1, 5));
+      if (mounted) {
+        HapticFeedback.mediumImpact();
+        _controller.animateWith(SpringSimulation(_entrySpring, 0, 1, 6));
+      }
     });
   }
 
@@ -109,29 +121,45 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
   Future<void> _closeSheet([double velocity = 0]) async {
     _barrierController.reverse();
     await _controller.animateWith(
-      SpringSimulation(_spring, _controller.value, 0, velocity),
+      SpringSimulation(_settleSpring, _controller.value, 0, velocity),
     );
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void _onDragStart(DragStartDetails details) {
+    _isDragging = true;
+    _hapticFired = false;
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
     setState(() {
       _dragExtent += details.delta.dy;
-      if (_dragExtent < 0) _dragExtent = 0;
+      if (_dragExtent < 0) {
+        // rubber-band resistance when overscrolling upward past full open
+        _dragExtent *= 0.35;
+      }
       final screenHeight = MediaQuery.of(context).size.height;
-      _controller.value = (1 - (_dragExtent / screenHeight)).clamp(0.0, 1.0);
+      final raw = 1 - (_dragExtent / screenHeight);
+      _controller.value = raw.clamp(0.0, 1.08); // allow tiny overshoot room
+
+      if (!_hapticFired && _dragExtent > 4) {
+        _hapticFired = true;
+        HapticFeedback.selectionClick();
+      }
     });
   }
 
   void _onDragEnd(DragEndDetails details) {
     final velocity = details.velocity.pixelsPerSecond.dy;
     _dragExtent = 0;
+    _isDragging = false;
 
     if (velocity > 700 || _controller.value < 0.6) {
+      HapticFeedback.lightImpact();
       _closeSheet(velocity / 1000);
     } else {
       _controller.animateWith(
-        SpringSimulation(_spring, _controller.value, 1, velocity / 1000),
+        SpringSimulation(_entrySpring, _controller.value, 1, velocity / 1000),
       );
     }
   }
@@ -143,23 +171,47 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
     return AnimatedBuilder(
       animation: Listenable.merge([_controller, _barrierController]),
       builder: (context, _) {
-        final progress = _controller.value.clamp(0.0, 1.0);
+        final progress = _controller.value.clamp(0.0, 1.15);
         final barrierProgress = _barrierController.value.clamp(0.0, 1.0);
-        final offsetY = screenHeight * (1 - progress);
-        // slight scale-up on entry for extra "pop"
-        final scale = 0.96 + (0.04 * progress);
+        final offsetY = screenHeight * (1 - progress.clamp(0.0, 1.0));
+        final scale = 0.90 + (0.10 * progress); // more pronounced pop-in
 
         return Material(
           type: MaterialType.transparency,
           child: Stack(
             children: [
+              // ── Frosted glass scrim with vignette
               Opacity(
                 opacity: barrierProgress,
                 child: GestureDetector(
                   onTap: widget.isDismissible ? () => _closeSheet() : null,
-                  child: Container(color: widget.barrierColor),
+                  child: Stack(
+                    children: [
+                      BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: 12 * barrierProgress,
+                          sigmaY: 12 * barrierProgress,
+                        ),
+                        child: Container(color: widget.barrierColor),
+                      ),
+                      // radial vignette focused low, draws the eye to the sheet
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(0, 0.9),
+                            radius: 1.4,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.35 * barrierProgress),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+
               Transform.translate(
                 offset: Offset(0, offsetY),
                 child: Transform.scale(
@@ -168,8 +220,11 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Opacity(
-                      opacity: progress,
+                      opacity: progress.clamp(0.0, 1.0),
                       child: GestureDetector(
+                        onVerticalDragStart: widget.enableDrag
+                            ? _onDragStart
+                            : null,
                         onVerticalDragUpdate: widget.enableDrag
                             ? _onDragUpdate
                             : null,
@@ -182,25 +237,78 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
                           ),
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: widget.backgroundColor,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color.lerp(
+                                  widget.backgroundColor,
+                                  Colors.white,
+                                  0.05,
+                                )!,
+                                widget.backgroundColor,
+                              ],
+                            ),
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24),
+                              top: Radius.circular(28),
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.07),
+                              width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 20,
-                                offset: const Offset(0, -4),
+                                color: widget.accentColor.withOpacity(
+                                  _isDragging ? 0.18 : 0.10,
+                                ),
+                                blurRadius: 50,
+                                spreadRadius: 2,
+                                offset: const Offset(0, -6),
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.5),
+                                blurRadius: 40,
+                                spreadRadius: 2,
+                                offset: const Offset(0, -8),
                               ),
                             ],
                           ),
-                          child: SafeArea(
-                            top: false,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
+                            child: Stack(
                               children: [
-                                if (widget.showDragHandle) _buildDragHandle(),
-                                Flexible(child: widget.child),
+                                SafeArea(
+                                  top: false,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (widget.showDragHandle)
+                                        _buildDragHandle(),
+                                      Flexible(child: widget.child),
+                                    ],
+                                  ),
+                                ),
+                                // top accent glow strip — the "brand pop"
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    height: 3,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          widget.accentColor.withOpacity(0.9),
+                                          Colors.transparent,
+                                        ],
+                                        stops: const [0.15, 0.5, 0.85],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -219,29 +327,37 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
 
   Widget _buildDragHandle() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Container(
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.4),
-          borderRadius: BorderRadius.circular(10),
-        ),
+      padding: const EdgeInsets.only(top: 14, bottom: 10),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // soft glow behind the handle
+          Container(
+            width: 70,
+            height: 18,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(20),
+              gradient: RadialGradient(
+                colors: [Colors.white.withOpacity(0.06), Colors.transparent],
+              ),
+            ),
+          ),
+          Container(
+            width: 44,
+            height: 4.5,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.32),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Bonus: wrap items inside your sheet's child with this to get a
-/// staggered fade + slide-up entrance — e.g. list of options in a
-/// bottom sheet appearing one after another instead of all at once.
-///
-/// Usage:
-///   Column(children: [
-///     StaggeredEntry(index: 0, child: OptionTile(...)),
-///     StaggeredEntry(index: 1, child: OptionTile(...)),
-///     StaggeredEntry(index: 2, child: OptionTile(...)),
-///   ])
+/// Staggered fade + slide-up entrance for items inside the sheet.
 class StaggeredEntry extends StatefulWidget {
   final int index;
   final Widget child;
@@ -271,11 +387,11 @@ class _StaggeredEntryState extends State<StaggeredEntry>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 340),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     _slide = Tween<Offset>(
-      begin: const Offset(0, 0.15),
+      begin: const Offset(0, 0.18),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 

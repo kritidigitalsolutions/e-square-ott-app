@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -75,10 +76,10 @@ class DeleteAccount1 extends StatelessWidget {
                             ),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.arrow_back_ios_new_rounded,
+                            child: FaIcon(
+                              FontAwesomeIcons.chevronLeft,
                               color: Colors.white,
-                              size: 16,
+                              size: 14,
                             ),
                           ),
                         ),
@@ -163,10 +164,10 @@ class DeleteAccount1ContentCard extends StatelessWidget {
               ],
             ),
             child: const Center(
-              child: Icon(
-                Icons.delete_outline_rounded,
+              child: FaIcon(
+                FontAwesomeIcons.trashCan,
                 color: Color(0xFFE42429),
-                size: 38,
+                size: 32,
               ),
             ),
           ),
@@ -324,7 +325,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(Icons.close_rounded, color: Color(0xFFE42429), size: 16),
+          const FaIcon(FontAwesomeIcons.xmark, color: Color(0xFFE42429), size: 14),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

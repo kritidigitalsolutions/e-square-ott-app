@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -81,10 +82,10 @@ class _DeleteAccount2State extends State<DeleteAccount2> {
                             ),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.arrow_back_ios_new_rounded,
+                            child: FaIcon(
+                              FontAwesomeIcons.chevronLeft,
                               color: Colors.white,
-                              size: 16,
+                              size: 14,
                             ),
                           ),
                         ),
@@ -230,10 +231,10 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
               ],
             ),
             child: const Center(
-              child: Icon(
-                Icons.priority_high_rounded,
+              child: FaIcon(
+                FontAwesomeIcons.triangleExclamation,
                 color: Color(0xFFE42429),
-                size: 38,
+                size: 34,
               ),
             ),
           ),

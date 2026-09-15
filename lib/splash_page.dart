@@ -50,10 +50,10 @@ class _SplashPageState extends State<SplashPage>
 
     _controller.forward();
 
-    // Total splash time ~2.5 sec, then navigate to home
+    // Total splash time ~2.5 sec, then navigate to login
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
-        Get.offAllNamed(Routes.home);
+        Get.offAllNamed(Routes.login);
       }
     });
   }

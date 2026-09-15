@@ -58,7 +58,7 @@ class SubscriptionController extends GetxController {
 
     AppSnackbar.success(
       'You have unlocked unlimited access to all episodes and stories.',
-      title: 'Subscription Activated! 🎉',
+      title: 'Subscription Activated',
     );
 
     return true;

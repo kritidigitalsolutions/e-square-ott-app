@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
 import '../../../routes/app_pages.dart';
@@ -49,33 +50,58 @@ class HomeController extends GetxController {
   final continueWatchingList = <MovieModel>[
     const MovieModel(
       id: 'cw1',
-      title: 'Fatah Aashiqan Ki Dark Mafia Romance',
+      title: 'Fatal Attraction: Dark Mafia Romance',
       image: AppImages.banner1,
-      episodeInfo: 'Episode 3 of 42',
-      remainingTime: '12 min remaining',
-      progress: 0.65,
-      views: '1.8k',
-      plays: '3.5k',
+      episodeInfo: 'Episode 4 of 36',
+      remainingTime: '18 min remaining',
+      progress: 0.72,
+      views: '4.8k',
+      plays: '5.5k',
+      genre: 'Romance',
     ),
     const MovieModel(
       id: 'cw2',
-      title: 'Fatah Aashiqan Ki Dark Mafia Romance',
-      image: AppImages.banner1,
-      episodeInfo: 'Episode 3 of 42',
-      remainingTime: '12 min remaining',
-      progress: 0.65,
-      views: '2.1k',
-      plays: '3.5k',
+      title: 'From Divorcee to Billionaire Bride',
+      image: AppImages.banner2,
+      episodeInfo: 'Episode 12 of 24',
+      remainingTime: '8 min remaining',
+      progress: 0.85,
+      views: '6.2k',
+      plays: '7.1k',
+      genre: 'Drama',
     ),
     const MovieModel(
       id: 'cw3',
-      title: 'Fatah Aashiqan Ki Dark Mafia Romance',
-      image: AppImages.banner1,
-      episodeInfo: 'Episode 3 of 42',
-      remainingTime: '12 min remaining',
-      progress: 0.65,
+      title: 'Security Guard Ki CEO GF',
+      image: AppImages.banner3,
+      episodeInfo: 'Episode 2 of 18',
+      remainingTime: '24 min remaining',
+      progress: 0.35,
       views: '3.4k',
-      plays: '3.5k',
+      plays: '4.2k',
+      genre: 'Romance',
+    ),
+    const MovieModel(
+      id: 'cw4',
+      title: 'Undercover Billionaire Heir',
+      image: AppImages.actionImage,
+      episodeInfo: 'Episode 7 of 40',
+      remainingTime: '14 min remaining',
+      progress: 0.54,
+      views: '5.1k',
+      plays: '6.0k',
+      genre: 'Action',
+    ),
+    const MovieModel(
+      id: 'cw5',
+      title: 'Zinda Hoon Main: Revenge',
+      image: AppImages.thrillerImage,
+      episodeInfo: 'Episode 19 of 20',
+      remainingTime: '6 min remaining',
+      progress: 0.92,
+      views: '8.4k',
+      plays: '9.8k',
+      genre: 'Thriller',
     ),
   ].obs;
 
@@ -226,77 +252,120 @@ class HomeController extends GetxController {
     newReleaseSearchQuery.value = '';
   }
 
-  // ── Category / Genre shortcut badges
+  // ── Category / Genre shortcut badges (4 chips matching screenshot)
   final categoriesList = <CategoryModel>[
-    const CategoryModel(
+    CategoryModel(
       id: 'comedy',
       title: 'Comedy',
-      emoji: '😂',
-      gradientColors: [Color(0xFFE5A00D), Color(0xFF8A4F00)],
+      icon: FontAwesomeIcons.faceLaughSquint,
+      posterImage: AppImages.comedyImage,
+      accentColor: const Color(0xFFF39C12),
+      gradientColors: const [Color(0xFFF39C12), Color(0xFF9A5500)],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'suspense',
       title: 'Suspense',
-      emoji: '🎭',
-      gradientColors: [Color(0xFF6B38D8), Color(0xFF331668)],
+      icon: FontAwesomeIcons.masksTheater,
+      posterImage: AppImages.thrillerImage,
+      accentColor: const Color(0xFF8B5CF6),
+      gradientColors: const [Color(0xFF7B3FE4), Color(0xFF451A9A)],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'romance',
       title: 'Romance',
-      emoji: '❤️',
-      gradientColors: [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
+      icon: FontAwesomeIcons.solidHeart,
+      posterImage: AppImages.romanceImage,
+      accentColor: const Color(0xFFE50914),
+      gradientColors: const [Color(0xFFE42429), Color(0xFF7E0B0F)],
+    ),
+    CategoryModel(
+      id: 'action',
+      title: 'Action',
+      icon: FontAwesomeIcons.personRunning,
+      posterImage: AppImages.actionImage,
+      accentColor: const Color(0xFFFF6B00),
+      gradientColors: const [Color(0xFF1976D2), Color(0xFF0A3D78)],
     ),
   ].obs;
 
   // ── All Categories Full List (2x4 Grid matching Categories Screen)
   final allCategoriesList = <CategoryModel>[
-    const CategoryModel(
+    CategoryModel(
       id: 'comedy1',
       title: 'Comedy',
-      emoji: '😂',
-      gradientColors: [Color(0xFFE5A00D), Color(0xFF8A4F00)],
+      icon: FontAwesomeIcons.faceLaughSquint,
+      accentColor: const Color(0xFFF39C12),
+      posterImage: AppImages.comedyImage,
+      seriesCount: '32+ Series',
+      tag: 'POPULAR',
+      gradientColors: const [Color(0xFFE5A00D), Color(0xFF8A4F00)],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'suspense1',
       title: 'Suspense',
-      emoji: '🎭',
-      gradientColors: [Color(0xFF6B38D8), Color(0xFF331668)],
+      icon: FontAwesomeIcons.masksTheater,
+      accentColor: const Color(0xFF8B5CF6),
+      posterImage: AppImages.thrillerImage,
+      seriesCount: '28+ Series',
+      tag: 'TRENDING',
+      gradientColors: const [Color(0xFF6B38D8), Color(0xFF331668)],
     ),
-    const CategoryModel(
+    CategoryModel(
       id: 'romance1',
       title: 'Romance',
-      emoji: '❤️',
-      gradientColors: [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
+      icon: FontAwesomeIcons.solidHeart,
+      accentColor: const Color(0xFFE50914),
+      posterImage: AppImages.romanceImage,
+      seriesCount: '54+ Series',
+      tag: 'TOP RATED',
+      gradientColors: const [Color(0xFFE42429), Color(0xFF7A070B)],
     ),
-    const CategoryModel(
-      id: 'comedy2',
-      title: 'Comedy',
-      emoji: '😂',
-      gradientColors: [Color(0xFFE5A00D), Color(0xFF8A4F00)],
+    CategoryModel(
+      id: 'drama1',
+      title: 'Drama',
+      icon: FontAwesomeIcons.clapperboard,
+      accentColor: const Color(0xFF22C55E),
+      posterImage: AppImages.dramaImage,
+      seriesCount: '45+ Series',
+      tag: 'HOT',
+      gradientColors: const [Color(0xFF2E7D32), Color(0xFF1B5E20)],
     ),
-    const CategoryModel(
-      id: 'comedy3',
-      title: 'Comedy',
-      emoji: '😂',
-      gradientColors: [Color(0xFFE5A00D), Color(0xFF8A4F00)],
+    CategoryModel(
+      id: 'mystery1',
+      title: 'Mystery',
+      icon: FontAwesomeIcons.userSecret,
+      accentColor: const Color(0xFF00ACC1),
+      posterImage: AppImages.mysteryImage,
+      seriesCount: '19+ Series',
+      gradientColors: const [Color(0xFF00838F), Color(0xFF004D40)],
     ),
-    const CategoryModel(
-      id: 'suspense2',
-      title: 'Suspense',
-      emoji: '🎭',
-      gradientColors: [Color(0xFF6B38D8), Color(0xFF331668)],
+    CategoryModel(
+      id: 'action1',
+      title: 'Action',
+      icon: FontAwesomeIcons.personRunning,
+      accentColor: const Color(0xFFFF6B00),
+      posterImage: AppImages.actionImage,
+      seriesCount: '38+ Series',
+      tag: 'EXPLOSIVE',
+      gradientColors: const [Color(0xFFC2185B), Color(0xFF880E4F)],
     ),
-    const CategoryModel(
-      id: 'romance2',
-      title: 'Romance',
-      emoji: '❤️',
-      gradientColors: [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
+    CategoryModel(
+      id: 'thriller1',
+      title: 'Thriller',
+      icon: FontAwesomeIcons.bolt,
+      accentColor: const Color(0xFFE50914),
+      posterImage: AppImages.horrorImage,
+      seriesCount: '26+ Series',
+      gradientColors: const [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
     ),
-    const CategoryModel(
-      id: 'comedy4',
-      title: 'Comedy',
-      emoji: '😂',
-      gradientColors: [Color(0xFFE5A00D), Color(0xFF8A4F00)],
+    CategoryModel(
+      id: 'scifi1',
+      title: 'Sci-Fi',
+      icon: FontAwesomeIcons.rocket,
+      accentColor: const Color(0xFF0284C7),
+      posterImage: AppImages.fantasyImage,
+      seriesCount: '15+ Series',
+      gradientColors: const [Color(0xFF1976D2), Color(0xFF0D47A1)],
     ),
   ].obs;
 
@@ -333,6 +402,22 @@ class HomeController extends GetxController {
       ranking: 4,
       views: '2.5k',
       plays: '3.8k',
+    ),
+    const MovieModel(
+      id: 'tr5',
+      title: 'THE CEO HAS MY BACK',
+      image: AppImages.banner2,
+      ranking: 5,
+      views: '4.1k',
+      plays: '4.8k',
+    ),
+    const MovieModel(
+      id: 'tr6',
+      title: 'UNDERCOVER BOSS LADY',
+      image: AppImages.banner3,
+      ranking: 6,
+      views: '3.9k',
+      plays: '4.2k',
     ),
   ].obs;
 
@@ -417,10 +502,12 @@ class HomeController extends GetxController {
 
   void removeContinueWatching(String id) {
     continueWatchingList.removeWhere((item) => item.id == id);
-    AppSnackbar.info(
-      'Series removed from Continue Watching',
-      title: 'Removed',
-    );
+    AppSnackbar.info('Series removed from Continue Watching', title: 'Removed');
+  }
+
+  void clearAllContinueWatching() {
+    continueWatchingList.clear();
+    AppSnackbar.info('Continue Watching history cleared', title: 'Cleared');
   }
 
   void resumeWatching(MovieModel movie) {
@@ -428,10 +515,10 @@ class HomeController extends GetxController {
   }
 
   // ── Selected Category & Category Dramas List (matching Category Dramas Screen)
-  final Rx<CategoryModel> selectedCategory = const CategoryModel(
+  final Rx<CategoryModel> selectedCategory = CategoryModel(
     id: 'romance',
     title: 'Romance',
-    emoji: '❤️',
+    icon: FontAwesomeIcons.solidHeart,
     gradientColors: [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
   ).obs;
 

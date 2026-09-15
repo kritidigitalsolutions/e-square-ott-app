@@ -33,77 +33,70 @@ class HomeScreen extends GetView<HomeController> {
         child: Scaffold(
           backgroundColor: const Color(0xFF0D0D12),
           body: Stack(
-          children: [
-            // ── Background ambient gradient
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF1E0A0C),
-                      Color(0xFF0D0D12),
-                      Color(0xFF0A0A0F),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: [0.0, 0.35, 1.0],
+            children: [
+              // ── Background ambient gradient
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF1E0A0C),
+                        Color(0xFF0D0D12),
+                        Color(0xFF0A0A0F),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: [0.0, 0.35, 1.0],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // ── Main Tab Views with CustomAnimation
-            Obx(() {
-              final index = controller.currentNavIndex.value;
-              Widget currentTab;
-              switch (index) {
-                case 0:
-                  currentTab = const SafeArea(
-                    bottom: false,
-                    child: HomeTabView(),
-                  );
-                  break;
-                case 1:
-                  currentTab = const ExploreTabView();
-                  break;
-                case 2:
-                  currentTab = const SafeArea(
-                    bottom: false,
-                    child: ProfileTabView(),
-                  );
-                  break;
-                case 3:
-                  currentTab = const SafeArea(
-                    bottom: false,
-                    child: SearchTabView(),
-                  );
-                  break;
-                default:
-                  currentTab = const SafeArea(
-                    bottom: false,
-                    child: HomeTabView(),
-                  );
-              }
+              // ── Main Tab Views with CustomAnimation
+              Obx(() {
+                final index = controller.currentNavIndex.value;
+                Widget currentTab;
+                switch (index) {
+                  case 0:
+                    currentTab = const SafeArea(
+                      bottom: false,
+                      child: HomeTabView(),
+                    );
+                    break;
+                  case 1:
+                    currentTab = const ExploreTabView();
+                    break;
+                  case 2:
+                    currentTab = const SafeArea(
+                      bottom: false,
+                      child: ProfileTabView(),
+                    );
+                    break;
+                  case 3:
+                    currentTab = const SafeArea(
+                      bottom: false,
+                      child: SearchTabView(),
+                    );
+                    break;
+                  default:
+                    currentTab = const SafeArea(
+                      bottom: false,
+                      child: HomeTabView(),
+                    );
+                }
 
-              return CustomAnimation.fadeThrough(
-                child: KeyedSubtree(
-                  key: ValueKey<int>(index),
-                  child: currentTab,
-                ),
-              );
-            }),
-
-            // ── Floating Bottom Navigation Bar
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CustomBottomNavBar(),
-            ),
-          ],
+                return CustomAnimation.fadeThrough(
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(index),
+                    child: currentTab,
+                  ),
+                );
+              }),
+            ],
+          ),
+          bottomNavigationBar: const CustomBottomAppBar(),
         ),
       ),
-    ),
-  );
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
@@ -75,10 +76,10 @@ class LogoutPage extends StatelessWidget {
                             ),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.arrow_back_ios_new_rounded,
+                            child: FaIcon(
+                              FontAwesomeIcons.chevronLeft,
                               color: Colors.white,
-                              size: 16,
+                              size: 14,
                             ),
                           ),
                         ),
@@ -165,10 +166,10 @@ class LogoutContentCard extends StatelessWidget {
               ],
             ),
             child: const Center(
-              child: Icon(
-                Icons.logout_rounded,
+              child: FaIcon(
+                FontAwesomeIcons.arrowRightFromBracket,
                 color: Color(0xFFE42429),
-                size: 38,
+                size: 32,
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
@@ -56,9 +57,13 @@ class NewReleasesSection extends GetView<HomeController> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           color: const Color(0xFF161620),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(13),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -73,11 +78,32 @@ class NewReleasesSection extends GetView<HomeController> {
               // Badges
               Positioned(
                 top: 6,
-                left: 6,
                 right: 6,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [_buildMiniDarkBadge('▶ ${movie.plays}')],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.play,
+                        color: Colors.white,
+                        size: 8,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        movie.plays,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -98,31 +124,13 @@ class NewReleasesSection extends GetView<HomeController> {
             title,
             style: AppTextStyles.text18Bold.copyWith(color: Colors.white),
           ),
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.chevron_right_rounded,
+          const SizedBox(width: 6),
+          const FaIcon(
+            FontAwesomeIcons.chevronRight,
             color: AppColors.primary,
-            size: 20,
+            size: 13,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMiniDarkBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 7.5,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

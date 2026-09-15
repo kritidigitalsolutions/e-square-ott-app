@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
@@ -13,102 +14,145 @@ class RecommendedSection extends GetView<HomeController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Recommended for you', onTap: () {}),
+        // ── Section Header: Recommended for you >
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _buildSectionHeader('Recommended for you', onTap: () {}),
+        ),
         const SizedBox(height: 14),
 
-        // 3 Column Grid
-        Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[0],
-                    height: 172,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[1],
-                    height: 172,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[2],
-                    height: 172,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[3],
-                    height: 172,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[4],
-                    height: 172,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildPosterCard(
-                    controller.recommendedList[5],
-                    height: 172,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        // ── Horizontal Scrolling Carousel
+        SizedBox(
+          height: 184,
+          child: Obx(() {
+            final recommended = controller.recommendedList;
+
+            return ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: recommended.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final movie = recommended[index];
+                return _buildPosterCard(movie);
+              },
+            );
+          }),
         ),
       ],
     );
   }
 
-  Widget _buildPosterCard(
-    MovieModel movie, {
-    double? width,
-    required double height,
-  }) {
+  Widget _buildPosterCard(MovieModel movie) {
     return GestureDetector(
       onTap: () => controller.onMovieTap(movie),
       child: Container(
-        width: width,
-        height: height,
+        width: 124,
+        height: 184,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           color: const Color(0xFF161620),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(13),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Poster
+              // Poster Image
               Image.asset(
                 movie.image,
                 fit: BoxFit.cover,
-                errorBuilder: (_, e, s) =>
-                    Container(color: const Color(0xFF1E1E26)),
+                errorBuilder: (_, e, s) => Container(
+                  color: const Color(0xFF1E1E26),
+                  child: const Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.film,
+                      color: Colors.white24,
+                      size: 20,
+                    ),
+                  ),
+                ),
               ),
 
-              // Badges
+              // Bottom Gradient Overlay for Readability
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Top-Right Plays Badge
               Positioned(
                 top: 6,
-                left: 6,
                 right: 6,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [_buildMiniDarkBadge('▶ ${movie.plays}')],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.play,
+                        color: Colors.white,
+                        size: 7,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        movie.plays,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Bottom Title
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Text(
+                  movie.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.1,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ],
@@ -127,33 +171,19 @@ class RecommendedSection extends GetView<HomeController> {
         children: [
           Text(
             title,
-            style: AppTextStyles.text18Bold.copyWith(color: Colors.white),
+            style: AppTextStyles.text18Bold.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
           ),
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.primary,
-            size: 20,
+          const SizedBox(width: 6),
+          const FaIcon(
+            FontAwesomeIcons.chevronRight,
+            color: Color(0xFFE42429),
+            size: 13,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMiniDarkBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 7.5,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

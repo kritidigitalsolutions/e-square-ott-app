@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
@@ -53,10 +54,10 @@ class ProfileTabView extends StatelessWidget {
                         ),
                       ),
                       child: const Center(
-                        child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
+                        child: FaIcon(
+                          FontAwesomeIcons.chevronLeft,
                           color: Colors.white,
-                          size: 18,
+                          size: 15,
                         ),
                       ),
                     ),
@@ -103,10 +104,10 @@ class ProfileTabView extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
                           color: const Color(0xFF2A2A38),
-                          child: const Icon(
-                            Icons.person,
+                          child: const FaIcon(
+                            FontAwesomeIcons.solidUser,
                             color: Colors.white70,
-                            size: 24,
+                            size: 20,
                           ),
                         ),
                       ),
@@ -138,12 +139,12 @@ class ProfileTabView extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildGroupedCard([
                       _ProfileMenuItem(
-                        icon: Icons.bookmark_border_rounded,
+                        icon: FontAwesomeIcons.bookmark,
                         title: 'Saved Series'.tr,
                         onTap: controller.openSavedSeries,
                       ),
                       _ProfileMenuItem(
-                        icon: Icons.history_rounded,
+                        icon: FontAwesomeIcons.clockRotateLeft,
                         title: 'Watch history'.tr,
                         onTap: controller.openWatchHistory,
                       ),
@@ -160,42 +161,58 @@ class ProfileTabView extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildGroupedCard([
                       _ProfileMenuItem(
-                        icon: Icons.military_tech_rounded,
+                        icon: FontAwesomeIcons.crown,
                         title: 'Subscription'.tr,
                         onTap: controller.openSubscription,
                       ),
                       _ProfileMenuItem(
-                        icon: Icons.notifications_none_rounded,
+                        icon: FontAwesomeIcons.bell,
                         title: 'Notification'.tr,
                         onTap: controller.openNotification,
                       ),
                       _ProfileMenuItem(
-                        icon: Icons.settings_outlined,
+                        icon: FontAwesomeIcons.gear,
                         title: 'Settings'.tr,
                         onTap: controller.openSettings,
                       ),
                       _ProfileMenuItem(
-                        icon: Icons.notifications_active_outlined,
+                        icon: FontAwesomeIcons.sliders,
                         title: 'Notification Settings'.tr,
                         onTap: controller.openNotificationSettings,
                       ),
+                      // _ProfileMenuItem(
+                      //   icon: FontAwesomeIcons.arrowRightFromBracket,
+                      //   title: 'Log Out'.tr,
+                      //   onTap: controller.logout,
+                      // ),
                     ]),
                     const SizedBox(height: 24),
 
                     // ── Section 3: Policies & Terms
                     _buildGroupedCard([
                       _ProfileMenuItem(
-                        icon: Icons.verified_user_outlined,
+                        icon: FontAwesomeIcons.shieldHalved,
                         title: 'Privacy Policy'.tr,
                         onTap: controller.openPrivacyPolicy,
                       ),
                       _ProfileMenuItem(
-                        icon: Icons.description_outlined,
+                        icon: FontAwesomeIcons.fileLines,
                         title: 'Terms & Conditions'.tr,
                         onTap: controller.openTermsAndConditions,
                       ),
                     ]),
                     const SizedBox(height: 28),
+
+                    // ── Log Out Action Button
+                    AppButton(
+                      label: 'Log Out'.tr,
+                      onPressed: controller.logout,
+                      backgroundColor: const Color(0xFF1C1C26),
+                      textColor: Colors.white,
+                      height: 50,
+                      borderRadius: 12,
+                    ),
+                    const SizedBox(height: 12),
 
                     // ── Delete Account Button (Red solid)
                     AppButton(
@@ -221,18 +238,39 @@ class ProfileTabView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF14141E).withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          // Avatar
+          // Avatar with subtle glow
           Container(
             width: 58,
             height: 58,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF3A3A4A), width: 1.5),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.6),
+                width: 1.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
             child: ClipOval(
               child: Image.asset(
@@ -240,10 +278,12 @@ class ProfileTabView extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, e, s) => Container(
                   color: const Color(0xFF2A2A38),
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.white70,
-                    size: 30,
+                  child: const Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.solidUser,
+                      color: Colors.white70,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
@@ -263,6 +303,7 @@ class ProfileTabView extends StatelessWidget {
                     style: AppTextStyles.text20Bold.copyWith(
                       color: Colors.white,
                       height: 1.2,
+                      letterSpacing: -0.2,
                     ),
                   ),
                 ),
@@ -271,7 +312,7 @@ class ProfileTabView extends StatelessWidget {
                   () => Text(
                     controller.userEmail.value,
                     style: AppTextStyles.text13Medium.copyWith(
-                      color: const Color(0xFF8A8A8A),
+                      color: const Color(0xFF9E9EAE),
                     ),
                   ),
                 ),
@@ -283,19 +324,38 @@ class ProfileTabView extends StatelessWidget {
           GestureDetector(
             onTap: controller.openSubscription,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF6B151B),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF9E1E26), width: 0.8),
-              ),
-              child: const Text(
-                'Premium',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B1218), Color(0xFFE42429)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFE42429).withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  FaIcon(FontAwesomeIcons.crown, color: Colors.white, size: 13),
+                  SizedBox(width: 5),
+                  Text(
+                    'VIP',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -308,8 +368,12 @@ class ProfileTabView extends StatelessWidget {
   Widget _buildGroupedCard(List<_ProfileMenuItem> items) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF14141E).withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -317,8 +381,8 @@ class ProfileTabView extends StatelessWidget {
             if (i > 0)
               Divider(
                 height: 1,
-                thickness: 1,
-                color: AppColors.white.withValues(alpha: 0.1),
+                thickness: 0.8,
+                color: Colors.white.withValues(alpha: 0.06),
                 indent: 16,
                 endIndent: 16,
               ),
@@ -338,7 +402,7 @@ class _ProfileMenuItem extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final FaIconData icon;
   final String title;
   final VoidCallback onTap;
 
@@ -346,23 +410,40 @@ class _ProfileMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: const Color(0xFFB0B0C0)),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E2C).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  width: 0.8,
+                ),
+              ),
+              child: Center(
+                child: FaIcon(icon, size: 15, color: const Color(0xFFC0C0D4)),
+              ),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
-                style: AppTextStyles.text14Medium.copyWith(color: Colors.white),
+                style: AppTextStyles.text14SemiBold.copyWith(
+                  color: Colors.white,
+                  letterSpacing: 0.1,
+                ),
               ),
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: Color(0xFF6E6E7E),
+            const FaIcon(
+              FontAwesomeIcons.chevronRight,
+              size: 13,
+              color: Color(0xFF6E6E82),
             ),
           ],
         ),
