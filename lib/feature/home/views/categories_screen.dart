@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
 import '../models/category_model.dart';
@@ -40,7 +41,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
+      child: CustomScaffold(
+        showAppBar: false,
+        safeArea: false,
         backgroundColor: const Color(0xFF07070C),
         body: Stack(
           children: [

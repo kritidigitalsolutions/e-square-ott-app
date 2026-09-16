@@ -1,5 +1,6 @@
 import 'package:e_square_ott_app/constants/app_constants.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -66,7 +67,9 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: AppColors.background,
       body: Stack(
         fit: StackFit.expand,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
 import '../models/movie_model.dart';
@@ -23,7 +24,9 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
+      child: CustomScaffold(
+        showAppBar: false,
+        safeArea: false,
         backgroundColor: const Color(0xFF06060A),
         body: Stack(
           children: [

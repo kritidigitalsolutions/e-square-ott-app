@@ -1,6 +1,7 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:e_square_ott_app/core/localization/locale_controller.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_bottomsheet.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final localeController = Get.find<LocaleController>();
 
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [

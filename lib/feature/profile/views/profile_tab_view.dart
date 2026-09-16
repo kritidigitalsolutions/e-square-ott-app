@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../home/controller/home_controller.dart';
 import '../controller/profile_controller.dart';
@@ -16,220 +17,225 @@ class ProfileTabView extends StatelessWidget {
     // Ensure ProfileController is available
     final controller = Get.put(ProfileController());
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.loginBgGradient,
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.loginBgGradient,
+              ),
             ),
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Top Header matching screenshot (< Profile Your Entertainment² space  [Avatar])
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-              child: Row(
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () {
-                      if (Get.isRegistered<HomeController>()) {
-                        Get.find<HomeController>().currentNavIndex.value = 0;
-                      } else {
-                        Get.back();
-                      }
-                    },
-                    child: Container(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Top Header matching screenshot (< Profile Your Entertainment² space  [Avatar])
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                child: Row(
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () {
+                        if (Get.isRegistered<HomeController>()) {
+                          Get.find<HomeController>().currentNavIndex.value = 0;
+                        } else {
+                          Get.back();
+                        }
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16161E),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Center(
+                          child: FaIcon(
+                            FontAwesomeIcons.chevronLeft,
+                            color: Colors.white,
+                            size: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+
+                    // Title & Subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Profile".tr,
+                            style: AppTextStyles.text22Bold.copyWith(
+                              color: AppColors.textPrimary,
+                              height: 1.15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Your Entertainment² space".tr,
+                            style: AppTextStyles.text13Medium.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // User Avatar at top right
+                    Container(
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF16161E),
-                        borderRadius: BorderRadius.circular(12),
+                        shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          width: 1,
+                          color: Colors.white.withValues(alpha: 0.15),
+                          width: 1.2,
                         ),
                       ),
-                      child: const Center(
-                        child: FaIcon(
-                          FontAwesomeIcons.chevronLeft,
-                          color: Colors.white,
-                          size: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-
-                  // Title & Subtitle
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Profile".tr,
-                          style: AppTextStyles.text22Bold.copyWith(
-                            color: AppColors.textPrimary,
-                            height: 1.15,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "Your Entertainment² space".tr,
-                          style: AppTextStyles.text13Medium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // User Avatar at top right
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        AppImages.banner1,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: const Color(0xFF2A2A38),
-                          child: const FaIcon(
-                            FontAwesomeIcons.solidUser,
-                            color: Colors.white70,
-                            size: 20,
+                      child: ClipOval(
+                        child: Image.asset(
+                          AppImages.banner1,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFF2A2A38),
+                            child: const FaIcon(
+                              FontAwesomeIcons.solidUser,
+                              color: Colors.white70,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Scrollable Profile Content
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Top User Profile Header Card
-                    _buildUserProfileCard(controller),
-                    const SizedBox(height: 24),
-
-                    // ── Section 1: Your Library
-                    Text(
-                      'Your Library'.tr,
-                      style: AppTextStyles.text16Bold.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildGroupedCard([
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.bookmark,
-                        title: 'Saved Series'.tr,
-                        onTap: controller.openSavedSeries,
-                      ),
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.clockRotateLeft,
-                        title: 'Watch history'.tr,
-                        onTap: controller.openWatchHistory,
-                      ),
-                    ]),
-                    const SizedBox(height: 24),
-
-                    // ── Section 2: Account
-                    Text(
-                      'Account'.tr,
-                      style: AppTextStyles.text16Bold.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildGroupedCard([
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.crown,
-                        title: 'Subscription'.tr,
-                        onTap: controller.openSubscription,
-                      ),
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.bell,
-                        title: 'Notification'.tr,
-                        onTap: controller.openNotification,
-                      ),
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.gear,
-                        title: 'Settings'.tr,
-                        onTap: controller.openSettings,
-                      ),
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.sliders,
-                        title: 'Notification Settings'.tr,
-                        onTap: controller.openNotificationSettings,
-                      ),
-                      // _ProfileMenuItem(
-                      //   icon: FontAwesomeIcons.arrowRightFromBracket,
-                      //   title: 'Log Out'.tr,
-                      //   onTap: controller.logout,
-                      // ),
-                    ]),
-                    const SizedBox(height: 24),
-
-                    // ── Section 3: Policies & Terms
-                    _buildGroupedCard([
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.shieldHalved,
-                        title: 'Privacy Policy'.tr,
-                        onTap: controller.openPrivacyPolicy,
-                      ),
-                      _ProfileMenuItem(
-                        icon: FontAwesomeIcons.fileLines,
-                        title: 'Terms & Conditions'.tr,
-                        onTap: controller.openTermsAndConditions,
-                      ),
-                    ]),
-                    const SizedBox(height: 28),
-
-                    // ── Log Out Action Button
-                    AppButton(
-                      label: 'Log Out'.tr,
-                      onPressed: controller.logout,
-                      backgroundColor: const Color(0xFF1C1C26),
-                      textColor: Colors.white,
-                      height: 50,
-                      borderRadius: 12,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ── Delete Account Button (Red solid)
-                    AppButton(
-                      label: 'Delete Account'.tr,
-                      onPressed: controller.showDeleteAccountDialog,
-                      backgroundColor: AppColors.primary,
-                      height: 50,
-                      borderRadius: 12,
-                    ),
-                    const SizedBox(height: 16),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+
+              // ── Scrollable Profile Content
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Top User Profile Header Card
+                      _buildUserProfileCard(controller),
+                      const SizedBox(height: 24),
+
+                      // ── Section 1: Your Library
+                      Text(
+                        'Your Library'.tr,
+                        style: AppTextStyles.text16Bold.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildGroupedCard([
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.bookmark,
+                          title: 'Saved Series'.tr,
+                          onTap: controller.openSavedSeries,
+                        ),
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.clockRotateLeft,
+                          title: 'Watch history'.tr,
+                          onTap: controller.openWatchHistory,
+                        ),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ── Section 2: Account
+                      Text(
+                        'Account'.tr,
+                        style: AppTextStyles.text16Bold.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildGroupedCard([
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.crown,
+                          title: 'Subscription'.tr,
+                          onTap: controller.openSubscription,
+                        ),
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.bell,
+                          title: 'Notification'.tr,
+                          onTap: controller.openNotification,
+                        ),
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.gear,
+                          title: 'Settings'.tr,
+                          onTap: controller.openSettings,
+                        ),
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.sliders,
+                          title: 'Notification Settings'.tr,
+                          onTap: controller.openNotificationSettings,
+                        ),
+                        // _ProfileMenuItem(
+                        //   icon: FontAwesomeIcons.arrowRightFromBracket,
+                        //   title: 'Log Out'.tr,
+                        //   onTap: controller.logout,
+                        // ),
+                      ]),
+                      const SizedBox(height: 24),
+
+                      // ── Section 3: Policies & Terms
+                      _buildGroupedCard([
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.shieldHalved,
+                          title: 'Privacy Policy'.tr,
+                          onTap: controller.openPrivacyPolicy,
+                        ),
+                        _ProfileMenuItem(
+                          icon: FontAwesomeIcons.fileLines,
+                          title: 'Terms & Conditions'.tr,
+                          onTap: controller.openTermsAndConditions,
+                        ),
+                      ]),
+                      const SizedBox(height: 28),
+
+                      // ── Log Out Action Button
+                      AppButton(
+                        label: 'Log Out'.tr,
+                        onPressed: controller.logout,
+                        backgroundColor: const Color(0xFF1C1C26),
+                        textColor: Colors.white,
+                        height: 50,
+                        borderRadius: 12,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // ── Delete Account Button (Red solid)
+                      AppButton(
+                        label: 'Delete Account'.tr,
+                        onPressed: controller.showDeleteAccountDialog,
+                        backgroundColor: AppColors.primary,
+                        height: 50,
+                        borderRadius: 12,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

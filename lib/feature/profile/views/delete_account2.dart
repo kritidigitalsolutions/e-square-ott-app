@@ -4,13 +4,15 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
+import '../../../shared/widgets/custom_loading.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 
 class DeleteAccount2 extends StatefulWidget {
   const DeleteAccount2({super.key});
 
-  /// Helper to show this confirmation as a bottom sheet
+  /// Helper to show this delete confirmation as a bottom sheet
   static Future<T?> showBottomSheet<T>(BuildContext context) {
     return CustomBottomSheet.show<T>(
       context: context,
@@ -19,7 +21,7 @@ class DeleteAccount2 extends StatefulWidget {
     );
   }
 
-  /// Helper to show this confirmation as a dialog
+  /// Helper to show this delete confirmation as a dialog
   static Future<T?> showDeleteDialog<T>(BuildContext context) {
     return showDialog<T>(
       context: context,
@@ -39,7 +41,9 @@ class DeleteAccount2 extends StatefulWidget {
 class _DeleteAccount2State extends State<DeleteAccount2> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: Colors.black,
       body: Stack(
         children: [
@@ -360,14 +364,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
               child: Center(
                 child: _isLoading
                     ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
+                        width: 30,
+                        height: 30,
+                        child: LoadingWidget(size: 30),
                       )
                     : const Text(
                         'Delete My Account',

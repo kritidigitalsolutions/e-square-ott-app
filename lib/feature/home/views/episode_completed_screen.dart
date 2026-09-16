@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../explore/models/explore_item_model.dart';
@@ -104,7 +105,9 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,

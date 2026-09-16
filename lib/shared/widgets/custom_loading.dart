@@ -40,7 +40,9 @@ class LoadingWidget extends StatelessWidget {
                   height: 36,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.8,
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE42429)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFE42429),
+                    ),
                   ),
                 ),
               ),
@@ -70,14 +72,22 @@ class LoadingOverlay extends StatelessWidget {
   const LoadingOverlay({
     super.key,
     this.message,
-    this.backgroundColor = Colors.black45,
+    this.backgroundColor = Colors.black54,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: backgroundColor,
-      child: LoadingWidget(message: message, messageColor: Colors.white),
+    return Positioned.fill(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          color: backgroundColor,
+          child: LoadingWidget(
+            message: message,
+            messageColor: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }

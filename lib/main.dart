@@ -5,7 +5,6 @@ import 'core/localization/app_translations.dart';
 import 'core/localization/locale_controller.dart';
 import 'feature/subscription/controller/subscription_controller.dart';
 import 'routes/app_pages.dart';
-import 'shared/widgets/custom_animation.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +52,7 @@ class MyApp extends StatelessWidget {
         translations: AppTranslations(),
         locale: localeController.currentLocale.value,
         fallbackLocale: const Locale('en', 'US'),
-        customTransition: FadeThroughPageTransition(),
+        // customTransition: FadeThroughPageTransition(),
         defaultTransition: Transition.native,
         transitionDuration: const Duration(milliseconds: 350),
         initialRoute: AppPages.initial,

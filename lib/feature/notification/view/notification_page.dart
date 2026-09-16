@@ -1,7 +1,9 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -93,7 +95,9 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     final grouped = _groupedNotifications;
 
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [

@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../../constants/app_colors.dart';
 
 class CustomBottomSheet {
   static Future<T?> show<T>({
@@ -11,10 +13,13 @@ class CustomBottomSheet {
     bool enableDrag = true,
     bool showDragHandle = true,
     Color barrierColor = const Color(0xCC000000),
-    Color backgroundColor = const Color(0xFF141419),
-    Color accentColor = const Color(0xFFE50914), // swap for your brand color
+    Color backgroundColor = AppColors.surface,
+    Color accentColor = AppColors.primary,
     double? maxHeight,
     Duration openDelay = const Duration(milliseconds: 60),
+    Duration animationDuration = const Duration(milliseconds: 550),
+    double verticalOffset = 50.0,
+    bool animate = true,
   }) {
     return showGeneralDialog<T>(
       context: context,
@@ -32,6 +37,9 @@ class CustomBottomSheet {
           accentColor: accentColor,
           maxHeight: maxHeight,
           openDelay: openDelay,
+          animationDuration: animationDuration,
+          verticalOffset: verticalOffset,
+          animate: animate,
           child: child,
         );
       },
@@ -52,6 +60,9 @@ class _BottomSheetContent extends StatefulWidget {
   final Color accentColor;
   final double? maxHeight;
   final Duration openDelay;
+  final Duration animationDuration;
+  final double verticalOffset;
+  final bool animate;
 
   const _BottomSheetContent({
     required this.child,
@@ -62,6 +73,9 @@ class _BottomSheetContent extends StatefulWidget {
     required this.barrierColor,
     required this.accentColor,
     required this.openDelay,
+    required this.animationDuration,
+    required this.verticalOffset,
+    required this.animate,
     this.maxHeight,
   });
 
@@ -286,7 +300,27 @@ class _BottomSheetContentState extends State<_BottomSheetContent>
                                     children: [
                                       if (widget.showDragHandle)
                                         _buildDragHandle(),
-                                      Flexible(child: widget.child),
+                                      Flexible(
+                                        child: widget.animate
+                                            ? AnimationLimiter(
+                                                child:
+                                                    AnimationConfiguration.synchronized(
+                                                      duration: widget
+                                                          .animationDuration,
+                                                      child: SlideAnimation(
+                                                        verticalOffset: widget
+                                                            .verticalOffset,
+                                                        curve:
+                                                            Curves.easeOutCubic,
+                                                        child: FadeInAnimation(
+                                                          curve: Curves.easeOut,
+                                                          child: widget.child,
+                                                        ),
+                                                      ),
+                                                    ),
+                                              )
+                                            : widget.child,
+                                      ),
                                     ],
                                   ),
                                 ),

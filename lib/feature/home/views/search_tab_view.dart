@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../controller/search_tab_controller.dart';
 import '../models/movie_model.dart';
 
@@ -14,69 +15,74 @@ class SearchTabView extends StatelessWidget {
     // Ensure SearchTabController is registered and initialized
     final controller = Get.put(SearchTabController());
 
-    return Stack(
-      children: [
-        // ── Background Ambient Gradient
-        Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.loginBgGradient,
-            ),
-          ),
-        ),
-
-        // ── Main Content Area
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Top Header Section (Back Button + Titles)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Title
-                  Text(
-                    'Search'.tr,
-                    style: AppTextStyles.text24Bold.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-
-                  // Subtitle
-                  Text(
-                    'Find a story that matches your mood'.tr,
-                    style: AppTextStyles.text14Medium.copyWith(
-                      color: const Color(0xFF8A8A8A),
-                    ),
-                  ),
-                ],
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // ── Background Ambient Gradient
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.loginBgGradient,
               ),
             ),
+          ),
 
-            // ── Search Input Field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildSearchInputField(controller),
-            ),
-            const SizedBox(height: 16),
+          // ── Main Content Area
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Top Header Section (Back Button + Titles)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Title
+                    Text(
+                      'Search'.tr,
+                      style: AppTextStyles.text24Bold.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
 
-            // ── Body Area (Dynamic: Default Views vs Search Results)
-            Expanded(
-              child: Obx(() {
-                final query = controller.searchQuery.value.trim();
+                    // Subtitle
+                    Text(
+                      'Find a story that matches your mood'.tr,
+                      style: AppTextStyles.text14Medium.copyWith(
+                        color: const Color(0xFF8A8A8A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                if (query.isNotEmpty) {
-                  return _buildSearchResultsView(controller);
-                }
+              // ── Search Input Field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _buildSearchInputField(controller),
+              ),
+              const SizedBox(height: 16),
 
-                return _buildDefaultSearchView(controller);
-              }),
-            ),
-          ],
-        ),
-      ],
+              // ── Body Area (Dynamic: Default Views vs Search Results)
+              Expanded(
+                child: Obx(() {
+                  final query = controller.searchQuery.value.trim();
+
+                  if (query.isNotEmpty) {
+                    return _buildSearchResultsView(controller);
+                  }
+
+                  return _buildDefaultSearchView(controller);
+                }),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

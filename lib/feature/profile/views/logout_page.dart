@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 
 class LogoutPage extends StatelessWidget {
@@ -33,7 +34,9 @@ class LogoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: Colors.black,
       body: Stack(
         children: [
@@ -42,10 +45,7 @@ class LogoutPage extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0A0A0E),
-                    Color(0xFF000000),
-                  ],
+                  colors: [Color(0xFF0A0A0E), Color(0xFF000000)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -58,7 +58,10 @@ class LogoutPage extends StatelessWidget {
               children: [
                 // Top App Bar / Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       GestureDetector(
@@ -100,7 +103,10 @@ class LogoutPage extends StatelessWidget {
                 const Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
                       child: LogoutContentCard(),
                     ),
                   ),
@@ -127,10 +133,7 @@ class LogoutContentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0B0B0F),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: const Color(0xFF1E1E28),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFF1E1E28), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.6),
@@ -153,10 +156,7 @@ class LogoutContentCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: const Color(0xFF160E12),
-              border: Border.all(
-                color: const Color(0xFFE42429),
-                width: 1.8,
-              ),
+              border: Border.all(color: const Color(0xFFE42429), width: 1.8),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFE42429).withValues(alpha: 0.22),
@@ -203,7 +203,9 @@ class LogoutContentCard extends StatelessWidget {
                   height: 1.45,
                 ),
                 children: const [
-                  TextSpan(text: "You'll need to log in again to access your\n"),
+                  TextSpan(
+                    text: "You'll need to log in again to access your\n",
+                  ),
                   TextSpan(
                     text: 'Entertainment\u00B2',
                     style: TextStyle(

@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_sizes.dart';
 import '../../constants/app_text_styles.dart';
+import 'custom_loading.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton({
@@ -70,12 +71,9 @@ class AppButton extends StatelessWidget {
           child: Center(
             child: isLoading
                 ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.4,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
+                    width: 30,
+                    height: 30,
+                    child: LoadingWidget(size: 30),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/subscription_controller.dart';
 
@@ -14,7 +15,9 @@ class SubscriptionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final subController = Get.find<SubscriptionController>();
 
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [

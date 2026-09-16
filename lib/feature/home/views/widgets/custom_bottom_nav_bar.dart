@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
 import '../../controller/home_controller.dart';
 
@@ -152,7 +153,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
               height: 3,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFFE50914)
+                    ? AppColors.primary
                     : Colors.transparent,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(3),
@@ -160,7 +161,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFFE50914).withValues(alpha: 0.8),
+                          color: AppColors.primary.withValues(alpha: 0.8),
                           blurRadius: 8,
                           spreadRadius: 1,
                         ),
@@ -178,7 +179,7 @@ class _NavItemButtonState extends State<_NavItemButton> {
                   FaIcon(
                     widget.icon,
                     color: isSelected
-                        ? const Color(0xFFE50914)
+                        ? AppColors.primary
                         : const Color(0xFF7E7E92),
                     size: isSelected ? 20 : 18.5,
                   ),

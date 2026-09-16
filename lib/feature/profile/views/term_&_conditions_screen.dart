@@ -1,5 +1,6 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,7 +13,10 @@ class TermsConditionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           Positioned.fill(

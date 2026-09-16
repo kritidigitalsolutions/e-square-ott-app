@@ -7,6 +7,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
@@ -642,7 +643,9 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   Widget build(BuildContext context) {
     final subController = Get.find<SubscriptionController>();
 
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: Colors.black,
       body: Obx(() {
         final isSubscribed = subController.isSubscribed.value;

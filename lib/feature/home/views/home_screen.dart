@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../constants/app_colors.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_dialog.dart';
 import '../../explore/views/explore_tab_view.dart';
@@ -30,24 +31,17 @@ class HomeScreen extends GetView<HomeController> {
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
-        child: Scaffold(
-          backgroundColor: const Color(0xFF0D0D12),
+        child: CustomScaffold(
+          showAppBar: false,
+          safeArea: false,
+          backgroundColor: AppColors.scaffoldBackground,
           body: Stack(
             children: [
               // ── Background ambient gradient
               Positioned.fill(
                 child: Container(
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF1E0A0C),
-                        Color(0xFF0D0D12),
-                        Color(0xFF0A0A0F),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: [0.0, 0.35, 1.0],
-                    ),
+                    gradient: AppColors.loginBgGradient,
                   ),
                 ),
               ),

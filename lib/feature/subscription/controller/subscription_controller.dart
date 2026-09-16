@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../profile/controller/profile_controller.dart';
@@ -44,10 +43,12 @@ class SubscriptionController extends GetxController {
 
     isSubscribed.value = true;
     currentPlan.value = targetPlan;
-    activePlanTitle.value =
-        targetPlan == SubscriptionPlanType.monthly ? 'Monthly Plan' : 'Yearly Plan';
-    activePlanPrice.value =
-        targetPlan == SubscriptionPlanType.monthly ? '₹199 / month' : '₹1,499 / year';
+    activePlanTitle.value = targetPlan == SubscriptionPlanType.monthly
+        ? 'Monthly Plan'
+        : 'Yearly Plan';
+    activePlanPrice.value = targetPlan == SubscriptionPlanType.monthly
+        ? '₹199 / month'
+        : '₹1,499 / year';
 
     // Sync with ProfileController if registered
     if (Get.isRegistered<ProfileController>()) {

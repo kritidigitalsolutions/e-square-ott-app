@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 
 class DeleteAccount1 extends StatelessWidget {
@@ -33,7 +34,9 @@ class DeleteAccount1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: Colors.black,
       body: Stack(
         children: [
@@ -325,7 +328,11 @@ class DeleteAccount1ContentCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const FaIcon(FontAwesomeIcons.xmark, color: Color(0xFFE42429), size: 14),
+          const FaIcon(
+            FontAwesomeIcons.xmark,
+            color: Color(0xFFE42429),
+            size: 14,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

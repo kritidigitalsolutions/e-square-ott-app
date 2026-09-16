@@ -36,7 +36,11 @@ class TrendingSection extends GetView<HomeController> {
               itemBuilder: (context, index) {
                 final movie = trendingMovies[index];
                 final rank = movie.ranking ?? (index + 1);
-                return _buildNetflixTrendingCard(movie, rank, isFirst: index == 0);
+                return _buildNetflixTrendingCard(
+                  movie,
+                  rank,
+                  isFirst: index == 0,
+                );
               },
             );
           }),

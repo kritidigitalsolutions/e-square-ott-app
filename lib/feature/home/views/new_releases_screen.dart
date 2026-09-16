@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
 import '../models/movie_model.dart';
@@ -14,7 +15,9 @@ class NewReleasesScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
+      child: CustomScaffold(
+        showAppBar: false,
+        safeArea: false,
         backgroundColor: const Color(0xFF0D0D12),
         body: Stack(
           children: [

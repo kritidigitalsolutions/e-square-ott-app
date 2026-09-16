@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/subscription_controller.dart';
@@ -41,7 +42,9 @@ class SubscriptionConfirmPage extends StatefulWidget {
 class _SubscriptionConfirmPageState extends State<SubscriptionConfirmPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
@@ -115,9 +118,11 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
     final success = await subController.subscribe();
 
     if (success && mounted) {
-      Get.until((route) =>
-          route.settings.name != Routes.confirmSubscriptionPage &&
-          route.settings.name != Routes.subscriptionPage);
+      Get.until(
+        (route) =>
+            route.settings.name != Routes.confirmSubscriptionPage &&
+            route.settings.name != Routes.subscriptionPage,
+      );
     }
   }
 
@@ -155,10 +160,7 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: const Color(0xFF160E12),
-              border: Border.all(
-                color: const Color(0xFFE42429),
-                width: 2.0,
-              ),
+              border: Border.all(color: const Color(0xFFE42429), width: 2.0),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFE42429).withValues(alpha: 0.35),

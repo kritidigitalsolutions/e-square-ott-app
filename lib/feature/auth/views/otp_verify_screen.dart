@@ -5,7 +5,9 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_sizes.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
+import '../../../shared/widgets/custom_loading.dart';
 import '../controller/auth_controller.dart';
 
 class OtpVerifyScreen extends GetView<AuthController> {
@@ -43,7 +45,9 @@ class OtpVerifyScreen extends GetView<AuthController> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
+      child: CustomScaffold(
+        showAppBar: false,
+        safeArea: false,
         backgroundColor: const Color(0xFF010101),
         resizeToAvoidBottomInset: true,
         body: GestureDetector(
@@ -226,6 +230,12 @@ class OtpVerifyScreen extends GetView<AuthController> {
                   },
                 ),
               ),
+
+              // ── Custom Loading Overlay
+              Obx(() {
+                if (!controller.isLoading.value) return const SizedBox.shrink();
+                return const LoadingOverlay(message: 'Verifying OTP...');
+              }),
             ],
           ),
         ),

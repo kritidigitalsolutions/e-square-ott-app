@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../subscription/controller/subscription_controller.dart';
 import '../controller/explore_controller.dart';
@@ -17,16 +18,21 @@ class ExploreTabView extends StatelessWidget {
     // Ensure ExploreController is initialized
     final controller = Get.put(ExploreController());
 
-    return PageView.builder(
-      controller: controller.pageController,
-      scrollDirection: Axis.vertical,
-      physics: const BouncingScrollPhysics(),
-      onPageChanged: controller.onPageChanged,
-      itemCount: controller.exploreList.length,
-      itemBuilder: (context, index) {
-        final item = controller.exploreList[index];
-        return _ExploreCard(item: item);
-      },
+    return CustomScaffold(
+      showAppBar: false,
+      safeArea: false,
+      backgroundColor: Colors.transparent,
+      body: PageView.builder(
+        controller: controller.pageController,
+        scrollDirection: Axis.vertical,
+        physics: const BouncingScrollPhysics(),
+        onPageChanged: controller.onPageChanged,
+        itemCount: controller.exploreList.length,
+        itemBuilder: (context, index) {
+          final item = controller.exploreList[index];
+          return _ExploreCard(item: item);
+        },
+      ),
     );
   }
 }
