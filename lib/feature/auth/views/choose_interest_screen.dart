@@ -1,3 +1,4 @@
+import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -36,7 +37,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Romance',
       name: 'Romance',
       icon: FontAwesomeIcons.solidHeart,
-      accentColor: Color(0xFFE50914),
+      accentColor: Color(0xFFEC4899), // Rose Pink
       posterImage: AppImages.romanceImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -44,7 +45,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Thriller',
       name: 'Thriller',
       icon: FontAwesomeIcons.bolt,
-      accentColor: Color(0xFF0091FF),
+      accentColor: Color(0xFF0091FF), // Electric Blue
       posterImage: AppImages.thrillerImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -52,7 +53,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Drama',
       name: 'Drama',
       icon: FontAwesomeIcons.masksTheater,
-      accentColor: Color(0xFFF5A623),
+      accentColor: Color(0xFFF5A623), // Amber Gold
       posterImage: AppImages.dramaImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -60,7 +61,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Mystery',
       name: 'Mystery',
       icon: FontAwesomeIcons.userSecret,
-      accentColor: Color(0xFFA855F7),
+      accentColor: Color(0xFFA855F7), // Royal Purple
       posterImage: AppImages.mysteryImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -68,7 +69,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Action',
       name: 'Action',
       icon: FontAwesomeIcons.personRunning,
-      accentColor: Color(0xFFFF6B00),
+      accentColor: Color(0xFFFF6B00), // Fiery Orange
       posterImage: AppImages.actionImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -76,7 +77,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Horror',
       name: 'Horror',
       icon: FontAwesomeIcons.ghost,
-      accentColor: Color(0xFFDC2626),
+      accentColor: Color(0xFF8B5CF6), // Phantom Violet
       posterImage: AppImages.horrorImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -84,7 +85,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Comedy',
       name: 'Comedy',
       icon: FontAwesomeIcons.faceLaughSquint,
-      accentColor: Color(0xFFEAB308),
+      accentColor: Color(0xFFEAB308), // Bright Gold
       posterImage: AppImages.comedyImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -92,7 +93,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
       id: 'Fantasy',
       name: 'Fantasy',
       icon: FontAwesomeIcons.wandMagicSparkles,
-      accentColor: Color(0xFF06B6D4),
+      accentColor: Color(0xFF06B6D4), // Cyan Aqua
       posterImage: AppImages.fantasyImage,
       imageAlignment: Alignment.centerRight,
     ),
@@ -165,9 +166,9 @@ class ChooseInterestScreen extends GetView<AuthController> {
                               Text.rich(
                                 TextSpan(
                                   children: [
-                                    const TextSpan(
-                                      text: 'Choose your\n',
-                                      style: TextStyle(
+                                    TextSpan(
+                                      text: 'Choose your'.tr,
+                                      style: const TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
                                         fontSize: 28,
                                         fontWeight: FontWeight.w800,
@@ -176,13 +177,14 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                         letterSpacing: -0.5,
                                       ),
                                     ),
-                                    const TextSpan(
-                                      text: 'Interest',
-                                      style: TextStyle(
+                                    TextSpan(
+                                      text: 'Interest'.tr,
+                                      style: const TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
                                         fontSize: 28,
                                         fontWeight: FontWeight.w800,
-                                        color: Color(0xFFE50914),
+                                        // RED: color: Color(0xFFE50914),
+                                        color: AppColors.primary,
                                         height: 1.15,
                                         letterSpacing: -0.5,
                                       ),
@@ -194,11 +196,12 @@ class ChooseInterestScreen extends GetView<AuthController> {
 
                               // ── Subtitle
                               Text(
-                                "Pick a few genres you love. We'll use them to\npersonalize your Entertainment experience.",
-                                style: TextStyle(
+                                "Pick a few genres you love. We'll use them to\npersonalize your Entertainment experience."
+                                    .tr,
+                                style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 13,
-                                  color: const Color(0xFF9E9EA8),
+                                  color: Color(0xFF9E9EA8),
                                   height: 1.4,
                                 ),
                               ),
@@ -264,7 +267,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
                               const Spacer(),
                               const SizedBox(height: 20),
 
-                              // ── Continue Button (Solid Red with Arrow)
+                              // ── Continue Button (Gold Gradient with Arrow)
                               Obx(() {
                                 final hasSelection =
                                     controller.selectedGenres.isNotEmpty;
@@ -281,21 +284,23 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                     height: 52,
                                     decoration: BoxDecoration(
                                       color: hasSelection
-                                          ? const Color(0xFFE50914)
+                                          ? null
                                           : const Color(0xFF1E1E28),
+                                      gradient: hasSelection
+                                          ? AppColors.primaryGradient
+                                          : null,
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
                                         color: hasSelection
-                                            ? const Color(0xFFE50914)
+                                            ? AppColors.primary
                                             : const Color(0xFF2E2E3E),
                                         width: 1,
                                       ),
                                       boxShadow: hasSelection
                                           ? [
                                               BoxShadow(
-                                                color: const Color(
-                                                  0xFFE50914,
-                                                ).withValues(alpha: 0.45),
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.35),
                                                 blurRadius: 18,
                                                 offset: const Offset(0, 6),
                                               ),
@@ -307,14 +312,14 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          'Continue',
+                                          'Continue'.tr,
                                           style: TextStyle(
                                             fontFamily:
                                                 AppTextStyles.fontFamily,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                             color: hasSelection
-                                                ? Colors.white
+                                                ? const Color(0xFF0C0B10)
                                                 : const Color(0xFF6E6E7E),
                                           ),
                                         ),
@@ -322,7 +327,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                         FaIcon(
                                           FontAwesomeIcons.arrowRight,
                                           color: hasSelection
-                                              ? Colors.white
+                                              ? const Color(0xFF0C0B10)
                                               : const Color(0xFF6E6E7E),
                                           size: 14,
                                         ),
@@ -347,12 +352,12 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                       horizontal: 16,
                                     ),
                                     child: Text(
-                                      'Skip for Now',
-                                      style: TextStyle(
+                                      'Skip for Now'.tr,
+                                      style: const TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
-                                        color: const Color(0xFF8A8A98),
+                                        color: Color(0xFF8A8A98),
                                       ),
                                     ),
                                   ),
@@ -368,12 +373,6 @@ class ChooseInterestScreen extends GetView<AuthController> {
                 },
               ),
             ),
-
-            // ── Custom Loading Overlay
-            Obx(() {
-              if (!controller.isLoading.value) return const SizedBox.shrink();
-              return const LoadingOverlay(message: 'Setting up your space...');
-            }),
           ],
         ),
       ),
@@ -498,18 +497,21 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
                 // ── 3. Content: Icon & Title on Left
                 Positioned(
                   left: 12,
-                  top: 10,
-                  bottom: 10,
+                  right: 36,
+                  top: 8,
+                  bottom: 8,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Vector Icon with Glow
                       FaIcon(genre.icon, size: 20, color: genre.accentColor),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       // Title Text
                       Text(
-                        genre.name,
+                        genre.name.tr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontFamily: AppTextStyles.fontFamily,
                           color: Colors.white,

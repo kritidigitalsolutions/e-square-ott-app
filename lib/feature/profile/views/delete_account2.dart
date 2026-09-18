@@ -96,7 +96,7 @@ class _DeleteAccount2State extends State<DeleteAccount2> {
                       ),
                       const SizedBox(width: 14),
                       Text(
-                        'Entertainment Squared',
+                        'Entertainment Square',
                         style: AppTextStyles.text14Medium.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.5,
@@ -169,8 +169,8 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
     final text = _textController.text.trim();
     if (text.toUpperCase() != 'DELETE') {
       AppSnackbar.warning(
-        'Please type "DELETE" in the input field to proceed.',
-        title: 'Confirmation Required',
+        'Please type "DELETE" in the input field to proceed.'.tr,
+        title: 'Confirmation Required'.tr,
       );
       return;
     }
@@ -184,8 +184,8 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
 
     if (mounted) {
       AppSnackbar.info(
-        'Your account and all associated data have been permanently removed.',
-        title: 'Account Deleted',
+        'Your account and all associated data have been permanently removed.'.tr,
+        title: 'Account Deleted'.tr,
       );
 
       // Navigate back to login
@@ -245,9 +245,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
           const SizedBox(height: 24),
 
           // ── Title
-          const Text(
-            'Confirm your decision',
-            style: TextStyle(
+          Text(
+            'Confirm your decision'.tr,
+            style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: Colors.white,
               fontSize: 26,
@@ -261,27 +261,15 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
           // ── Subtitle / Description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: RichText(
+            child: Text(
+              'To permanently delete your account, type DELETE below.'.tr,
               textAlign: TextAlign.center,
-              text: TextSpan(
-                style: TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  color: const Color(0xFF9E9EA8),
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                ),
-                children: const [
-                  TextSpan(text: 'To permanently delete your account,\ntype '),
-                  TextSpan(
-                    text: 'DELETE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  TextSpan(text: ' below.'),
-                ],
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF9E9EA8),
+                fontSize: 14.0,
+                fontWeight: FontWeight.w400,
+                height: 1.45,
               ),
             ),
           ),
@@ -313,9 +301,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
                   letterSpacing: 0.5,
                 ),
                 cursorColor: const Color(0xFFE42429),
-                decoration: const InputDecoration(
-                  hintText: 'Type Delete',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: 'Type Delete'.tr,
+                  hintStyle: const TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
                     color: Color(0xFF5A5A66),
                     fontSize: 15,
@@ -331,9 +319,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
           const SizedBox(height: 10),
 
           // ── Helper Text
-          const Text(
-            'This helps prevent accidental deletion.',
-            style: TextStyle(
+          Text(
+            'This helps prevent accidental deletion.'.tr,
+            style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: Color(0xFF6E6E7E),
               fontSize: 12,
@@ -368,9 +356,9 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
                         height: 30,
                         child: LoadingWidget(size: 30),
                       )
-                    : const Text(
-                        'Delete My Account',
-                        style: TextStyle(
+                    : Text(
+                        'Delete My Account'.tr,
+                        style: const TextStyle(
                           fontFamily: AppTextStyles.fontFamily,
                           color: Colors.white,
                           fontSize: 16,

@@ -178,12 +178,6 @@ class LoginScreen extends GetView<AuthController> {
                   );
                 }),
               ),
-
-              // ── Custom Loading Overlay
-              Obx(() {
-                if (!controller.isLoading.value) return const SizedBox.shrink();
-                return const LoadingOverlay(message: 'Please wait...');
-              }),
             ],
           ),
         ),
@@ -290,7 +284,7 @@ class LoginScreen extends GetView<AuthController> {
                 ),
               ),
               TextSpan(
-                text: 'SQUARED.',
+                text: 'SQUARE.',
                 style: TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   fontSize: 10,

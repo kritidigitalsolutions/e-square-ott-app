@@ -43,11 +43,14 @@ class SubscriptionPage extends StatelessWidget {
                     children: [
                       CustomBackButton(onTap: () => Get.back()),
                       const SizedBox(width: 16),
-                      Text(
-                        'Premium\nMembership',
-                        style: AppTextStyles.text20Bold.copyWith(
-                          color: Colors.white,
-                          height: 1.15,
+                      Expanded(
+                        child: Text(
+                          'Premium Membership'.tr,
+                          style: AppTextStyles.text20Bold.copyWith(
+                            color: Colors.white,
+                            height: 1.15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -86,15 +89,15 @@ class SubscriptionPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: RichText(
                             textAlign: TextAlign.center,
-                            text: TextSpan(
+                            text: const TextSpan(
                               style: TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
-                                color: const Color(0xFFA0A0B0),
+                                color: Color(0xFFA0A0B0),
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w400,
                                 height: 1.45,
                               ),
-                              children: const [
+                              children: [
                                 TextSpan(
                                   text:
                                       'Get unlimited access to the complete premium ',
@@ -216,13 +219,13 @@ class SubscriptionPage extends StatelessWidget {
                         const SizedBox(height: 12),
 
                         // ── Cancellation Disclaimer Note
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             'Cancel anytime. Your membership automatically renews unless cancelled before the renewal date.',
                             style: TextStyle(
                               fontFamily: AppTextStyles.fontFamily,
-                              color: const Color(0xFF6E6E7E),
+                              color: Color(0xFF6E6E7E),
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                               height: 1.4,
@@ -270,18 +273,16 @@ class PlanOptionCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF140D10) : const Color(0xFF14141A),
+          color: isSelected ? const Color(0xFF1B150A) : const Color(0xFF14141A),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFFE42429)
-                : const Color(0xFF262634),
+            color: isSelected ? AppColors.primary : const Color(0xFF262634),
             width: isSelected ? 1.6 : 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFFE42429).withValues(alpha: 0.18),
+                    color: AppColors.primary.withValues(alpha: 0.22),
                     blurRadius: 18,
                     spreadRadius: 1,
                   ),
@@ -293,46 +294,54 @@ class PlanOptionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Plan Info
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      price,
-                      style: const TextStyle(
-                        fontFamily: AppTextStyles.fontFamily,
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
+                  const SizedBox(height: 6),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        price,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      period,
-                      style: const TextStyle(
-                        fontFamily: AppTextStyles.fontFamily,
-                        color: Color(0xFF8E8E9E),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          period,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF8E8E9E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
 
             // Radio Button Indicator
             _PlanRadioIndicator(isSelected: isSelected),
@@ -357,9 +366,9 @@ class _PlanRadioIndicator extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isSelected ? const Color(0xFF1E0E12) : Colors.transparent,
+        color: isSelected ? const Color(0xFF261C0A) : Colors.transparent,
         border: Border.all(
-          color: isSelected ? const Color(0xFFE42429) : const Color(0xFF383848),
+          color: isSelected ? AppColors.primary : const Color(0xFF383848),
           width: 2.0,
         ),
       ),
@@ -370,7 +379,7 @@ class _PlanRadioIndicator extends StatelessWidget {
                 height: 14,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFFE42429),
+                  color: AppColors.primary,
                 ),
               )
             : null,
@@ -393,7 +402,7 @@ class SubscriptionFeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 82,
+      constraints: const BoxConstraints(minHeight: 84),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF13131A),
@@ -405,6 +414,7 @@ class SubscriptionFeatureCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           icon,
+          const SizedBox(height: 8),
           Text(
             label,
             style: const TextStyle(

@@ -51,17 +51,22 @@ class CategoryDramasScreen extends GetView<HomeController> {
                         CustomBackButton(onTap: () => Get.back()),
                         const SizedBox(width: 14),
 
-                        // Two-line Title (e.g. "Romance\nDramas")
-                        Obx(() {
-                          final title = controller.selectedCategory.value.title;
-                          return Text(
-                            '$title Dramas',
-                            style: AppTextStyles.text24Bold.copyWith(
-                              color: Colors.white,
-                              height: 1.15,
-                            ),
-                          );
-                        }),
+                        // Two-line Title (e.g. "Romance Dramas")
+                        Expanded(
+                          child: Obx(() {
+                            final title =
+                                controller.selectedCategory.value.title;
+                            return Text(
+                              '${title.tr} ${'Dramas'.tr}',
+                              style: AppTextStyles.text24Bold.copyWith(
+                                color: Colors.white,
+                                height: 1.15,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            );
+                          }),
+                        ),
                       ],
                     ),
                   ),
@@ -134,7 +139,10 @@ class CategoryDramasScreen extends GetView<HomeController> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.65),
                         borderRadius: BorderRadius.circular(6),

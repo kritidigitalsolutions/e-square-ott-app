@@ -7,7 +7,6 @@ import '../../../constants/app_sizes.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
-import '../../../shared/widgets/custom_loading.dart';
 import '../controller/auth_controller.dart';
 
 class OtpVerifyScreen extends GetView<AuthController> {
@@ -26,7 +25,8 @@ class OtpVerifyScreen extends GetView<AuthController> {
       if (number.length >= 4) {
         final prefix = number.substring(0, 2);
         final suffix = number.substring(number.length - 2);
-        final bullets = '•' * (number.length - 4 > 0 ? (number.length - 4) : 6);
+        final bullets =
+            '•' * (number.length - 4 > 0 ? (number.length - 4) : 6);
         return "We've sent a 4-digit OTP to $countryCode $prefix$bullets$suffix";
       }
     } else if (phone.length >= 6) {
@@ -106,7 +106,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
                               children: [
                                 // Heading
                                 Text(
-                                  'Verify your\nmobile number',
+                                  'Verify your\nmobile number'.tr,
                                   style: AppTextStyles.text28Bold.copyWith(
                                     letterSpacing: -0.5,
                                     height: 1.25,
@@ -122,34 +122,39 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                     height: 1.4,
                                   ),
                                 ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 28),
 
-                                // OTP input boxes row
+                                // OTP Pin input boxes row
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  spacing: 15,
                                   children: List.generate(
                                     4,
-                                    (i) => _OtpBox(
-                                      controller: controller.otpControllers[i],
-                                      focusNode: controller.otpFocusNodes[i],
-                                      onChanged: (v) =>
-                                          controller.onOtpDigitChanged(i, v),
-                                      onBackspaceOnEmpty: () {
-                                        if (i > 0) {
-                                          controller.otpFocusNodes[i - 1]
-                                              .requestFocus();
-                                        }
-                                      },
+                                    (i) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                      ),
+                                      child: _LuxuryOtpBox(
+                                        controller:
+                                            controller.otpControllers[i],
+                                        focusNode: controller.otpFocusNodes[i],
+                                        onChanged: (v) =>
+                                            controller.onOtpDigitChanged(i, v),
+                                        onBackspaceOnEmpty: () {
+                                          if (i > 0) {
+                                            controller.otpFocusNodes[i - 1]
+                                                .requestFocus();
+                                          }
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 25),
+                                const SizedBox(height: 32),
 
                                 // Verify & Continue button
                                 Obx(
                                   () => AppButton(
-                                    label: 'Verify & Continue',
+                                    label: 'Verify & Continue'.tr,
                                     onPressed: controller.isOtpComplete.value
                                         ? controller.verifyOtp
                                         : null,
@@ -170,7 +175,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                         TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: "Didn't receive it? ",
+                                              text: "Didn't receive it? ".tr,
                                               style: AppTextStyles.text13
                                                   .copyWith(
                                                     color: const Color(
@@ -180,7 +185,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                             ),
                                             TextSpan(
                                               text:
-                                                  'Resend again (${seconds}s)',
+                                                  '${"Resend again".tr} (${seconds}s)',
                                               style: AppTextStyles.text13Medium
                                                   .copyWith(
                                                     color: const Color(
@@ -199,7 +204,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                         TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: "Didn't receive it? ",
+                                              text: "Didn't receive it? ".tr,
                                               style: AppTextStyles.text13
                                                   .copyWith(
                                                     color: const Color(
@@ -208,11 +213,12 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                                   ),
                                             ),
                                             TextSpan(
-                                              text: 'Resend again',
+                                              text: 'Resend again'.tr,
                                               style: AppTextStyles
                                                   .text13SemiBold
                                                   .copyWith(
                                                     color: AppColors.primary,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                             ),
                                           ],
@@ -230,12 +236,6 @@ class OtpVerifyScreen extends GetView<AuthController> {
                   },
                 ),
               ),
-
-              // ── Custom Loading Overlay
-              Obx(() {
-                if (!controller.isLoading.value) return const SizedBox.shrink();
-                return const LoadingOverlay(message: 'Verifying OTP...');
-              }),
             ],
           ),
         ),
@@ -244,9 +244,9 @@ class OtpVerifyScreen extends GetView<AuthController> {
   }
 }
 
-/// OTP digit box with auto-focus and styling
-class _OtpBox extends StatelessWidget {
-  const _OtpBox({
+/// Luxury OTP digit box with animated focus, gold glow, and haptic feedback
+class _LuxuryOtpBox extends StatefulWidget {
+  const _LuxuryOtpBox({
     required this.controller,
     required this.focusNode,
     required this.onChanged,
@@ -259,64 +259,154 @@ class _OtpBox extends StatelessWidget {
   final VoidCallback? onBackspaceOnEmpty;
 
   @override
+  State<_LuxuryOtpBox> createState() => _LuxuryOtpBoxState();
+}
+
+class _LuxuryOtpBoxState extends State<_LuxuryOtpBox> {
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_handleFocusChange);
+    widget.controller.addListener(_handleTextChange);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_handleFocusChange);
+    widget.controller.removeListener(_handleTextChange);
+    super.dispose();
+  }
+
+  void _handleFocusChange() {
+    if (mounted) {
+      setState(() {
+        _isFocused = widget.focusNode.hasFocus;
+      });
+    }
+  }
+
+  void _handleTextChange() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final hasText = widget.controller.text.isNotEmpty;
+
     return Focus(
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.backspace &&
-            controller.text.isEmpty) {
-          onBackspaceOnEmpty?.call();
+            widget.controller.text.isEmpty) {
+          widget.onBackspaceOnEmpty?.call();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
       },
-      child: SizedBox(
-        width: 64,
-        height: 64,
-        child: TextField(
-          controller: controller,
-          focusNode: focusNode,
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          cursorColor: AppColors.primary,
-          style: AppTextStyles.text24Bold.copyWith(
-            color: Colors.white,
-            letterSpacing: 1.0,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        width: 66,
+        height: 66,
+        decoration: BoxDecoration(
+          color: _isFocused
+              ? const Color(0xFF191724)
+              : (hasText ? const Color(0xFF151420) : const Color(0xFF101018)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isFocused
+                ? AppColors.primary
+                : (hasText
+                    ? AppColors.primary.withValues(alpha: 0.6)
+                    : Colors.white.withValues(alpha: 0.12)),
+            width: _isFocused ? 1.8 : 1.2,
           ),
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(1),
+          boxShadow: [
+            if (_isFocused)
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 2),
+              )
+            else if (hasText)
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              )
+            else
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
           ],
-          onChanged: (val) {
-            onChanged(val);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: const Color(0xFF14141E),
-            contentPadding: EdgeInsets.zero,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              cursorColor: AppColors.primary,
+              cursorWidth: 2,
+              cursorHeight: 24,
+              cursorRadius: const Radius.circular(2),
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: 0,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(1),
+              ],
+              onChanged: (val) {
+                if (val.isNotEmpty) {
+                  HapticFeedback.selectionClick();
+                }
+                widget.onChanged(val);
+              },
+              decoration: const InputDecoration(
+                counterText: '',
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
               ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
+
+            // Active bottom indicator bar when focused or filled
+            Positioned(
+              bottom: 8,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: _isFocused ? 20 : (hasText ? 14 : 0),
+                height: 2.5,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: _isFocused
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.8),
+                            blurRadius: 4,
+                          ),
+                        ]
+                      : null,
+                ),
               ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 1.6,
-              ),
-            ),
-          ),
+          ],
         ),
       ),
     );

@@ -7,6 +7,7 @@ import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:get/route_manager.dart';
 
 class NotificationItem {
@@ -125,10 +126,9 @@ class _NotificationPageState extends State<NotificationPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Notifications",
+                              "Notifications".tr,
                               style: AppTextStyles.text24Bold.copyWith(
                                 color: AppColors.white,
-                                height: 1.18,
                               ),
                             ),
                             const SizedBox(height: 2),

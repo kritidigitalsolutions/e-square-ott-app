@@ -67,7 +67,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                       ),
                       const SizedBox(width: 14),
-                      Text("Settings".tr, style: AppTextStyles.text18Bold),
+                      Expanded(
+                        child: Text(
+                          "Settings".tr,
+                          style: AppTextStyles.text18Bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),

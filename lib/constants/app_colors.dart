@@ -4,36 +4,37 @@ class AppColors {
   AppColors._();
 
   // ============================================================
-  // Brand / Primary Colors (Cinematic Ruby & Crimson Velvet OTT)
+  // Brand / Primary Colors (Luxury Radiant Gold OTT Theme)
   // ============================================================
-  // OLD: static const Color primary = Color(0xFFE42429); // Plain normal red
-  static const Color primary = Color(0xFFFF2B43); // Vibrant Cinematic Crimson
+  // RED (Commented out):
+  // static const Color primary = Color(0xFFFF2B43); // Vibrant Cinematic Crimson
+  // static const Color primary = Color(0xFFE42429); // Plain normal red
+  // static const Color primaryDark = Color(0xFFA70019); // Deep Velvet Wine
+  // static const Color primaryLight = Color(0xFFFF4D6D); // Electric Rose Red / Neon Glow
+  // static const Color primaryGradientStart = Color(0xFFFF334B);
+  // static const Color primaryGradientEnd = Color(0xFFB8001F);
 
-  // OLD: static const Color primaryDark = Color(0xFFC41D22);
-  static const Color primaryDark = Color(0xFFA70019); // Deep Velvet Wine
-
-  // OLD: static const Color primaryLight = Color(0xFFFF3D47);
+  static const Color primary = Color(
+    0xFFFFB800,
+  ); // Radiant Rich Gold (rgb(255, 184, 0))
+  static const Color primaryDark = Color(0xFFD97706); // Warm Amber-Bronze Gold
   static const Color primaryLight = Color(
-    0xFFFF4D6D,
-  ); // Electric Rose Red / Neon Glow
-
-  // OLD: static const Color primaryGradientStart = Color(0xFFE42429);
-  static const Color primaryGradientStart = Color(0xFFFF334B);
-
-  // OLD: static const Color primaryGradientEnd = Color(0xFFFF4147);
-  static const Color primaryGradientEnd = Color(0xFFB8001F);
+    0xFFFFE082,
+  ); // Champagne Gold Highlight
+  static const Color primaryGradientStart = Color(0xFFFFE28A);
+  static const Color primaryGradientEnd = Color(0xFFD97706);
 
   // OLD: static const Color accent = Color(0xFFFF9900);
-  static const Color accent = Color(0xFFFFB300); // Warm Amber Gold Accent
+  static const Color accent = Color(0xFFFFC107); // Warm Amber Gold Accent
 
   // ============================================================
   // Background Colors (Deep Obsidian & Midnight OTT Theme)
   // ============================================================
   // OLD: static const Color background = Color(0xFF0F0F14);
-  static const Color background = Color(0xFF0A0A0F);
+  static const Color background = Color(0xFF09090E);
 
   // OLD: static const Color scaffoldBackground = Color(0xFF0F0F14);
-  static const Color scaffoldBackground = Color(0xFF0A0A0F);
+  static const Color scaffoldBackground = Color(0xFF09090E);
 
   // OLD: static const Color surface = Color(0xFF1A1A24);
   static const Color surface = Color(0xFF13131C);
@@ -74,10 +75,11 @@ class AppColors {
   // OLD: static const Color glassSurface = Color(0xCC14141E);
   static const Color glassSurface = Color(0xDD12121B);
 
-  // OLD: static const Color glassBorder = Color(0x1FFFFFFF);
+  // RED (Commented out):
+  // static const Color glassBorder = Color(0x24FF2B43); // Subtle crimson sheen border
   static const Color glassBorder = Color(
-    0x24FF2B43,
-  ); // Subtle crimson sheen border
+    0x30FFB800,
+  ); // Subtle radiant gold sheen border
 
   static const Color glassBorderLight = Color(0x33FFFFFF);
 
@@ -95,27 +97,28 @@ class AppColors {
   // ============================================================
   // Gradients (Luxury Multi-Stop Cinematic Gradients)
   // ============================================================
-  // OLD:
+  // RED (Commented out):
   // static const LinearGradient primaryGradient = LinearGradient(
-  //   colors: [Color(0xFFE42429), Color(0xFFFF4147)],
+  //   colors: [Color(0xFFFF334B), Color(0xFFE50914), Color(0xFF9E0018)],
+  //   stops: [0.0, 0.55, 1.0],
   //   begin: Alignment.topLeft,
   //   end: Alignment.bottomRight,
   // );
+  // static const LinearGradient primaryGlowGradient = LinearGradient(
+  //   colors: [Color(0xFFFF2B43), Color(0xFF5E000E)],
+  //   begin: Alignment.topLeft,
+  //   end: Alignment.bottomRight,
+  // );
+
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFFF334B), Color(0xFFE50914), Color(0xFF9E0018)],
-    stops: [0.0, 0.55, 1.0],
+    colors: [Color(0xFFFFE28A), Color(0xFFFFB800), Color(0xFFD97706)],
+    stops: [0.0, 0.48, 1.0],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // OLD:
-  // static const LinearGradient primaryGlowGradient = LinearGradient(
-  //   colors: [Color(0xFFE42429), Color(0xFF8B0D12)],
-  //   begin: Alignment.topLeft,
-  //   end: Alignment.bottomRight,
-  // );
   static const LinearGradient primaryGlowGradient = LinearGradient(
-    colors: [Color(0xFFFF2B43), Color(0xFF5E000E)],
+    colors: [Color(0xFFFFC837), Color(0xFF8A5500)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -129,13 +132,13 @@ class AppColors {
   // );
   static const LinearGradient loginBgGradient = LinearGradient(
     colors: [
-      Color(0xFF1A0508), // Cinematic dark burgundy tint at top
-      Color(0xFF0E0E14),
-      Color(0xFF08080C),
+      Color(0xFF0E0E16), // Pure deep obsidian night
+      Color(0xFF09090E), // Ultra-dark charcoal
+      Color(0xFF06060A),
     ],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    stops: [0.0, 0.45, 1.0],
+    stops: [0.0, 0.5, 1.0],
   );
 
   // OLD:

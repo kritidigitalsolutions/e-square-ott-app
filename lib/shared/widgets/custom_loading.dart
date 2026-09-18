@@ -1,60 +1,65 @@
+import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-
-class AppAnimations {
-  AppAnimations._();
-
-  static const String _animationPath = 'assets/animation';
-
-  static const String loading = "$_animationPath/loading.json";
-}
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../../constants/app_colors.dart';
 
 class LoadingWidget extends StatelessWidget {
   final double size;
   final String? message;
   final Color? messageColor;
+  final Color? color;
+  final Color? waveColor;
+  final Color? trackColor;
 
   const LoadingWidget({
     super.key,
-    this.size = 90,
+    this.size = 50,
     this.message,
     this.messageColor,
+    this.color,
+    this.waveColor,
+    this.trackColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = color ?? AppColors.primary;
+
+    if (size <= 32) {
+      return Center(
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.2,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              color ?? const Color(0xFF0C0B10),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            height: size,
-            width: size,
-            child: Lottie.asset(
-              AppAnimations.loading,
-              fit: BoxFit.contain,
-              repeat: true,
-              errorBuilder: (_, __, ___) => const Center(
-                child: SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.8,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFFE42429),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          SpinKitWaveSpinner(
+            color: activeColor,
+            waveColor: waveColor ?? activeColor.withValues(alpha: 0.5),
+            trackColor: trackColor ?? activeColor.withValues(alpha: 0.2),
+            size: size,
           ),
           if (message != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(
               message!,
               style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
                 fontSize: 14,
-                color: messageColor ?? Colors.grey[600],
+                fontWeight: FontWeight.w600,
+                color: messageColor ?? Colors.white70,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -85,6 +90,7 @@ class LoadingOverlay extends StatelessWidget {
           child: LoadingWidget(
             message: message,
             messageColor: Colors.white,
+            size: 60,
           ),
         ),
       ),

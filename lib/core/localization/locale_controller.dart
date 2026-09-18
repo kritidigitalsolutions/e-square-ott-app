@@ -5,7 +5,14 @@ class LocaleController extends GetxController {
   final RxString currentLanguage = 'English'.obs;
   final Rx<Locale> currentLocale = const Locale('en', 'US').obs;
 
-  static const List<String> supportedLanguages = ['English', 'Hindi', 'Punjabi'];
+  static const List<String> supportedLanguages = [
+    'English',
+    'Hindi',
+    'Tamil',
+    'Telugu',
+    'Kannada',
+    'Malayalam',
+  ];
 
   @override
   void onInit() {
@@ -22,8 +29,17 @@ class LocaleController extends GetxController {
       case 'Hindi':
         newLocale = const Locale('hi', 'IN');
         break;
-      case 'Punjabi':
-        newLocale = const Locale('pa', 'IN');
+      case 'Tamil':
+        newLocale = const Locale('ta', 'IN');
+        break;
+      case 'Telugu':
+        newLocale = const Locale('te', 'IN');
+        break;
+      case 'Kannada':
+        newLocale = const Locale('kn', 'IN');
+        break;
+      case 'Malayalam':
+        newLocale = const Locale('ml', 'IN');
         break;
       case 'English':
       default:

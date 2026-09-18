@@ -203,59 +203,69 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              CustomBackButton(onTap: () => Get.back()),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          Expanded(
+            child: Row(
+              children: [
+                CustomBackButton(onTap: () => Get.back()),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE50914),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFE50914,
-                              ).withValues(alpha: 0.8),
-                              blurRadius: 8,
-                              spreadRadius: 2,
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE50914),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFE50914,
+                                  ).withValues(alpha: 0.8),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Continue Watching'.tr.toUpperCase(),
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Color(0xFFE50914),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'CONTINUE WATCHING',
-                        style: TextStyle(
+                      const SizedBox(height: 2),
+                      Text(
+                        'Resume Playing'.tr,
+                        style: const TextStyle(
                           fontFamily: AppTextStyles.fontFamily,
-                          color: Color(0xFFE50914),
-                          fontSize: 10,
+                          color: Colors.white,
+                          fontSize: 19,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
+                          letterSpacing: -0.4,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Resume Playing',
-                    style: TextStyle(
-                      fontFamily: AppTextStyles.fontFamily,
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
           Obx(() {
             final count = controller.continueWatchingList.length;

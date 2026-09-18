@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
@@ -20,15 +21,15 @@ class ContinueWatchingSection extends GetView<HomeController> {
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF10101A),
+          color: const Color(0xFF101018),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: Colors.white.withValues(alpha: 0.07),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.45),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -50,12 +51,11 @@ class ContinueWatchingSection extends GetView<HomeController> {
                         width: 3.5,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE50914),
+                          gradient: AppColors.primaryGradient,
                           borderRadius: BorderRadius.circular(2),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFE50914)
-                                  .withValues(alpha: 0.7),
+                              color: AppColors.primary.withValues(alpha: 0.6),
                               blurRadius: 6,
                             ),
                           ],
@@ -79,11 +79,17 @@ class ContinueWatchingSection extends GetView<HomeController> {
                   onTap: () => Get.toNamed(Routes.continueWatching),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        width: 0.8,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -92,7 +98,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
                           'See All (${items.length})',
                           style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
-                            color: Color(0xFFE50914),
+                            color: AppColors.primary,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           ),
@@ -100,7 +106,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
                         const SizedBox(width: 4),
                         const FaIcon(
                           FontAwesomeIcons.chevronRight,
-                          color: Color(0xFFE50914),
+                          color: AppColors.primary,
                           size: 9,
                         ),
                       ],
@@ -113,7 +119,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
 
             // ── Horizontal Cards Row
             SizedBox(
-              height: 155,
+              height: 160,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -131,7 +137,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
   }
 }
 
-/// Cinematic Card with glowing progress bar, episode tag, and resume play overlay
+/// Cinematic Card with glowing gold progress bar, episode tag, and resume play overlay
 class _ContinueWatchingCard extends StatefulWidget {
   final MovieModel movie;
   const _ContinueWatchingCard({required this.movie});
@@ -162,10 +168,10 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOutCubic,
         child: SizedBox(
-          width: 115,
+          width: 118,
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF161622),
+              color: const Color(0xFF141420),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.08),
@@ -173,7 +179,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: Colors.black.withValues(alpha: 0.45),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -212,11 +218,11 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.75),
+                                  Colors.black.withValues(alpha: 0.8),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                stops: const [0.4, 1.0],
+                                stops: const [0.35, 1.0],
                               ),
                             ),
                           ),
@@ -225,23 +231,30 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                         // Center Play Button Overlay
                         Center(
                           child: Container(
-                            width: 28,
-                            height: 28,
+                            width: 30,
+                            height: 30,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.black.withValues(alpha: 0.6),
+                              color: Colors.black.withValues(alpha: 0.65),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                width: 1,
+                                color: AppColors.primary.withValues(alpha: 0.6),
+                                width: 1.2,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 8,
+                                ),
+                              ],
                             ),
                             child: const Center(
                               child: Padding(
                                 padding: EdgeInsets.only(left: 1.5),
                                 child: FaIcon(
                                   FontAwesomeIcons.play,
-                                  color: Colors.white,
-                                  size: 10,
+                                  color: AppColors.primary,
+                                  size: 11,
                                 ),
                               ),
                             ),
@@ -258,11 +271,11 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE50914),
+                              gradient: AppColors.primaryGradient,
                               borderRadius: BorderRadius.circular(5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFE50914)
+                                  color: AppColors.primary
                                       .withValues(alpha: 0.5),
                                   blurRadius: 4,
                                 ),
@@ -274,9 +287,9 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                                   : 'EP 3',
                               style: const TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
-                                color: Colors.white,
+                                color: Color(0xFF0C0B10),
                                 fontSize: 8.5,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ),
@@ -318,12 +331,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                                   widthFactor: progress,
                                   child: Container(
                                     decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Color(0xFFFF3B4E),
-                                          Color(0xFFE50914),
-                                        ],
-                                      ),
+                                      gradient: AppColors.primaryGradient,
                                     ),
                                   ),
                                 ),

@@ -80,7 +80,7 @@ class ProfileSetupScreen extends GetView<AuthController> {
 
                                 // Heading
                                 Text(
-                                  'Welcome to\nEntertainment Squared',
+                                  'Welcome to\nEntertainment Square',
                                   style: AppTextStyles.text28Bold.copyWith(
                                     letterSpacing: -0.5,
                                     height: 1.25,
@@ -153,12 +153,6 @@ class ProfileSetupScreen extends GetView<AuthController> {
                   },
                 ),
               ),
-
-              // ── Custom Loading Overlay
-              Obx(() {
-                if (!controller.isLoading.value) return const SizedBox.shrink();
-                return const LoadingOverlay(message: 'Saving profile...');
-              }),
             ],
           ),
         ),

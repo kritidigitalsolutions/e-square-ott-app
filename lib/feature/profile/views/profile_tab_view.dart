@@ -332,15 +332,11 @@ class ProfileTabView extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8B1218), Color(0xFFE42429)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFE42429).withValues(alpha: 0.35),
+                    color: AppColors.primary.withValues(alpha: 0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -349,15 +345,19 @@ class ProfileTabView extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  FaIcon(FontAwesomeIcons.crown, color: Colors.white, size: 13),
+                  FaIcon(
+                    FontAwesomeIcons.crown,
+                    color: Color(0xFF0C0B10),
+                    size: 13,
+                  ),
                   SizedBox(width: 5),
                   Text(
                     'VIP',
                     style: TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
-                      color: Colors.white,
+                      color: Color(0xFF0C0B10),
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
                     ),
                   ),

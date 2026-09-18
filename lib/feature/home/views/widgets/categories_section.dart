@@ -178,7 +178,7 @@ class CategoriesSection extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      cat.title,
+                      cat.title.tr,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,

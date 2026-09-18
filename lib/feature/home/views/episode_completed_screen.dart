@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
@@ -54,15 +55,16 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
       _seriesTitle = args.title;
       _backdropImage = args.image;
     } else if (args is Map<String, dynamic>) {
-      _seriesTitle = args['title'] ?? 'If this is Love,\nLet me burn';
+      _seriesTitle = args['title'] ?? 'The Last Promise';
       _backdropImage = args['image'] ?? AppImages.banner1;
     } else {
-      _seriesTitle = 'If this is Love,\nLet me burn';
+      _seriesTitle = 'The Last Promise';
       _backdropImage = AppImages.banner1;
     }
   }
 
   void _toggleMyList() {
+    HapticFeedback.lightImpact();
     setState(() {
       _isInMyList = !_isInMyList;
     });
@@ -80,26 +82,28 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
   }
 
   void _toggleRate() {
+    HapticFeedback.lightImpact();
     setState(() {
       _isLiked = !_isLiked;
     });
     if (_isLiked) {
       AppSnackbar.success(
         'Thank you for liking this drama!',
-        title: 'Rated Drama',
+        title: 'Rate',
       );
     } else {
       AppSnackbar.info(
         'Your rating has been updated.',
-        title: 'Rating Removed',
+        title: 'Rate',
       );
     }
   }
 
   void _shareDrama() {
+    HapticFeedback.lightImpact();
     AppSnackbar.info(
       'Sharing link for $_seriesTitle copied to clipboard!',
-      title: 'Share Drama',
+      title: 'Share',
     );
   }
 
@@ -108,7 +112,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
     return CustomScaffold(
       showAppBar: false,
       safeArea: false,
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -116,7 +120,8 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
           Image.asset(
             _backdropImage,
             fit: BoxFit.cover,
-            errorBuilder: (_, e, s) => Container(color: const Color(0xFF0F0F14)),
+            errorBuilder: (_, e, s) =>
+                Container(color: const Color(0xFF0A0A0F)),
           ),
 
           // ── Smooth Dark Cinematic Overlay Gradient
@@ -125,34 +130,65 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha: 0.75),
+                    Colors.black.withValues(alpha: 0.7),
                     Colors.black.withValues(alpha: 0.88),
-                    Colors.black.withValues(alpha: 0.98),
+                    const Color(0xFF09090E).withValues(alpha: 0.98),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  stops: const [0.0, 0.45, 1.0],
+                  stops: const [0.0, 0.4, 1.0],
                 ),
               ),
             ),
           ),
 
-          // ── Main Scrollable Content
+          // ── Main Content
           SafeArea(
             child: Column(
               children: [
-                // Top Header with Back Button & Brand Title
+                // Top Header with Back Button & Completed Pill Badge
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomBackButton(onTap: () => Get.back()),
-                      const SizedBox(width: 14),
-                      Text(
-                        'Entertainment Squared',
-                        style: AppTextStyles.text14Medium.copyWith(
-                          color: AppColors.textSecondary,
-                          letterSpacing: 0.5,
+
+                      // Completed Status Tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const FaIcon(
+                              FontAwesomeIcons.circleCheck,
+                              color: Color(0xFF10B981),
+                              size: 11,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Completed'.tr,
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Color(0xFF10B981),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -162,52 +198,61 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         // ── Radiant Sunburst Checkmark Badge
                         const _RadiantCheckmarkBadge(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
 
                         // ── Subtitle: "You've completed"
                         Text(
                           "You’ve completed".tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
-                            color: Colors.white70,
-                            fontSize: 18,
+                            color: Colors.white.withValues(alpha: 0.75),
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
 
-                        // ── Red Bold Drama Title
-                        Text(
-                          _seriesTitle,
-                          style: const TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            color: Color(0xFFE42429),
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            height: 1.18,
-                            letterSpacing: -0.3,
+                        // ── Luxury Highlight Drama Title
+                        ShaderMask(
+                          shaderCallback: (bounds) =>
+                              AppColors.primaryGradient.createShader(bounds),
+                          child: Text(
+                            _seriesTitle,
+                            style: const TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              height: 1.2,
+                              letterSpacing: -0.3,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 26),
 
-                        // ── Primary Action: "Explore More Dramas" (Red Button)
+                        // ── Primary Action: "Explore More Dramas" (Gold Gradient Button)
                         AppButton(
                           label: 'Explore More Dramas'.tr,
                           onPressed: () {
+                            HapticFeedback.lightImpact();
                             Get.offAllNamed(Routes.home);
                           },
                           backgroundColor: AppColors.primary,
-                          height: 52,
+                          height: 50,
                           borderRadius: 14,
                         ),
                         const SizedBox(height: 12),
@@ -217,29 +262,56 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                           onTap: _toggleMyList,
                           behavior: HitTestBehavior.opaque,
                           child: Container(
-                            height: 52,
+                            height: 48,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF16161E),
+                              color: const Color(0xFF14141E),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: _isInMyList
-                                    ? const Color(0xFF00C853)
-                                    : const Color(0xFF282836),
+                                    ? AppColors.primary
+                                    : Colors.white.withValues(alpha: 0.12),
                                 width: 1.2,
                               ),
+                              boxShadow: _isInMyList
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.2),
+                                        blurRadius: 10,
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: Center(
-                              child: Text(
-                                _isInMyList ? '✓ In my List' : '+ Add to my List',
-                                style: TextStyle(
-                                  fontFamily: AppTextStyles.fontFamily,
-                                  color: _isInMyList
-                                      ? const Color(0xFF00C853)
-                                      : Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FaIcon(
+                                    _isInMyList
+                                        ? FontAwesomeIcons.check
+                                        : FontAwesomeIcons.plus,
+                                    color: _isInMyList
+                                        ? AppColors.primary
+                                        : Colors.white,
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _isInMyList
+                                        ? '✓ In my List'.tr
+                                        : '+ Add to my List'.tr,
+                                    style: TextStyle(
+                                      fontFamily: AppTextStyles.fontFamily,
+                                      color: _isInMyList
+                                          ? AppColors.primary
+                                          : Colors.white,
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -255,14 +327,15 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                 onTap: _toggleRate,
                                 behavior: HitTestBehavior.opaque,
                                 child: Container(
-                                  height: 48,
+                                  height: 46,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF16161E),
+                                    color: const Color(0xFF14141E),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: _isLiked
-                                          ? const Color(0xFFE42429)
-                                          : const Color(0xFF282836),
+                                          ? AppColors.primary
+                                          : Colors.white
+                                              .withValues(alpha: 0.1),
                                       width: 1,
                                     ),
                                   ),
@@ -274,19 +347,19 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                             ? FontAwesomeIcons.solidThumbsUp
                                             : FontAwesomeIcons.thumbsUp,
                                         color: _isLiked
-                                            ? const Color(0xFFE42429)
-                                            : Colors.white,
-                                        size: 16,
+                                            ? AppColors.primary
+                                            : Colors.white70,
+                                        size: 14,
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Rate',
+                                        'Rate'.tr,
                                         style: TextStyle(
                                           fontFamily: AppTextStyles.fontFamily,
                                           color: _isLiked
-                                              ? const Color(0xFFE42429)
+                                              ? AppColors.primary
                                               : Colors.white,
-                                          fontSize: 15,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -303,30 +376,30 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                 onTap: _shareDrama,
                                 behavior: HitTestBehavior.opaque,
                                 child: Container(
-                                  height: 48,
+                                  height: 46,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF16161E),
+                                    color: const Color(0xFF14141E),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color(0xFF282836),
+                                      color: Colors.white.withValues(alpha: 0.1),
                                       width: 1,
                                     ),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      FaIcon(
+                                    children: [
+                                      const FaIcon(
                                         FontAwesomeIcons.shareNodes,
-                                        color: Colors.white,
-                                        size: 16,
+                                        color: Colors.white70,
+                                        size: 14,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'Share',
-                                        style: TextStyle(
+                                        'Share'.tr,
+                                        style: const TextStyle(
                                           fontFamily: AppTextStyles.fontFamily,
                                           color: Colors.white,
-                                          fontSize: 15,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -337,17 +410,36 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 28),
 
                         // ── "Recommended for you" Section
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Recommended for you',
-                            style: AppTextStyles.text18Bold.copyWith(
-                              color: Colors.white,
+                        Row(
+                          children: [
+                            Container(
+                              width: 3.5,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.6),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Recommended for you'.tr,
+                              style: AppTextStyles.text18Bold.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 14),
 
@@ -356,13 +448,14 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                           children: _recommendedDramas.map((drama) {
                             return Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
                                 child: _buildRecommendedPosterCard(drama),
                               ),
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -378,6 +471,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
   Widget _buildRecommendedPosterCard(Map<String, String> drama) {
     return GestureDetector(
       onTap: () {
+        HapticFeedback.lightImpact();
         Get.toNamed(
           Routes.dramaPlayer,
           arguments: {
@@ -390,8 +484,19 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
         aspectRatio: 0.68,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFF161620),
+            borderRadius: BorderRadius.circular(13),
+            color: const Color(0xFF141420),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -407,6 +512,23 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                   ),
                 ),
 
+                // Bottom gradient for readability
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.8),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.4, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Top Right Plays Badge
                 Positioned(
                   top: 6,
@@ -414,19 +536,23 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 5,
-                      vertical: 2,
+                      vertical: 2.5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
+                      color: Colors.black.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 0.8,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const FaIcon(
                           FontAwesomeIcons.play,
-                          color: Colors.white,
-                          size: 8,
+                          color: AppColors.primary,
+                          size: 7,
                         ),
                         const SizedBox(width: 3),
                         Text(
@@ -434,8 +560,8 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                           style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -458,19 +584,40 @@ class _RadiantCheckmarkBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 96,
-      height: 96,
+      width: 90,
+      height: 90,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: const Size(96, 96),
+            size: const Size(90, 90),
             painter: _RadiatingTicksPainter(),
           ),
-          const FaIcon(
-            FontAwesomeIcons.check,
-            color: Color(0xFF76D275),
-            size: 40,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+              border: Border.all(
+                color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: FaIcon(
+                FontAwesomeIcons.check,
+                color: Color(0xFF10B981),
+                size: 24,
+              ),
+            ),
           ),
         ],
       ),
@@ -482,8 +629,8 @@ class _RadiatingTicksPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF76D275)
-      ..strokeWidth = 2.4
+      ..color = const Color(0xFF10B981).withValues(alpha: 0.75)
+      ..strokeWidth = 2.2
       ..strokeCap = StrokeCap.round;
 
     final center = Offset(size.width / 2, size.height / 2);

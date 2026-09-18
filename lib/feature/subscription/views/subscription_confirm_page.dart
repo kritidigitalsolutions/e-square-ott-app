@@ -71,7 +71,7 @@ class _SubscriptionConfirmPageState extends State<SubscriptionConfirmPage> {
                       CustomBackButton(onTap: () => Get.back()),
                       const SizedBox(width: 14),
                       Text(
-                        'Entertainment Squared',
+                        'Entertainment Square',
                         style: AppTextStyles.text14Medium.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.5,
@@ -159,11 +159,11 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
             height: 76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF160E12),
-              border: Border.all(color: const Color(0xFFE42429), width: 2.0),
+              color: const Color(0xFF221706),
+              border: Border.all(color: AppColors.primary, width: 2.0),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFE42429).withValues(alpha: 0.35),
+                  color: AppColors.primary.withValues(alpha: 0.35),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),

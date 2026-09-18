@@ -78,7 +78,8 @@ class NewReleasesScreen extends GetView<HomeController> {
                                         style: AppTextStyles.text14Medium
                                             .copyWith(color: Colors.white),
                                         decoration: InputDecoration(
-                                          hintText: 'Search new releases...',
+                                          hintText:
+                                              'Search new releases...'.tr,
                                           hintStyle:
                                               AppTextStyles.text14.copyWith(
                                             color: const Color(0xFF6E6E7E),
@@ -128,14 +129,14 @@ class NewReleasesScreen extends GetView<HomeController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'New Releases',
+                                  'New Releases'.tr,
                                   style: AppTextStyles.text24Bold.copyWith(
                                     color: Colors.white,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Fresh stories, just for you',
+                                  'Fresh stories, just for you'.tr,
                                   style: AppTextStyles.text14Medium.copyWith(
                                     color: const Color(0xFF8A8A8A),
                                   ),
@@ -215,7 +216,7 @@ class NewReleasesScreen extends GetView<HomeController> {
                               ),
                               child: Center(
                                 child: Text(
-                                  genre,
+                                  genre.tr,
                                   style: TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     fontSize: 13,

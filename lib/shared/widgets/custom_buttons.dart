@@ -39,7 +39,11 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool canPress = isEnabled && !isLoading;
     final isPrimary = backgroundColor == AppColors.primary;
-    final effectiveGradient = gradient ?? (isPrimary && canPress ? AppColors.primaryGradient : null);
+    final effectiveGradient =
+        gradient ?? (isPrimary && canPress ? AppColors.primaryGradient : null);
+    final effectiveTextColor = isPrimary && canPress
+        ? (textColor == Colors.white ? const Color(0xFF0C0B10) : textColor)
+        : (canPress ? textColor : textColor.withValues(alpha: 0.6));
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -47,14 +51,16 @@ class AppButton extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: effectiveGradient == null
-            ? (canPress ? backgroundColor : backgroundColor.withValues(alpha: 0.4))
+            ? (canPress
+                ? backgroundColor
+                : backgroundColor.withValues(alpha: 0.4))
             : null,
         gradient: effectiveGradient,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: canPress && isPrimary
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.38),
+                  color: AppColors.primary.withValues(alpha: 0.35),
                   blurRadius: 18,
                   offset: const Offset(0, 5),
                 ),
@@ -66,8 +72,8 @@ class AppButton extends StatelessWidget {
         child: InkWell(
           onTap: canPress ? onPressed : null,
           borderRadius: BorderRadius.circular(borderRadius),
-          splashColor: Colors.white.withValues(alpha: 0.12),
-          highlightColor: Colors.white.withValues(alpha: 0.06),
+          splashColor: Colors.black.withValues(alpha: 0.15),
+          highlightColor: Colors.black.withValues(alpha: 0.08),
           child: Center(
             child: isLoading
                 ? const SizedBox(
@@ -83,11 +89,19 @@ class AppButton extends StatelessWidget {
                         icon!,
                         const SizedBox(width: 8),
                       ],
-                      Text(
-                        label,
-                        style: (textStyle ?? AppTextStyles.text16SemiBold).copyWith(
-                          color: canPress ? textColor : textColor.withValues(alpha: 0.6),
-                          letterSpacing: 0.2,
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (textStyle ?? AppTextStyles.text16SemiBold)
+                              .copyWith(
+                                color: effectiveTextColor,
+                                fontWeight: isPrimary && canPress
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
                         ),
                       ),
                     ],

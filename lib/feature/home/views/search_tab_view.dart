@@ -176,7 +176,7 @@ class SearchTabView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Recent Searches',
+                      'Recent Searches'.tr,
                       style: AppTextStyles.text16Bold.copyWith(
                         color: Colors.white,
                       ),
@@ -187,7 +187,7 @@ class SearchTabView extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(
-                          'Clear All',
+                          'Clear All'.tr,
                           style: AppTextStyles.text13Medium.copyWith(
                             color: const Color(0xFF8A8A9E),
                           ),
@@ -256,7 +256,7 @@ class SearchTabView extends StatelessWidget {
 
           // ── 2. Popular Searches Section
           Text(
-            'Popular Searches',
+            'Popular Searches'.tr,
             style: AppTextStyles.text16Bold.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 12),
@@ -326,7 +326,7 @@ class SearchTabView extends StatelessWidget {
 
           // ── 3. Recommended for you Section (3-column grid)
           Text(
-            'Recommended for you',
+            'Recommended for you'.tr,
             style: AppTextStyles.text16Bold.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 14),

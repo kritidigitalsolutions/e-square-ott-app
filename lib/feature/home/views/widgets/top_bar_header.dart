@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_images.dart';
+import '../../../../constants/app_text_styles.dart';
+import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
 
 class TopBarHeader extends GetView<HomeController> {
@@ -10,104 +13,211 @@ class TopBarHeader extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Logo
-          Image.asset(
-            AppImages.appLogo,
-            height: 38,
-            fit: BoxFit.contain,
-            errorBuilder: (_, e, s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 1.5),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'E²',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          // Notification Bell Button
-          GestureDetector(
-            onTap: controller.openNotifications,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: const Color(0xFF14141E).withValues(alpha: 0.85),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.background.withValues(alpha: 0.85),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // ── App Logo with subtle ambient glow
+            GestureDetector(
+              onTap: () {},
+              child: Row(
                 children: [
-                  const FaIcon(
-                    FontAwesomeIcons.bell,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  Obx(() {
-                    if (controller.unreadNotifications.value == 0) {
-                      return const SizedBox.shrink();
-                    }
-                    return Positioned(
-                      top: 7,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      AppImages.appLogo,
+                      height: 36,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, e, s) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.6),
-                              blurRadius: 6,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        constraints: const BoxConstraints(
-                          minWidth: 14,
-                          minHeight: 14,
-                        ),
-                        child: Text(
-                          '${controller.unreadNotifications.value}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
+                        child: const Text(
+                          'E²',
+                          style: TextStyle(
+                            color: Color(0xFF0C0B10),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // ── Right Actions: VIP Badge + Search + Notifications
+            Row(
+              children: [
+                // VIP / Premium Pill
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Get.toNamed(Routes.subscriptionPage);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.crown,
+                          color: Color(0xFF0C0B10),
+                          size: 11,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'VIP'.tr,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF0C0B10),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Search Button
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    controller.changeNavIndex(3);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF151522),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.magnifyingGlass,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Notification Bell Button
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    controller.openNotifications();
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF151522),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const FaIcon(
+                          FontAwesomeIcons.bell,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        Obx(() {
+                          if (controller.unreadNotifications.value == 0) {
+                            return const SizedBox.shrink();
+                          }
+                          return Positioned(
+                            top: 6,
+                            right: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 14,
+                                minHeight: 14,
+                              ),
+                              child: Text(
+                                '${controller.unreadNotifications.value}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF0C0B10),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

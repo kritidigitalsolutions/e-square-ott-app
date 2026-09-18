@@ -104,8 +104,8 @@ class _NotificationSettingPageState extends State<NotificationSettingPage> {
                   // Multi-line Title matching screenshot
                   Expanded(
                     child: Text(
-                      "Notifications\nSettings",
-                      style: TextStyle(
+                      "Notifications Settings".tr,
+                      style: const TextStyle(
                         fontFamily: AppTextStyles.fontFamily,
                         fontSize: 26,
                         fontWeight: FontWeight.w700,

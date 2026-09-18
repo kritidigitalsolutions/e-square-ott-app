@@ -1,3 +1,4 @@
+import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,9 +79,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         Text.rich(
                           TextSpan(
                             children: [
-                              const TextSpan(
-                                text: 'Explore\n',
-                                style: TextStyle(
+                              TextSpan(
+                                text: '${'Explore'.tr}\n',
+                                style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
@@ -89,13 +90,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              const TextSpan(
-                                text: 'Categories',
-                                style: TextStyle(
+                              TextSpan(
+                                text: 'Categories'.tr,
+                                style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFFE50914),
+                                  // RED: color: Color(0xFFE50914),
+                                  color: AppColors.primary,
                                   height: 1.15,
                                   letterSpacing: -0.5,
                                 ),
@@ -378,7 +380,11 @@ class _CinematicCategoryGridCardState
                               ],
                             ),
                             child: Center(
-                              child: FaIcon(cat.icon, color: Colors.white, size: 16),
+                              child: FaIcon(
+                                cat.icon,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           ),
 
@@ -399,7 +405,7 @@ class _CinematicCategoryGridCardState
                                 ],
                               ),
                               child: Text(
-                                cat.tag!,
+                                cat.tag!.tr,
                                 style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   color: Colors.white,
@@ -417,7 +423,7 @@ class _CinematicCategoryGridCardState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            cat.title,
+                            cat.title.tr,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -447,10 +453,7 @@ class _CinematicCategoryGridCardState
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
                                   shadows: const [
-                                    Shadow(
-                                      color: Colors.black,
-                                      blurRadius: 4,
-                                    ),
+                                    Shadow(color: Colors.black, blurRadius: 4),
                                   ],
                                 ),
                               ),

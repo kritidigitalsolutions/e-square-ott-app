@@ -169,7 +169,7 @@ class _ExploreCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Watch Now',
+                            'Watch Now'.tr,
                             style: AppTextStyles.text14Bold.copyWith(
                               color: Colors.white,
                             ),
@@ -206,7 +206,7 @@ class _ExploreCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 7),
                           Text(
-                            'Episodes',
+                            'Episodes'.tr,
                             style: AppTextStyles.text13SemiBold.copyWith(
                               color: Colors.white,
                             ),
@@ -251,7 +251,7 @@ class _ExploreCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              inList ? 'In List' : 'List',
+                              inList ? 'In List'.tr : 'List'.tr,
                               style: AppTextStyles.text13SemiBold.copyWith(
                                 color: inList
                                     ? AppColors.primary

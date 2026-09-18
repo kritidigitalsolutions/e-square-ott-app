@@ -4,7 +4,7 @@ import 'app_colors.dart';
 class AppTextStyles {
   AppTextStyles._();
 
-  static const String fontFamily = 'AfacadFlux';
+  static const String fontFamily = 'Raleway';
 
   // Base font size constants (Default Regular / 400 with textPrimary color)
   static const TextStyle text10 = TextStyle(

@@ -34,13 +34,23 @@ class MyApp extends StatelessWidget {
             onSurface: AppColors.textPrimary,
           ),
           scaffoldBackgroundColor: AppColors.background,
-          fontFamily: 'AfacadFlux',
+          fontFamily: 'Raleway',
+          fontFamilyFallback: const [
+            'Noto Sans Devanagari',
+            'Noto Sans Tamil',
+            'Noto Sans Telugu',
+            'Noto Sans Kannada',
+            'Noto Sans Malayalam',
+            'Roboto',
+            'sans-serif',
+          ],
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           dividerColor: AppColors.divider,
           textSelectionTheme: const TextSelectionThemeData(
             cursorColor: AppColors.primary,
-            selectionColor: Color(0x66E42429),
+            // RED: selectionColor: Color(0x66E42429),
+            selectionColor: Color(0x66FFB823),
             selectionHandleColor: AppColors.primary,
           ),
           appBarTheme: const AppBarTheme(
@@ -52,6 +62,16 @@ class MyApp extends StatelessWidget {
         translations: AppTranslations(),
         locale: localeController.currentLocale.value,
         fallbackLocale: const Locale('en', 'US'),
+        builder: (context, child) {
+          final isNonEnglish =
+              localeController.currentLocale.value.languageCode != 'en';
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(isNonEnglish ? 0.90 : 1.0),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
         // customTransition: FadeThroughPageTransition(),
         defaultTransition: Transition.native,
         transitionDuration: const Duration(milliseconds: 350),

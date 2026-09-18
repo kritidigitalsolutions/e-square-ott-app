@@ -89,7 +89,7 @@ class LogoutPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 14),
                       Text(
-                        'Entertainment Squared',
+                        'Entertainment Square',
                         style: AppTextStyles.text14Medium.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.5,
@@ -176,9 +176,9 @@ class LogoutContentCard extends StatelessWidget {
           const SizedBox(height: 28),
 
           // ── Title
-          const Text(
-            'Log out?',
-            style: TextStyle(
+          Text(
+            'Log out?'.tr,
+            style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: Colors.white,
               fontSize: 26,
@@ -192,29 +192,15 @@ class LogoutContentCard extends StatelessWidget {
           // ── Subtitle / Description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: RichText(
+            child: Text(
+              "You'll need to log in again to access your account and saved stories.".tr,
               textAlign: TextAlign.center,
-              text: TextSpan(
-                style: TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  color: const Color(0xFF9E9EA8),
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                ),
-                children: const [
-                  TextSpan(
-                    text: "You'll need to log in again to access your\n",
-                  ),
-                  TextSpan(
-                    text: 'Entertainment\u00B2',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFC0C0D0),
-                    ),
-                  ),
-                  TextSpan(text: ' account and saved stories.'),
-                ],
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF9E9EA8),
+                fontSize: 14.5,
+                fontWeight: FontWeight.w400,
+                height: 1.45,
               ),
             ),
           ),
@@ -222,7 +208,7 @@ class LogoutContentCard extends StatelessWidget {
 
           // ── Primary Action: Log Out Button
           _buildActionButton(
-            label: 'Log Out',
+            label: 'Log Out'.tr,
             backgroundColor: const Color(0xFFE42429),
             textColor: Colors.white,
             hasShadow: true,
@@ -235,7 +221,7 @@ class LogoutContentCard extends StatelessWidget {
 
           // ── Secondary Action: Cancel Button
           _buildActionButton(
-            label: 'Cancel',
+            label: 'Cancel'.tr,
             backgroundColor: const Color(0xFF1E1E22),
             textColor: Colors.white,
             hasBorder: true,

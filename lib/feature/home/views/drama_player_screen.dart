@@ -808,9 +808,9 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                     const SizedBox(height: 20),
 
                     // Title: "The story gets deeper"
-                    const Text(
-                      'The story gets deeper',
-                      style: TextStyle(
+                    Text(
+                      'The story gets deeper'.tr,
+                      style: const TextStyle(
                         fontFamily: AppTextStyles.fontFamily,
                         color: Colors.white,
                         fontSize: 25,
@@ -852,7 +852,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
                     // Primary Action: "Unlock Premium"
                     AppButton(
-                      label: 'Unlock Premium',
+                      label: 'Unlock Premium'.tr,
                       onPressed: () async {
                         await Get.toNamed(Routes.subscriptionPage);
                         if (mounted) setState(() {});
@@ -876,14 +876,14 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                         }
                       },
                       behavior: HitTestBehavior.opaque,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 6,
                         ),
                         child: Text(
-                          'Maybe Later',
-                          style: TextStyle(
+                          'Maybe Later'.tr,
+                          style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             color: Color(0xFFA0A0B0),
                             fontSize: 14,

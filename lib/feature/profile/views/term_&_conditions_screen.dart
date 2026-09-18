@@ -39,7 +39,7 @@ class TermsConditionsScreen extends StatelessWidget {
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          'Terms & Conditions',
+                          'Terms & Conditions'.tr,
                           style: AppTextStyles.text18Bold,
                         ),
                       ),

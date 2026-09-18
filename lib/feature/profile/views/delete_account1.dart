@@ -89,7 +89,7 @@ class DeleteAccount1 extends StatelessWidget {
                       ),
                       const SizedBox(width: 14),
                       Text(
-                        'Entertainment Squared',
+                        'Entertainment Square',
                         style: AppTextStyles.text14Medium.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.5,
@@ -177,9 +177,9 @@ class DeleteAccount1ContentCard extends StatelessWidget {
           const SizedBox(height: 22),
 
           // ── Title
-          const Text(
-            'Are you sure?',
-            style: TextStyle(
+          Text(
+            'Are you sure?'.tr,
+            style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: Colors.white,
               fontSize: 26,
@@ -193,30 +193,15 @@ class DeleteAccount1ContentCard extends StatelessWidget {
           // ── Subtitle / Description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: RichText(
+            child: Text(
+              'Deleting your account will permanently remove your profile and viewing data.'.tr,
               textAlign: TextAlign.center,
-              text: TextSpan(
-                style: TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  color: const Color(0xFF9E9EA8),
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                ),
-                children: const [
-                  TextSpan(text: 'Deleting your '),
-                  TextSpan(
-                    text: 'Entertainment\u00B2',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFC0C0D0),
-                    ),
-                  ),
-                  TextSpan(
-                    text:
-                        ' account will\npermanently remove your profile and viewing data.',
-                  ),
-                ],
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF9E9EA8),
+                fontSize: 14.0,
+                fontWeight: FontWeight.w400,
+                height: 1.45,
               ),
             ),
           ),
@@ -234,9 +219,9 @@ class DeleteAccount1ContentCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Before you continue',
-                  style: TextStyle(
+                Text(
+                  'Before you continue'.tr,
+                  style: const TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
                     color: Colors.white,
                     fontSize: 15,
@@ -245,10 +230,10 @@ class DeleteAccount1ContentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'Your subscription, saved stories, watch history and personalized preferences will no longer be available.',
-                  style: TextStyle(
+                  'Your subscription, saved stories, watch history and personalized preferences will no longer be available.'.tr,
+                  style: const TextStyle(
                     fontFamily: AppTextStyles.fontFamily,
-                    color: const Color(0xFF8E8E9E),
+                    color: Color(0xFF8E8E9E),
                     fontSize: 12.5,
                     fontWeight: FontWeight.w400,
                     height: 1.4,
@@ -270,18 +255,18 @@ class DeleteAccount1ContentCard extends StatelessWidget {
             child: Column(
               children: [
                 _buildChecklistItem(
-                  text: 'Saved Series will be removed',
+                  text: 'Saved Series will be removed'.tr,
                   isFirst: true,
                 ),
                 _buildDivider(),
-                _buildChecklistItem(text: 'Watch History will be deleted'),
+                _buildChecklistItem(text: 'Watch History will be deleted'.tr),
                 _buildDivider(),
                 _buildChecklistItem(
-                  text: 'Profile & preferences will be deleted',
+                  text: 'Profile & preferences will be deleted'.tr,
                 ),
                 _buildDivider(),
                 _buildChecklistItem(
-                  text: 'Account access will end',
+                  text: 'Account access will end'.tr,
                   isLast: true,
                 ),
               ],
@@ -291,7 +276,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
 
           // ── Primary Action: Continue to Delete Button
           _buildActionButton(
-            label: 'Continue to Delete',
+            label: 'Continue to Delete'.tr,
             backgroundColor: const Color(0xFFE42429),
             textColor: Colors.white,
             hasShadow: true,
@@ -304,7 +289,7 @@ class DeleteAccount1ContentCard extends StatelessWidget {
 
           // ── Secondary Action: Keep My Account Button
           _buildActionButton(
-            label: 'Keep My Account',
+            label: 'Keep My Account'.tr,
             backgroundColor: const Color(0xFF1E1E22),
             textColor: Colors.white,
             hasBorder: true,

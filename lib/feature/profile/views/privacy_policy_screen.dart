@@ -41,8 +41,14 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           Get.back();
                         },
                       ),
-                      SizedBox(width: 14),
-                      Text("Privacy Policy", style: AppTextStyles.text18Bold),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          "Privacy Policy".tr,
+                          style: AppTextStyles.text18Bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
