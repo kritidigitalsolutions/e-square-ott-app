@@ -6,6 +6,6 @@ class AuthBinding extends Bindings {
   void dependencies() {
     // Lazy-puts AuthController — created only when first accessed,
     // automatically disposed when the route is popped.
-    Get.lazyPut<AuthController>(() => AuthController());
+    Get.lazyPut<AuthController>(() => AuthController(), fenix: true);
   }
 }

@@ -10,9 +10,9 @@ import 'package:e_square_ott_app/feature/profile/views/watch_history_screen.dart
 import 'package:e_square_ott_app/feature/profile/views/logout_page.dart';
 import 'package:e_square_ott_app/feature/profile/views/delete_account1.dart';
 import 'package:e_square_ott_app/feature/profile/views/delete_account2.dart';
+import 'package:e_square_ott_app/feature/profile/views/edit_profile_screen.dart';
 import 'package:e_square_ott_app/feature/subscription/views/subscription_confirm_page.dart';
 import 'package:e_square_ott_app/feature/subscription/views/subscription_page.dart';
-import 'package:animations/animations.dart';
 import 'package:get/get.dart';
 import '../feature/auth/bindings/auth_binding.dart';
 import '../feature/auth/views/choose_interest_screen.dart';
@@ -213,6 +213,11 @@ class AppPages {
       name: Routes.episodeCompleted,
       page: () => const EpisodeCompletedScreen(),
 
+      transitionDuration: const Duration(milliseconds: 350),
+    ),
+    GetPage(
+      name: Routes.editProfile,
+      page: () => const EditProfileScreen(),
       transitionDuration: const Duration(milliseconds: 350),
     ),
   ];

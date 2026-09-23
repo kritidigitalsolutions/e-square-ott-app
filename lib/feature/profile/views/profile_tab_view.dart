@@ -166,6 +166,11 @@ class ProfileTabView extends StatelessWidget {
                       const SizedBox(height: 12),
                       _buildGroupedCard([
                         _ProfileMenuItem(
+                          icon: FontAwesomeIcons.userPen,
+                          title: 'Edit Profile'.tr,
+                          onTap: controller.openEditProfile,
+                        ),
+                        _ProfileMenuItem(
                           icon: FontAwesomeIcons.crown,
                           title: 'Subscription'.tr,
                           onTap: controller.openSubscription,
@@ -185,11 +190,6 @@ class ProfileTabView extends StatelessWidget {
                           title: 'Notification Settings'.tr,
                           onTap: controller.openNotificationSettings,
                         ),
-                        // _ProfileMenuItem(
-                        //   icon: FontAwesomeIcons.arrowRightFromBracket,
-                        //   title: 'Log Out'.tr,
-                        //   onTap: controller.logout,
-                        // ),
                       ]),
                       const SizedBox(height: 24),
 
@@ -260,77 +260,116 @@ class ProfileTabView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Avatar with subtle glow
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.6),
-                width: 1.8,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.25),
-                  blurRadius: 10,
-                  spreadRadius: 1,
+          // Avatar with subtle glow & tap to edit
+          GestureDetector(
+            onTap: controller.openEditProfile,
+            child: Stack(
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.6),
+                      width: 1.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Obx(() {
+                      final avatar = controller.userAvatar.value;
+                      if (avatar.startsWith('http')) {
+                        return Image.network(
+                          avatar,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+                        );
+                      }
+                      return Image.asset(
+                        AppImages.banner1,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+                      );
+                    }),
+                  ),
                 ),
-              ],
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                AppImages.banner1,
-                fit: BoxFit.cover,
-                errorBuilder: (_, e, s) => Container(
-                  color: const Color(0xFF2A2A38),
-                  child: const Center(
-                    child: FaIcon(
-                      FontAwesomeIcons.solidUser,
-                      color: Colors.white70,
-                      size: 24,
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF14141E),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.pen,
+                        color: Colors.white,
+                        size: 8,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
           const SizedBox(width: 14),
 
           // Name & Email
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Obx(
-                  () => Text(
-                    controller.userName.value,
-                    style: AppTextStyles.text20Bold.copyWith(
-                      color: Colors.white,
-                      height: 1.2,
-                      letterSpacing: -0.2,
+            child: GestureDetector(
+              onTap: controller.openEditProfile,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Obx(
+                    () => Text(
+                      controller.userName.value.isNotEmpty
+                          ? controller.userName.value
+                          : 'Your Profile',
+                      style: AppTextStyles.text20Bold.copyWith(
+                        color: Colors.white,
+                        height: 1.2,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Obx(
-                  () => Text(
-                    controller.userEmail.value,
-                    style: AppTextStyles.text13Medium.copyWith(
-                      color: const Color(0xFF9E9EAE),
+                  const SizedBox(height: 4),
+                  Obx(
+                    () => Text(
+                      controller.userEmail.value.isNotEmpty
+                          ? controller.userEmail.value
+                          : controller.userPhone.value,
+                      style: AppTextStyles.text13Medium.copyWith(
+                        color: const Color(0xFF9E9EAE),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
-          // Premium Badge Button
+          // VIP Badge
           GestureDetector(
             onTap: controller.openSubscription,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(20),
@@ -348,20 +387,46 @@ class ProfileTabView extends StatelessWidget {
                   FaIcon(
                     FontAwesomeIcons.crown,
                     color: Color(0xFF0C0B10),
-                    size: 13,
+                    size: 11,
                   ),
-                  SizedBox(width: 5),
+                  SizedBox(width: 4),
                   Text(
                     'VIP',
                     style: TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
                       color: Color(0xFF0C0B10),
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Edit Profile Action Icon Button
+          GestureDetector(
+            onTap: controller.openEditProfile,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E2C),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.penToSquare,
+                  color: Colors.white,
+                  size: 13,
+                ),
               ),
             ),
           ),
@@ -395,6 +460,19 @@ class ProfileTabView extends StatelessWidget {
             items[i],
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarFallback() {
+    return Container(
+      color: const Color(0xFF2A2A38),
+      child: const Center(
+        child: FaIcon(
+          FontAwesomeIcons.solidUser,
+          color: Colors.white70,
+          size: 24,
+        ),
       ),
     );
   }

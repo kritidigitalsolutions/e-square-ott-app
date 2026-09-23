@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_loading.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
+import '../../auth/datasource/auth_datasource.dart';
 
 class DeleteAccount2 extends StatefulWidget {
   const DeleteAccount2({super.key});
@@ -179,17 +181,35 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
       _isLoading = true;
     });
 
-    // Simulate account deletion request
-    await Future.delayed(const Duration(milliseconds: 1000));
+    try {
+      final success = await AuthDatasource().deleteAccount();
 
-    if (mounted) {
-      AppSnackbar.info(
-        'Your account and all associated data have been permanently removed.'.tr,
-        title: 'Account Deleted'.tr,
-      );
-
-      // Navigate back to login
-      Get.offAllNamed(Routes.login);
+      if (mounted) {
+        if (success) {
+          await StorageService.logout();
+          AppSnackbar.success(
+            'Your account and all associated data have been permanently removed.'
+                .tr,
+            title: 'Account Deleted'.tr,
+          );
+          Get.offAllNamed(Routes.login);
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+          AppSnackbar.error(
+            'Failed to delete account. Please try again.'.tr,
+            title: 'Error'.tr,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        AppSnackbar.error('Error deleting account: $e');
+      }
     }
   }
 

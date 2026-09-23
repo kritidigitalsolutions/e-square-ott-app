@@ -5,6 +5,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_sizes.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../constants/enum.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/auth_controller.dart';
@@ -12,7 +13,17 @@ import '../controller/auth_controller.dart';
 class OtpVerifyScreen extends GetView<AuthController> {
   const OtpVerifyScreen({super.key});
 
-  String _getMaskedPhoneSubtitle(String rawPhone) {
+  String _getMaskedPhoneSubtitle(Map<String, dynamic>? args, AuthController controller) {
+    final masked = (args?['maskedPhone'] as String?) ??
+        controller.sendOtpResponse.value?.data.maskedNumber ??
+        '';
+    if (masked.isNotEmpty) {
+      return "We've sent a 4-digit OTP to $masked";
+    }
+
+    final rawPhone = (args?['phone'] as String?) ??
+        '${controller.countryCode.value} ${controller.phoneNumber.value}'.trim();
+
     final phone = rawPhone.trim();
     if (phone.isEmpty) {
       return "We've sent a 4-digit OTP to +91 73••••••77";
@@ -25,8 +36,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
       if (number.length >= 4) {
         final prefix = number.substring(0, 2);
         final suffix = number.substring(number.length - 2);
-        final bullets =
-            '•' * (number.length - 4 > 0 ? (number.length - 4) : 6);
+        final bullets = '•' * (number.length - 4 > 0 ? (number.length - 4) : 6);
         return "We've sent a 4-digit OTP to $countryCode $prefix$bullets$suffix";
       }
     } else if (phone.length >= 6) {
@@ -41,7 +51,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    final phone = (Get.arguments as Map<String, dynamic>?)?['phone'] ?? '';
+    final args = Get.arguments as Map<String, dynamic>?;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -116,7 +126,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
 
                                 // Subtitle with masked phone
                                 Text(
-                                  _getMaskedPhoneSubtitle(phone),
+                                  _getMaskedPhoneSubtitle(args, controller),
                                   style: AppTextStyles.text13.copyWith(
                                     color: const Color(0xFF8A8A8A),
                                     height: 1.4,
@@ -155,11 +165,17 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                 Obx(
                                   () => AppButton(
                                     label: 'Verify & Continue'.tr,
-                                    onPressed: controller.isOtpComplete.value
+                                    onPressed: controller.isOtpComplete.value &&
+                                            controller.verifyOtpStatus.value !=
+                                                Status.loading
                                         ? controller.verifyOtp
                                         : null,
-                                    isLoading: controller.isLoading.value,
-                                    isEnabled: true,
+                                    isLoading:
+                                        controller.verifyOtpStatus.value ==
+                                            Status.loading,
+                                    isEnabled: controller.isOtpComplete.value &&
+                                        controller.verifyOtpStatus.value !=
+                                            Status.loading,
                                     height: AppSizes.buttonHeight,
                                   ),
                                 ),
@@ -170,6 +186,20 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                   child: Obx(() {
                                     final seconds =
                                         controller.otpCountdown.value;
+                                    final isResending =
+                                        controller.resendOtpStatus.value ==
+                                            Status.loading;
+
+                                    if (isResending) {
+                                      return Text(
+                                        'Sending OTP...'.tr,
+                                        style:
+                                            AppTextStyles.text13Medium.copyWith(
+                                          color: AppColors.primary,
+                                        ),
+                                      );
+                                    }
+
                                     if (seconds > 0) {
                                       return Text.rich(
                                         TextSpan(
@@ -199,7 +229,12 @@ class OtpVerifyScreen extends GetView<AuthController> {
                                     }
 
                                     return GestureDetector(
-                                      onTap: controller.resendOtp,
+                                      onTap:
+                                          controller.verifyOtpStatus.value ==
+                                                      Status.loading ||
+                                                  isResending
+                                              ? null
+                                              : controller.resendOtp,
                                       child: Text.rich(
                                         TextSpan(
                                           children: [
@@ -321,8 +356,8 @@ class _LuxuryOtpBoxState extends State<_LuxuryOtpBox> {
             color: _isFocused
                 ? AppColors.primary
                 : (hasText
-                    ? AppColors.primary.withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.12)),
+                      ? AppColors.primary.withValues(alpha: 0.6)
+                      : Colors.white.withValues(alpha: 0.12)),
             width: _isFocused ? 1.8 : 1.2,
           ),
           boxShadow: [

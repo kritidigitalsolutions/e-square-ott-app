@@ -4,8 +4,11 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
+import '../../../shared/widgets/custom_sncakbar.dart';
+import '../controller/profile_controller.dart';
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
@@ -212,8 +215,17 @@ class LogoutContentCard extends StatelessWidget {
             backgroundColor: const Color(0xFFE42429),
             textColor: Colors.white,
             hasShadow: true,
-            onTap: () {
-              // Navigate to login screen and clear stack
+            onTap: () async {
+              await StorageService.logout();
+              if (Get.isRegistered<ProfileController>()) {
+                final pc = Get.find<ProfileController>();
+                pc.userName.value = '';
+                pc.userEmail.value = '';
+                pc.userPhone.value = '';
+                pc.userAvatar.value = '';
+                pc.profileData.value = null;
+              }
+              AppSnackbar.success('Logged out successfully');
               Get.offAllNamed(Routes.login);
             },
           ),

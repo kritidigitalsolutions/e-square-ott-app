@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_sizes.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../constants/enum.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_loading.dart';
@@ -126,8 +127,13 @@ class ProfileSetupScreen extends GetView<AuthController> {
                                   focusNode: controller.emailFocusNode,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.done,
-                                  onFieldSubmitted: (_) =>
-                                      controller.saveProfile(),
+                                  onFieldSubmitted: (_) {
+                                    if (controller.isProfileValid.value &&
+                                        controller.completeProfileStatus.value !=
+                                            Status.loading) {
+                                      controller.completeProfile();
+                                    }
+                                  },
                                 ),
 
                                 const Spacer(),
@@ -137,9 +143,17 @@ class ProfileSetupScreen extends GetView<AuthController> {
                                 Obx(
                                   () => AppButton(
                                     label: 'Continue',
-                                    onPressed: controller.saveProfile,
-                                    isLoading: controller.isLoading.value,
-                                    isEnabled: true,
+                                    onPressed: controller.isProfileValid.value &&
+                                            controller.completeProfileStatus.value !=
+                                                Status.loading
+                                        ? controller.completeProfile
+                                        : null,
+                                    isLoading:
+                                        controller.completeProfileStatus.value ==
+                                            Status.loading,
+                                    isEnabled: controller.isProfileValid.value &&
+                                        controller.completeProfileStatus.value !=
+                                            Status.loading,
                                     height: AppSizes.buttonHeight,
                                   ),
                                 ),

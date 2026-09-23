@@ -28,6 +28,7 @@ abstract class Routes {
   static const notificationPage = _Paths.notificationPage;
   static const notificationSetting = _Paths.notificationSetting;
   static const episodeCompleted = _Paths.episodeCompleted;
+  static const editProfile = _Paths.editProfile;
 }
 
 abstract class _Paths {
@@ -58,4 +59,5 @@ abstract class _Paths {
   static const notificationPage = "/notification";
   static const notificationSetting = "/notification-setting";
   static const episodeCompleted = "/episode-completed";
+  static const editProfile = "/edit-profile";
 }

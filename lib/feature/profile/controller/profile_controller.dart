@@ -1,8 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
+import '../../../constants/enum.dart';
+import '../../../models/response/profile_model.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
+import '../../auth/datasource/auth_datasource.dart';
 import '../../subscription/controller/subscription_controller.dart';
+import '../views/logout_page.dart';
 
 class SavedSeriesModel {
   final String id;
@@ -45,9 +51,22 @@ class WatchHistoryItemModel {
 }
 
 class ProfileController extends GetxController {
-  final RxString userName = 'Aryan'.obs;
-  final RxString userEmail = 'aryan@example.com'.obs;
+  final AuthDatasource _datasource = AuthDatasource();
+  final Rx<Status> profileStatus = Status.init.obs;
+  final Rxn<ProfileResponseModel> profileData = Rxn<ProfileResponseModel>();
+
+  final RxString userName = ''.obs;
+  final RxString userEmail = ''.obs;
+  final RxString userPhone = ''.obs;
+  final RxString userAvatar = ''.obs;
   final RxBool isPremium = false.obs;
+
+  // ── Edit Profile State
+  final TextEditingController firstNameEditController = TextEditingController();
+  final TextEditingController lastNameEditController = TextEditingController();
+  final TextEditingController emailEditController = TextEditingController();
+  final TextEditingController phoneEditController = TextEditingController();
+  final Rx<Status> updateProfileStatus = Status.init.obs;
 
   // ── Saved Series Reactive List
   final RxList<SavedSeriesModel> savedSeriesList = <SavedSeriesModel>[
@@ -141,10 +160,42 @@ class ProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    fetchProfile();
     if (Get.isRegistered<SubscriptionController>()) {
       final sub = Get.find<SubscriptionController>();
       isPremium.value = sub.isSubscribed.value;
       ever(sub.isSubscribed, (val) => isPremium.value = val);
+    }
+  }
+
+  Future<void> fetchProfile() async {
+    profileStatus.value = Status.loading;
+    try {
+      final result = await _datasource.getProfile();
+      if (result != null) {
+        profileData.value = result;
+        final user = result.data!.user;
+        final full = user!.fullName.isNotEmpty
+            ? user.fullName
+            : '${user.firstName} ${user.lastName}'.trim();
+        userName.value = full.isNotEmpty
+            ? full
+            : (user.phoneNumber.isNotEmpty ? user.phoneNumber : 'User');
+        userEmail.value = (user.email != null && user.email!.isNotEmpty)
+            ? user.email!
+            : (user.phoneNumber.isNotEmpty
+                  ? '${user.countryCode} ${user.phoneNumber}'
+                  : '');
+        userPhone.value = '${user.countryCode} ${user.phoneNumber}'.trim();
+        userAvatar.value = user.avatarUrl;
+        isPremium.value = user.isVip;
+        profileStatus.value = Status.success;
+      } else {
+        profileStatus.value = Status.error;
+      }
+    } catch (e) {
+      profileStatus.value = Status.error;
+      print("fetchProfile error in ProfileController: $e");
     }
   }
 
@@ -184,8 +235,104 @@ class ProfileController extends GetxController {
     Get.toNamed(Routes.deleteAccount1);
   }
 
+  void openEditProfile() {
+    final user = profileData.value?.data!.user;
+    if (user != null) {
+      firstNameEditController.text = user.firstName;
+      lastNameEditController.text = user.lastName;
+      emailEditController.text = user.email ?? '';
+      phoneEditController.text = '${user.countryCode} ${user.phoneNumber}'
+          .trim();
+    } else {
+      final names = userName.value.split(' ');
+      firstNameEditController.text = names.isNotEmpty ? names.first : '';
+      lastNameEditController.text = names.length > 1
+          ? names.sublist(1).join(' ')
+          : '';
+      emailEditController.text = userEmail.value;
+      phoneEditController.text = userPhone.value;
+    }
+    Get.toNamed(Routes.editProfile);
+  }
+
+  Future<void> updateProfile() async {
+    final first = firstNameEditController.text.trim();
+    final last = lastNameEditController.text.trim();
+    final em = emailEditController.text.trim();
+
+    if (first.isEmpty) {
+      AppSnackbar.error('First name cannot be empty');
+      return;
+    }
+
+    updateProfileStatus.value = Status.loading;
+    try {
+      final result = await _datasource.completeProfile(
+        name: first,
+        email: em,
+        lastname: last,
+        avatarUrl: userAvatar.value.isNotEmpty ? userAvatar.value : null,
+      );
+
+      if (result != null) {
+        updateProfileStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : 'Profile updated successfully',
+        );
+        await fetchProfile();
+        Get.back();
+      } else {
+        updateProfileStatus.value = Status.error;
+        AppSnackbar.error('Failed to update profile. Please try again.');
+      }
+    } catch (e) {
+      updateProfileStatus.value = Status.error;
+      AppSnackbar.error('Error updating profile: $e');
+    } finally {
+      updateProfileStatus.value = Status.init;
+    }
+  }
+
   void logout() {
     Get.toNamed(Routes.logout);
+  }
+
+  Future<void> performLogout() async {
+    await StorageService.logout();
+    userName.value = '';
+    userEmail.value = '';
+    userPhone.value = '';
+    userAvatar.value = '';
+    profileData.value = null;
+    AppSnackbar.success('Logged out successfully');
+    Get.offAllNamed(Routes.login);
+  }
+
+  Future<void> performDeleteAccount() async {
+    final success = await _datasource.deleteAccount();
+    if (success) {
+      await StorageService.logout();
+      userName.value = '';
+      userEmail.value = '';
+      userPhone.value = '';
+      userAvatar.value = '';
+      profileData.value = null;
+      AppSnackbar.success('Account deleted successfully');
+      Get.offAllNamed(Routes.login);
+    } else {
+      AppSnackbar.error('Failed to delete account. Please try again.');
+    }
+  }
+
+  @override
+  void onClose() {
+    firstNameEditController.dispose();
+    lastNameEditController.dispose();
+    emailEditController.dispose();
+    phoneEditController.dispose();
+    super.onClose();
   }
 
   // ── Saved Series Actions

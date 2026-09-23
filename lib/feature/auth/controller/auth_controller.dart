@@ -1,8 +1,360 @@
+import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/feature/auth/datasource/auth_datasource.dart';
+import 'package:e_square_ott_app/models/response/get_genre_model.dart';
+import 'package:e_square_ott_app/models/response/otp_response.dart';
+import 'package:e_square_ott_app/models/response/profile_model.dart';
+import 'package:e_square_ott_app/models/response/resend_otp_response.dart';
+import 'package:e_square_ott_app/models/response/saved_interest_model.dart';
+import 'package:e_square_ott_app/models/response/user_model.dart';
+import 'package:e_square_ott_app/models/response/verify_otp_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 
 class AuthController extends GetxController {
+  final AuthDatasource datasource = AuthDatasource();
+  final phoneNumber = "".obs;
+  final otp = "".obs;
+  final countryCode = "+91".obs;
+  final sendOtpStatus = Status.init.obs;
+  final verifyOtpStatus = Status.init.obs;
+  final resendOtpStatus = Status.init.obs;
+  final sendOtpResponse = Rxn<OtpResponseModel?>();
+  final verifyOtpResponse = Rxn<VerifyOtpResponseModel?>();
+  final resendOtpResponse = Rxn<ResendOtpResponseModel?>();
+  final name = "".obs;
+  final lastname = "".obs;
+  final email = "".obs;
+  final completeProfileStatus = Status.init.obs;
+  final completeProfileResponse = Rxn<CompleteProfileResponseModel?>();
+  final getProfileStatus = Status.init.obs;
+  final getProfileResponse = Rxn<ProfileResponseModel?>();
+  final logoutStatus = Status.init.obs;
+  final selectInterestStatus = Status.init.obs;
+  final allGenre = Status.init.obs;
+  final allGenreResponse = Rxn<GenreResponseModel?>();
+  final selectGenreResponse = Rxn<SaveInterestResponseModel?>();
+  final selectedGenres = <String>[].obs;
+  final refreshTokenStatus = Status.init.obs;
+  final deleteAccountStatus = Status.init.obs;
+
+  void setPhone(String value) {
+    phoneNumber.value = value;
+  }
+
+  void setOtp(String value) {
+    otp.value = value;
+  }
+
+  void setCountryCode(String value) {
+    countryCode.value = value;
+  }
+
+  void setName(String value) {
+    name.value = value;
+  }
+
+  void setLastName(String value) {
+    lastname.value = value;
+  }
+
+  void setEmail(String value) {
+    email.value = value;
+  }
+
+  void _ensurePhoneAndCode() {
+    if ((phoneNumber.value.isEmpty || countryCode.value.isEmpty) &&
+        Get.arguments is Map) {
+      final args = Get.arguments as Map<String, dynamic>;
+      final raw = (args['phone'] as String? ?? '').trim();
+      final parts = raw.split(' ');
+      if (parts.length >= 2) {
+        countryCode.value = parts[0];
+        phoneNumber.value = parts.sublist(1).join();
+      }
+    }
+  }
+
+  Future<void> sendOtp() async {
+    phoneNumber.value = phoneController.text.trim();
+    countryCode.value = selectedCountryCode.value;
+    phoneFocusNode.unfocus();
+    closeDropdown();
+
+    sendOtpStatus.value = Status.loading;
+    try {
+      final result = await datasource.requestOtp(
+        phone: phoneNumber.value,
+        code: countryCode.value,
+      );
+      if (result != null) {
+        sendOtpResponse.value = result;
+        sendOtpStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty ? result.message : 'OTP sent successfully',
+        );
+        _startOtpCountdown();
+        Get.toNamed(
+          '/otp-verify',
+          arguments: {
+            'phone': '${countryCode.value} ${phoneNumber.value}',
+            'maskedPhone': result.data.maskedNumber,
+          },
+        );
+      } else {
+        sendOtpStatus.value = Status.error;
+        AppSnackbar.error(
+          'Failed to send OTP. Please check server connection.',
+        );
+      }
+    } catch (e) {
+      sendOtpStatus.value = Status.error;
+      AppSnackbar.error('Failed to send OTP: $e');
+    } finally {
+      sendOtpStatus.value = Status.init;
+    }
+  }
+
+  Future<void> verifyOtp() async {
+    _ensurePhoneAndCode();
+    otp.value = otpControllers.map((c) => c.text.trim()).join();
+    for (final f in otpFocusNodes) {
+      f.unfocus();
+    }
+
+    verifyOtpStatus.value = Status.loading;
+    try {
+      final result = await datasource.verifyOtp(
+        phone: phoneNumber.value,
+        code: countryCode.value,
+        otp: otp.value,
+      );
+      if (result != null) {
+        verifyOtpResponse.value = result;
+        verifyOtpStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : 'OTP verified successfully',
+        );
+        if (result.data.isProfileCompleted) {
+          Get.offAllNamed('/home');
+        } else {
+          Get.offNamed('/profile-setup');
+        }
+      } else {
+        verifyOtpStatus.value = Status.error;
+        AppSnackbar.error('Invalid OTP or verification failed.');
+      }
+    } catch (e) {
+      verifyOtpStatus.value = Status.error;
+      AppSnackbar.error('Error verifying OTP: $e');
+    } finally {
+      verifyOtpStatus.value = Status.init;
+    }
+  }
+
+  Future<void> resendOtp() async {
+    _ensurePhoneAndCode();
+    resendOtpStatus.value = Status.loading;
+    try {
+      final result = await datasource.resendOtp(
+        phone: phoneNumber.value,
+        code: countryCode.value,
+      );
+      if (result != null) {
+        resendOtpResponse.value = result;
+        resendOtpStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : 'OTP resent successfully',
+        );
+        _startOtpCountdown();
+        for (final c in otpControllers) {
+          c.clear();
+        }
+        otp.value = '';
+        isOtpComplete.value = false;
+        if (otpFocusNodes.isNotEmpty) {
+          otpFocusNodes[0].requestFocus();
+        }
+      } else {
+        resendOtpStatus.value = Status.error;
+        AppSnackbar.error('Failed to resend OTP. Please try again.');
+      }
+    } catch (e) {
+      resendOtpStatus.value = Status.error;
+      AppSnackbar.error('Error resending OTP: $e');
+    } finally {
+      resendOtpStatus.value = Status.init;
+    }
+  }
+
+  Future<void> completeProfile() async {
+    name.value = firstNameController.text.trim();
+    lastname.value = lastNameController.text.trim();
+    email.value = emailController.text.trim();
+
+    if (name.value.isEmpty) {
+      AppSnackbar.error('Please enter your first name');
+      return;
+    }
+
+    firstNameFocusNode.unfocus();
+    lastNameFocusNode.unfocus();
+    emailFocusNode.unfocus();
+
+    completeProfileStatus.value = Status.loading;
+    try {
+      final result = await datasource.completeProfile(
+        name: name.value,
+        email: email.value,
+        lastname: lastname.value,
+      );
+      if (result != null) {
+        completeProfileResponse.value = result;
+        completeProfileStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : 'Profile updated successfully',
+        );
+        Get.toNamed('/choose-interest');
+      } else {
+        completeProfileStatus.value = Status.error;
+        AppSnackbar.error('Failed to complete profile. Please try again.');
+      }
+    } catch (e) {
+      completeProfileStatus.value = Status.error;
+      AppSnackbar.error('Error completing profile: $e');
+    } finally {
+      completeProfileStatus.value = Status.init;
+    }
+  }
+
+  Future<void> getProfile() async {
+    getProfileStatus.value = Status.loading;
+    try {
+      final result = await datasource.getProfile();
+      if (result != null) {
+        getProfileResponse.value = result;
+        getProfileStatus.value = Status.success;
+        final user = result.data!.user;
+        name.value = user!.firstName;
+        lastname.value = user.lastName;
+        email.value = user.email ?? '';
+        firstNameController.text = user.firstName;
+        lastNameController.text = user.lastName;
+        emailController.text = user.email ?? '';
+      } else {
+        getProfileStatus.value = Status.error;
+      }
+    } catch (e) {
+      getProfileStatus.value = Status.error;
+      print("getProfile error: $e");
+    }
+  }
+
+  Future<void> logoutProfile() async {
+    logoutStatus.value = Status.loading;
+    final result = await datasource.logout();
+    if (result) {
+      logoutStatus.value = Status.success;
+      logoutStatus.value = Status.init;
+    } else {
+      logoutStatus.value = Status.error;
+      logoutStatus.value = Status.init;
+    }
+  }
+
+  // ── Get All Genres API
+  Future<void> getAllGenres() async {
+    allGenre.value = Status.loading;
+    try {
+      final result = await datasource.allGenre();
+      if (result != null) {
+        allGenreResponse.value = result;
+        allGenre.value = Status.success;
+      } else {
+        allGenre.value = Status.error;
+      }
+    } catch (e) {
+      allGenre.value = Status.error;
+      print("getAllGenres error: $e");
+    }
+  }
+
+  // ── Save Selected Interests / Genres API
+  Future<void> saveSelectedInterests() async {
+    selectInterestStatus.value = Status.loading;
+    try {
+      final List<String> interestsList = List<String>.from(selectedGenres);
+
+      final result = await datasource.saveInterests(interests: interestsList);
+      if (result != null) {
+        selectGenreResponse.value = result;
+        selectInterestStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : 'Interests saved successfully',
+        );
+        Get.offAllNamed(Routes.home);
+      } else {
+        selectInterestStatus.value = Status.error;
+        AppSnackbar.error('Failed to save interests. Please try again.');
+      }
+    } catch (e) {
+      selectInterestStatus.value = Status.error;
+      print("saveSelectedInterests error: $e");
+      AppSnackbar.error('Error saving interests: $e');
+    } finally {
+      selectInterestStatus.value = Status.init;
+    }
+  }
+
+  Future<bool> refreshToken() async {
+    refreshTokenStatus.value = Status.loading;
+    try {
+      final result = await datasource.refreshToken();
+      if (result) {
+        refreshTokenStatus.value = Status.success;
+        return true;
+      } else {
+        refreshTokenStatus.value = Status.error;
+        return false;
+      }
+    } catch (e) {
+      refreshTokenStatus.value = Status.error;
+      print("refreshToken error: $e");
+      return false;
+    } finally {
+      refreshTokenStatus.value = Status.init;
+    }
+  }
+
+  Future<bool> deleteAccount() async {
+    deleteAccountStatus.value = Status.loading;
+    try {
+      final result = await datasource.deleteAccount();
+      if (result) {
+        deleteAccountStatus.value = Status.success;
+        return true;
+      } else {
+        deleteAccountStatus.value = Status.error;
+        return false;
+      }
+    } catch (e) {
+      deleteAccountStatus.value = Status.error;
+      print("deleteAccount error: $e");
+      return false;
+    } finally {
+      deleteAccountStatus.value = Status.init;
+    }
+  }
+
   // ── Phone input state
   final TextEditingController phoneController = TextEditingController();
   final FocusNode phoneFocusNode = FocusNode();
@@ -56,6 +408,8 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    getAllGenres();
+    countryCode.value = selectedCountryCode.value;
     phoneController.addListener(_onPhoneChanged);
     for (final c in otpControllers) {
       c.addListener(_checkOtpComplete);
@@ -95,11 +449,12 @@ class AuthController extends GetxController {
   // ─────────────────────────────────────────────
 
   void _onPhoneChanged() {
-    canProceed.value = phoneController.text.length >= 7;
+    canProceed.value = phoneController.text.trim().length >= 7;
   }
 
   void selectCountryCode(String code) {
     selectedCountryCode.value = code;
+    countryCode.value = code;
     showDropdown.value = false;
   }
 
@@ -110,29 +465,7 @@ class AuthController extends GetxController {
   }
 
   // ─────────────────────────────────────────────
-  // Login → send OTP
-  // ─────────────────────────────────────────────
-
-  Future<void> sendOtp() async {
-    if (!canProceed.value) return;
-    phoneFocusNode.unfocus();
-    isLoading.value = true;
-
-    // TODO: replace with real API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    isLoading.value = false;
-    Get.toNamed(
-      '/otp-verify',
-      arguments: {
-        'phone': '${selectedCountryCode.value} ${phoneController.text}',
-      },
-    );
-    _startOtpCountdown();
-  }
-
-  // ─────────────────────────────────────────────
-  // OTP → verify
+  // OTP helpers & countdown
   // ─────────────────────────────────────────────
 
   void _startOtpCountdown() {
@@ -148,6 +481,7 @@ class AuthController extends GetxController {
   }
 
   void _checkOtpComplete() {
+    otp.value = otpControllers.map((c) => c.text.trim()).join();
     isOtpComplete.value = otpControllers.every((c) => c.text.trim().isNotEmpty);
   }
 
@@ -180,35 +514,6 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> verifyOtp() async {
-    if (!isOtpComplete.value) return;
-    for (final f in otpFocusNodes) {
-      f.unfocus();
-    }
-    isLoading.value = true;
-
-    // TODO: replace with real API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    isLoading.value = false;
-    Get.toNamed('/profile-setup');
-  }
-
-  Future<void> resendOtp() async {
-    if (otpCountdown.value > 0) return;
-    for (final c in otpControllers) {
-      c.clear();
-    }
-    isOtpComplete.value = false;
-    otpFocusNodes[0].requestFocus();
-    _startOtpCountdown();
-    // TODO: call resend OTP API
-    AppSnackbar.success(
-      'A new OTP has been sent to your number.',
-      title: 'OTP Sent',
-    );
-  }
-
   // ─────────────────────────────────────────────
   // Profile Setup → save profile
   // ─────────────────────────────────────────────
@@ -218,24 +523,12 @@ class AuthController extends GetxController {
   }
 
   Future<void> saveProfile() async {
-    firstNameFocusNode.unfocus();
-    lastNameFocusNode.unfocus();
-    emailFocusNode.unfocus();
-
-    isLoading.value = true;
-
-    // TODO: replace with real API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    isLoading.value = false;
-    Get.toNamed('/choose-interest');
+    await completeProfile();
   }
 
   // ─────────────────────────────────────────────
   // Choose Interest state & actions
   // ─────────────────────────────────────────────
-
-  final RxSet<String> selectedGenres = <String>{}.obs;
 
   void toggleGenre(String genre) {
     if (selectedGenres.contains(genre)) {
@@ -248,7 +541,10 @@ class AuthController extends GetxController {
   bool get hasSelectedGenres => selectedGenres.isNotEmpty;
 
   Future<void> completeOnboarding() async {
-    // TODO: save selected interests API
-    Get.offAllNamed('/home');
+    if (hasSelectedGenres) {
+      await saveSelectedInterests();
+    } else {
+      Get.offAllNamed(Routes.home);
+    }
   }
 }

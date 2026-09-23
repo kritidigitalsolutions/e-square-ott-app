@@ -1,5 +1,7 @@
 import 'package:e_square_ott_app/constants/app_constants.dart';
+import 'package:e_square_ott_app/feature/auth/datasource/auth_datasource.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
+import 'package:e_square_ott_app/shared/service/storage_service.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -51,9 +53,21 @@ class _SplashPageState extends State<SplashPage>
 
     _controller.forward();
 
-    // Total splash time ~2.5 sec, then navigate to login
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
+    // Total splash time ~2.5 sec, then check & refresh token and navigate
+    Future.delayed(const Duration(milliseconds: 2500), () async {
+      if (!mounted) return;
+
+      final token = await StorageService.getToken();
+      if (token != null && token.trim().isNotEmpty) {
+        final isRefreshed = await AuthDatasource().refreshToken();
+        print(token);
+        if (isRefreshed) {
+          Get.offAllNamed(Routes.home);
+        } else {
+          await StorageService.logout();
+          Get.offAllNamed(Routes.login);
+        }
+      } else {
         Get.offAllNamed(Routes.login);
       }
     });

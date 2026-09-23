@@ -1,6 +1,9 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
+import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/models/response/get_genre_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
@@ -8,23 +11,26 @@ import '../../../constants/app_sizes.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
-import '../../../shared/widgets/custom_loading.dart';
 import '../controller/auth_controller.dart';
 
-class GenreItem {
+class GenreItemDisplay {
   final String id;
+  final String slug;
   final String name;
   final FaIconData icon;
   final Color accentColor;
-  final String posterImage;
+  final String? networkImageUrl;
+  final String localPosterImage;
   final Alignment imageAlignment;
 
-  const GenreItem({
+  const GenreItemDisplay({
     required this.id,
+    required this.slug,
     required this.name,
     required this.icon,
     required this.accentColor,
-    required this.posterImage,
+    this.networkImageUrl,
+    required this.localPosterImage,
     this.imageAlignment = Alignment.centerRight,
   });
 }
@@ -32,75 +38,143 @@ class GenreItem {
 class ChooseInterestScreen extends GetView<AuthController> {
   const ChooseInterestScreen({super.key});
 
-  static const List<GenreItem> _genres = [
-    GenreItem(
-      id: 'Romance',
+  // Fallback static genres in case API is unreachable
+  static const List<GenreItemDisplay> _fallbackGenres = [
+    GenreItemDisplay(
+      id: 'romance',
+      slug: 'romance',
       name: 'Romance',
       icon: FontAwesomeIcons.solidHeart,
-      accentColor: Color(0xFFEC4899), // Rose Pink
-      posterImage: AppImages.romanceImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFFEC4899),
+      localPosterImage: AppImages.romanceImage,
     ),
-    GenreItem(
-      id: 'Thriller',
+    GenreItemDisplay(
+      id: 'thriller',
+      slug: 'thriller',
       name: 'Thriller',
       icon: FontAwesomeIcons.bolt,
-      accentColor: Color(0xFF0091FF), // Electric Blue
-      posterImage: AppImages.thrillerImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFF0091FF),
+      localPosterImage: AppImages.thrillerImage,
     ),
-    GenreItem(
-      id: 'Drama',
+    GenreItemDisplay(
+      id: 'drama',
+      slug: 'drama',
       name: 'Drama',
       icon: FontAwesomeIcons.masksTheater,
-      accentColor: Color(0xFFF5A623), // Amber Gold
-      posterImage: AppImages.dramaImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFFF5A623),
+      localPosterImage: AppImages.dramaImage,
     ),
-    GenreItem(
-      id: 'Mystery',
+    GenreItemDisplay(
+      id: 'mystery',
+      slug: 'mystery',
       name: 'Mystery',
       icon: FontAwesomeIcons.userSecret,
-      accentColor: Color(0xFFA855F7), // Royal Purple
-      posterImage: AppImages.mysteryImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFFA855F7),
+      localPosterImage: AppImages.mysteryImage,
     ),
-    GenreItem(
-      id: 'Action',
+    GenreItemDisplay(
+      id: 'action',
+      slug: 'action',
       name: 'Action',
       icon: FontAwesomeIcons.personRunning,
-      accentColor: Color(0xFFFF6B00), // Fiery Orange
-      posterImage: AppImages.actionImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFFFF6B00),
+      localPosterImage: AppImages.actionImage,
     ),
-    GenreItem(
-      id: 'Horror',
+    GenreItemDisplay(
+      id: 'horror',
+      slug: 'horror',
       name: 'Horror',
       icon: FontAwesomeIcons.ghost,
-      accentColor: Color(0xFF8B5CF6), // Phantom Violet
-      posterImage: AppImages.horrorImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFF8B5CF6),
+      localPosterImage: AppImages.horrorImage,
     ),
-    GenreItem(
-      id: 'Comedy',
+    GenreItemDisplay(
+      id: 'comedy',
+      slug: 'comedy',
       name: 'Comedy',
       icon: FontAwesomeIcons.faceLaughSquint,
-      accentColor: Color(0xFFEAB308), // Bright Gold
-      posterImage: AppImages.comedyImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFFEAB308),
+      localPosterImage: AppImages.comedyImage,
     ),
-    GenreItem(
-      id: 'Fantasy',
+    GenreItemDisplay(
+      id: 'fantasy',
+      slug: 'fantasy',
       name: 'Fantasy',
       icon: FontAwesomeIcons.wandMagicSparkles,
-      accentColor: Color(0xFF06B6D4), // Cyan Aqua
-      posterImage: AppImages.fantasyImage,
-      imageAlignment: Alignment.centerRight,
+      accentColor: Color(0xFF06B6D4),
+      localPosterImage: AppImages.fantasyImage,
     ),
   ];
 
+  static GenreItemDisplay _mapApiGenreToDisplay(GenreModel model) {
+    final lowerName = model.name.toLowerCase();
+    final lowerSlug = model.slug.toLowerCase();
+
+    FaIconData icon = FontAwesomeIcons.film;
+    Color accentColor = AppColors.primary;
+    String localPoster = AppImages.romanceImage;
+
+    if (lowerName.contains('romance') || lowerSlug.contains('romance')) {
+      icon = FontAwesomeIcons.solidHeart;
+      accentColor = const Color(0xFFEC4899);
+      localPoster = AppImages.romanceImage;
+    } else if (lowerName.contains('thrill') || lowerSlug.contains('thrill')) {
+      icon = FontAwesomeIcons.bolt;
+      accentColor = const Color(0xFF0091FF);
+      localPoster = AppImages.thrillerImage;
+    } else if (lowerName.contains('drama') || lowerSlug.contains('drama')) {
+      icon = FontAwesomeIcons.masksTheater;
+      accentColor = const Color(0xFFF5A623);
+      localPoster = AppImages.dramaImage;
+    } else if (lowerName.contains('mystery') || lowerSlug.contains('mystery')) {
+      icon = FontAwesomeIcons.userSecret;
+      accentColor = const Color(0xFFA855F7);
+      localPoster = AppImages.mysteryImage;
+    } else if (lowerName.contains('action') || lowerSlug.contains('action')) {
+      icon = FontAwesomeIcons.personRunning;
+      accentColor = const Color(0xFFFF6B00);
+      localPoster = AppImages.actionImage;
+    } else if (lowerName.contains('horror') || lowerSlug.contains('horror')) {
+      icon = FontAwesomeIcons.ghost;
+      accentColor = const Color(0xFF8B5CF6);
+      localPoster = AppImages.horrorImage;
+    } else if (lowerName.contains('comedy') || lowerSlug.contains('comedy')) {
+      icon = FontAwesomeIcons.faceLaughSquint;
+      accentColor = const Color(0xFFEAB308);
+      localPoster = AppImages.comedyImage;
+    } else if (lowerName.contains('fantasy') || lowerSlug.contains('fantasy')) {
+      icon = FontAwesomeIcons.wandMagicSparkles;
+      accentColor = const Color(0xFF06B6D4);
+      localPoster = AppImages.fantasyImage;
+    } else if (lowerName.contains('sci') || lowerSlug.contains('sci')) {
+      icon = FontAwesomeIcons.shuttleSpace;
+      accentColor = const Color(0xFF38BDF8);
+      localPoster = AppImages.mysteryImage;
+    }
+
+    return GenreItemDisplay(
+      id: model.id.isNotEmpty ? model.id : model.name,
+      slug: model.slug.isNotEmpty ? model.slug : model.name,
+      name: model.name,
+      icon: icon,
+      accentColor: accentColor,
+      networkImageUrl: model.imageUrl.isNotEmpty
+          ? model.imageUrl
+          : (model.iconUrl.isNotEmpty ? model.iconUrl : null),
+      localPosterImage: localPoster,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Eagerly fetch genres if not yet loaded
+    if (controller.allGenreResponse.value == null &&
+        controller.allGenre.value != Status.loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.getAllGenres();
+      });
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: CustomScaffold(
@@ -162,12 +236,12 @@ class ChooseInterestScreen extends GetView<AuthController> {
                               // Top space below back button
                               const SizedBox(height: 52),
 
-                              // ── Heading: Choose your Interest (with Red 'Interest')
+                              // ── Heading: Choose your Interest
                               Text.rich(
                                 TextSpan(
                                   children: [
                                     TextSpan(
-                                      text: 'Choose your'.tr,
+                                      text: 'Choose your '.tr,
                                       style: const TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
                                         fontSize: 28,
@@ -183,7 +257,6 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                         fontFamily: AppTextStyles.fontFamily,
                                         fontSize: 28,
                                         fontWeight: FontWeight.w800,
-                                        // RED: color: Color(0xFFE50914),
                                         color: AppColors.primary,
                                         height: 1.15,
                                         letterSpacing: -0.5,
@@ -207,79 +280,131 @@ class ChooseInterestScreen extends GetView<AuthController> {
                               ),
                               const SizedBox(height: 22),
 
-                              // ── 2-Column Genre Cards Grid
-                              Column(
-                                children: [
-                                  for (
-                                    int i = 0;
-                                    i < _genres.length;
-                                    i += 2
-                                  ) ...[
-                                    if (i > 0) const SizedBox(height: 10),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Obx(() {
-                                            final isSelected = controller
-                                                .selectedGenres
-                                                .contains(_genres[i].id);
-                                            return _CinematicGenreCard(
-                                              genre: _genres[i],
-                                              isSelected: isSelected,
-                                              onTap: () {
-                                                HapticFeedback.selectionClick();
-                                                controller.toggleGenre(
-                                                  _genres[i].id,
-                                                );
-                                              },
-                                            );
-                                          }),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        if (i + 1 < _genres.length)
+                              // ── 2-Column Dynamic Genre Cards Grid
+                              Obx(() {
+                                final isGenresLoading =
+                                    controller.allGenre.value ==
+                                            Status.loading &&
+                                        controller.allGenreResponse.value ==
+                                            null;
+
+                                if (isGenresLoading) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 40,
+                                    ),
+                                    child: Center(
+                                      child: SpinKitThreeBounce(
+                                        color: AppColors.primary,
+                                        size: 28,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                final apiGenres = controller
+                                    .allGenreResponse.value?.data.genres;
+
+                                final List<GenreItemDisplay> items =
+                                    (apiGenres != null && apiGenres.isNotEmpty)
+                                        ? apiGenres
+                                            .map(_mapApiGenreToDisplay)
+                                            .toList()
+                                        : _fallbackGenres;
+
+                                return Column(
+                                  children: [
+                                    for (
+                                      int i = 0;
+                                      i < items.length;
+                                      i += 2
+                                    ) ...[
+                                      if (i > 0) const SizedBox(height: 10),
+                                      Row(
+                                        children: [
                                           Expanded(
                                             child: Obx(() {
+                                              final item = items[i];
                                               final isSelected = controller
-                                                  .selectedGenres
-                                                  .contains(_genres[i + 1].id);
+                                                      .selectedGenres
+                                                      .contains(item.name) ||
+                                                  controller.selectedGenres
+                                                      .contains(item.slug) ||
+                                                  controller.selectedGenres
+                                                      .contains(item.id);
+
                                               return _CinematicGenreCard(
-                                                genre: _genres[i + 1],
+                                                genre: item,
                                                 isSelected: isSelected,
                                                 onTap: () {
-                                                  HapticFeedback.selectionClick();
+                                                  HapticFeedback
+                                                      .selectionClick();
+                                                  // Select by genre name or slug
                                                   controller.toggleGenre(
-                                                    _genres[i + 1].id,
+                                                    item.name,
                                                   );
                                                 },
                                               );
                                             }),
-                                          )
-                                        else
-                                          const Expanded(
-                                            child: SizedBox.shrink(),
                                           ),
-                                      ],
-                                    ),
+                                          const SizedBox(width: 10),
+                                          if (i + 1 < items.length)
+                                            Expanded(
+                                              child: Obx(() {
+                                                final item = items[i + 1];
+                                                final isSelected = controller
+                                                        .selectedGenres
+                                                        .contains(item.name) ||
+                                                    controller.selectedGenres
+                                                        .contains(item.slug) ||
+                                                    controller.selectedGenres
+                                                        .contains(item.id);
+
+                                                return _CinematicGenreCard(
+                                                  genre: item,
+                                                  isSelected: isSelected,
+                                                  onTap: () {
+                                                    HapticFeedback
+                                                        .selectionClick();
+                                                    controller.toggleGenre(
+                                                      item.name,
+                                                    );
+                                                  },
+                                                );
+                                              }),
+                                            )
+                                          else
+                                            const Expanded(
+                                              child: SizedBox.shrink(),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
                                   ],
-                                ],
-                              ),
+                                );
+                              }),
 
                               const Spacer(),
                               const SizedBox(height: 20),
 
-                              // ── Continue Button (Gold Gradient with Arrow)
+                              // ── Continue Button (with API saving state)
                               Obx(() {
                                 final hasSelection =
                                     controller.selectedGenres.isNotEmpty;
+                                final isSaving =
+                                    controller.selectInterestStatus.value ==
+                                        Status.loading;
+
                                 return GestureDetector(
-                                  onTap: hasSelection
+                                  onTap: (hasSelection && !isSaving)
                                       ? () {
                                           HapticFeedback.mediumImpact();
                                           controller.completeOnboarding();
                                         }
                                       : null,
                                   child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 220),
+                                    duration:
+                                        const Duration(milliseconds: 220),
                                     width: double.infinity,
                                     height: 52,
                                     decoration: BoxDecoration(
@@ -289,7 +414,8 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                       gradient: hasSelection
                                           ? AppColors.primaryGradient
                                           : null,
-                                      borderRadius: BorderRadius.circular(14),
+                                      borderRadius:
+                                          BorderRadius.circular(14),
                                       border: Border.all(
                                         color: hasSelection
                                             ? AppColors.primary
@@ -307,32 +433,43 @@ class ChooseInterestScreen extends GetView<AuthController> {
                                             ]
                                           : null,
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Continue'.tr,
-                                          style: TextStyle(
-                                            fontFamily:
-                                                AppTextStyles.fontFamily,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: hasSelection
-                                                ? const Color(0xFF0C0B10)
-                                                : const Color(0xFF6E6E7E),
+                                    child: isSaving
+                                        ? const Center(
+                                            child: SpinKitThreeBounce(
+                                              color: Color(0xFF0C0B10),
+                                              size: 22,
+                                            ),
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Continue'.tr,
+                                                style: TextStyle(
+                                                  fontFamily:
+                                                      AppTextStyles.fontFamily,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: hasSelection
+                                                      ? const Color(
+                                                          0xFF0C0B10,
+                                                        )
+                                                      : const Color(
+                                                          0xFF6E6E7E,
+                                                        ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              FaIcon(
+                                                FontAwesomeIcons.arrowRight,
+                                                color: hasSelection
+                                                    ? const Color(0xFF0C0B10)
+                                                    : const Color(0xFF6E6E7E),
+                                                size: 14,
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        FaIcon(
-                                          FontAwesomeIcons.arrowRight,
-                                          color: hasSelection
-                                              ? const Color(0xFF0C0B10)
-                                              : const Color(0xFF6E6E7E),
-                                          size: 14,
-                                        ),
-                                      ],
-                                    ),
                                   ),
                                 );
                               }),
@@ -380,7 +517,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
   }
 }
 
-/// Cinematic Interactive Genre Card matching the screenshot
+/// Cinematic Interactive Genre Card
 class _CinematicGenreCard extends StatefulWidget {
   const _CinematicGenreCard({
     required this.genre,
@@ -388,7 +525,7 @@ class _CinematicGenreCard extends StatefulWidget {
     required this.onTap,
   });
 
-  final GenreItem genre;
+  final GenreItemDisplay genre;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -408,7 +545,6 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
       onTap: widget.onTap,
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
-      // onTapCancel: (_) => setState(() => _isPressed = false),
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
         scale: _isPressed ? 0.96 : (isSelected ? 1.02 : 1.0),
@@ -447,7 +583,7 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // ── 1. Right-side Poster Backdrop Image
+                // ── 1. Right-side Poster Backdrop Image (Network or Asset)
                 Positioned(
                   right: 0,
                   top: 0,
@@ -463,14 +599,27 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
                       ).createShader(rect);
                     },
                     blendMode: BlendMode.dstIn,
-                    child: Image.asset(
-                      genre.posterImage,
-                      fit: BoxFit.cover,
-                      alignment: genre.imageAlignment,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(color: const Color(0xFF1E1E28));
-                      },
-                    ),
+                    child: (genre.networkImageUrl != null &&
+                            genre.networkImageUrl!.startsWith('http'))
+                        ? Image.network(
+                            genre.networkImageUrl!,
+                            fit: BoxFit.cover,
+                            alignment: genre.imageAlignment,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              genre.localPosterImage,
+                              fit: BoxFit.cover,
+                              alignment: genre.imageAlignment,
+                              errorBuilder: (_, __, ___) =>
+                                  Container(color: const Color(0xFF1E1E28)),
+                            ),
+                          )
+                        : Image.asset(
+                            genre.localPosterImage,
+                            fit: BoxFit.cover,
+                            alignment: genre.imageAlignment,
+                            errorBuilder: (_, __, ___) =>
+                                Container(color: const Color(0xFF1E1E28)),
+                          ),
                   ),
                 ),
 
@@ -546,7 +695,8 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: genre.accentColor.withValues(alpha: 0.6),
+                                color:
+                                    genre.accentColor.withValues(alpha: 0.6),
                                 blurRadius: 6,
                                 spreadRadius: 0.5,
                               ),
