@@ -1,3 +1,5 @@
+import 'package:e_square_ott_app/feature/notification/datasource/notification_datasource.dart';
+import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -8,6 +10,9 @@ import '../models/category_model.dart';
 import '../models/movie_model.dart';
 
 class HomeController extends GetxController {
+  final NotificationDatasource _notificationDatasource =
+      NotificationDatasource();
+
   // ── Bottom Navigation State (0: Home, 1: Explore, 2: Profile, 3: Search)
   final RxInt currentNavIndex = 0.obs;
 
@@ -16,7 +21,7 @@ class HomeController extends GetxController {
   final RxInt currentHeroIndex = 0.obs;
 
   // ── Notification Unread Count
-  final RxInt unreadNotifications = 4.obs;
+  final RxInt unreadNotifications = 0.obs;
 
   // ── Hero 3D Banners
   final heroBanners = <MovieModel>[
@@ -470,10 +475,23 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    NotificationService.instance.registerAfterLogin();
+    fetchUnreadCount();
     heroPageController = PageController(viewportFraction: 0.72, initialPage: 0);
     newReleaseSearchTextController.addListener(() {
       newReleaseSearchQuery.value = newReleaseSearchTextController.text;
     });
+  }
+
+  Future<void> fetchUnreadCount() async {
+    try {
+      final res = await _notificationDatasource.getUnreadCount();
+      if (res != null && res.success) {
+        unreadNotifications.value = res.unreadCount;
+      }
+    } catch (e) {
+      print("[HomeController] fetchUnreadCount error: $e");
+    }
   }
 
   @override
@@ -492,8 +510,9 @@ class HomeController extends GetxController {
   }
 
   void openNotifications() {
-    unreadNotifications.value = 0;
-    Get.toNamed(Routes.notificationPage);
+    Get.toNamed(Routes.notificationPage)?.then((_) {
+      fetchUnreadCount();
+    });
   }
 
   void onMovieTap(MovieModel movie) {

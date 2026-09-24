@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/notification_service.dart';
 import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
@@ -186,6 +187,7 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
 
       if (mounted) {
         if (success) {
+          await NotificationService.instance.unregisterTokenFromBackend();
           await StorageService.logout();
           AppSnackbar.success(
             'Your account and all associated data have been permanently removed.'

@@ -7,7 +7,6 @@ import '../../../constants/app_text_styles.dart';
 import '../../../constants/enum.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
-import '../../../shared/widgets/custom_loading.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../controller/auth_controller.dart';
 
@@ -129,7 +128,9 @@ class ProfileSetupScreen extends GetView<AuthController> {
                                   textInputAction: TextInputAction.done,
                                   onFieldSubmitted: (_) {
                                     if (controller.isProfileValid.value &&
-                                        controller.completeProfileStatus.value !=
+                                        controller
+                                                .completeProfileStatus
+                                                .value !=
                                             Status.loading) {
                                       controller.completeProfile();
                                     }
@@ -143,16 +144,24 @@ class ProfileSetupScreen extends GetView<AuthController> {
                                 Obx(
                                   () => AppButton(
                                     label: 'Continue',
-                                    onPressed: controller.isProfileValid.value &&
-                                            controller.completeProfileStatus.value !=
+                                    onPressed:
+                                        controller.isProfileValid.value &&
+                                            controller
+                                                    .completeProfileStatus
+                                                    .value !=
                                                 Status.loading
                                         ? controller.completeProfile
                                         : null,
                                     isLoading:
-                                        controller.completeProfileStatus.value ==
-                                            Status.loading,
-                                    isEnabled: controller.isProfileValid.value &&
-                                        controller.completeProfileStatus.value !=
+                                        controller
+                                            .completeProfileStatus
+                                            .value ==
+                                        Status.loading,
+                                    isEnabled:
+                                        controller.isProfileValid.value &&
+                                        controller
+                                                .completeProfileStatus
+                                                .value !=
                                             Status.loading,
                                     height: AppSizes.buttonHeight,
                                   ),

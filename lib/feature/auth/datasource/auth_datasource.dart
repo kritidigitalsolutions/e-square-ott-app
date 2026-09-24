@@ -1,4 +1,6 @@
 import 'package:e_square_ott_app/constants/app_url.dart';
+import 'package:e_square_ott_app/models/request/edit_profile_payload.dart';
+import 'package:e_square_ott_app/models/response/edit_profile_model.dart';
 import 'package:e_square_ott_app/models/response/get_genre_model.dart';
 import 'package:e_square_ott_app/models/response/otp_response.dart';
 import 'package:e_square_ott_app/models/response/profile_model.dart';
@@ -350,6 +352,33 @@ class AuthDatasource {
     } else {
       print("account not delete!");
       return false;
+    }
+  }
+
+  Future<EditProfileResponse?> editProfile({
+    required EditProfilePayload payload,
+  }) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return null;
+    }
+    final url = Uri.parse(AppUrl.editProfile);
+    final response = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode(payload.toJson()),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      print("edit profile");
+      return EditProfileResponse.fromJson(data);
+    } else {
+      print("not edit!");
+      return null;
     }
   }
 }

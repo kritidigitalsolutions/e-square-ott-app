@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/notification_service.dart';
 import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
@@ -196,7 +197,8 @@ class LogoutContentCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              "You'll need to log in again to access your account and saved stories.".tr,
+              "You'll need to log in again to access your account and saved stories."
+                  .tr,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: AppTextStyles.fontFamily,
@@ -216,6 +218,7 @@ class LogoutContentCard extends StatelessWidget {
             textColor: Colors.white,
             hasShadow: true,
             onTap: () async {
+              await NotificationService.instance.unregisterTokenFromBackend();
               await StorageService.logout();
               if (Get.isRegistered<ProfileController>()) {
                 final pc = Get.find<ProfileController>();

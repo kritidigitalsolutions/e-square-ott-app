@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1028194039722",
+    "project_id": "e2-stories",
+    "storage_bucket": "e2-stories.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1028194039722:android:23e2ea69d405c334165dd3",
+        "android_client_info": {
+          "package_name": "com.company.e2stories"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsSRQMUbzE2X4LNSfg8GRuIWUONELUYNM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

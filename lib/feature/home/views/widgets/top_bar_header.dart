@@ -173,17 +173,22 @@ class TopBarHeader extends GetView<HomeController> {
                           size: 15,
                         ),
                         Obx(() {
-                          if (controller.unreadNotifications.value == 0) {
+                          final count = controller.unreadNotifications.value;
+                          if (count <= 0) {
                             return const SizedBox.shrink();
                           }
+                          final countText = count > 99 ? '99+' : '$count';
                           return Positioned(
-                            top: 6,
-                            right: 6,
+                            top: 4,
+                            right: 4,
                             child: Container(
-                              padding: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
                                 gradient: AppColors.primaryGradient,
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.primary.withValues(
@@ -195,16 +200,19 @@ class TopBarHeader extends GetView<HomeController> {
                                 ],
                               ),
                               constraints: const BoxConstraints(
-                                minWidth: 14,
-                                minHeight: 14,
+                                minWidth: 16,
+                                minHeight: 16,
                               ),
-                              child: Text(
-                                '${controller.unreadNotifications.value}',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFF0C0B10),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
+                              child: Center(
+                                child: Text(
+                                  countText,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Color(0xFF0C0B10),
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.0,
+                                  ),
                                 ),
                               ),
                             ),

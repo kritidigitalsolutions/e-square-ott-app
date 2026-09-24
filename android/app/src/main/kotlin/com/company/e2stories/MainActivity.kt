@@ -1,4 +1,4 @@
-package com.example.e_square_ott_app
+package com.company.e2stories
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -12,6 +12,7 @@ import '../../../constants/enum.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_text_field.dart';
+import '../../../shared/widgets/shimmer_loader.dart';
 import '../../home/controller/file_controller.dart';
 import '../controller/profile_controller.dart';
 
@@ -242,6 +243,18 @@ class EditProfileScreen extends GetView<ProfileController> {
                                       ),
                                       child: ClipOval(
                                         child: Obx(() {
+                                          if (controller.profileStatus.value ==
+                                                  Status.loading &&
+                                              controller.profileData.value ==
+                                                  null) {
+                                            return const CustomShimmer(
+                                              child: ShimmerBox(
+                                                width: 104,
+                                                height: 104,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            );
+                                          }
                                           final isUploading =
                                               fileCtrl.isFileUpload.value ==
                                               Status.loading;

@@ -1,34 +1,15 @@
 import 'package:e_square_ott_app/constants/app_colors.dart';
 import 'package:e_square_ott_app/constants/app_text_styles.dart';
+import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/feature/notification/controller/all_notification_controller.dart';
+import 'package:e_square_ott_app/models/response/all_notification_model.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_buttons.dart';
-import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
+import 'package:e_square_ott_app/shared/widgets/shimmer_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
-import 'package:get/route_manager.dart';
-
-class NotificationItem {
-  final String id;
-  final String title;
-  final String message;
-  final String time;
-  final String dateGroup; // e.g. "Today", "2 Days Ago"
-  final String thumbnail; // asset path or network url
-  bool isRead;
-
-  NotificationItem({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.time,
-    required this.dateGroup,
-    required this.thumbnail,
-    this.isRead = false,
-  });
-}
+import 'package:get/get.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -38,64 +19,32 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  // Replace with real data from your controller/provider.
-  final List<NotificationItem> notifications = [
-    NotificationItem(
-      id: "1",
-      title: "New Episode Available",
-      message: "Episode 09 of The Last Promise is now available.",
-      time: "12 min ago",
-      dateGroup: "Today",
-      thumbnail: "assets/images/tu_issaq_mera.jpg",
-    ),
-    NotificationItem(
-      id: "2",
-      title: "New Release",
-      message: "A new drama has arrived. Discover Dangerous Love.",
-      time: "12 min ago",
-      dateGroup: "Today",
-      thumbnail: "assets/images/tu_issaq_mera_2.jpg",
-    ),
-    NotificationItem(
-      id: "3",
-      title: "New Episode Available",
-      message: "Episode 09 of The Last Promise is now available.",
-      time: "2 days ago",
-      dateGroup: "2 Days Ago",
-      thumbnail: "assets/images/tu_issaq_mera.jpg",
-      isRead: true,
-    ),
-    NotificationItem(
-      id: "4",
-      title: "New Release",
-      message: "A new drama has arrived. Discover Dangerous Love.",
-      time: "2 days ago",
-      dateGroup: "2 Days Ago",
-      thumbnail: "assets/images/tu_issaq_mera_2.jpg",
-      isRead: true,
-    ),
-  ];
+  late final AllNotificationController controller;
+  final ScrollController _scrollController = ScrollController();
 
-  void _dismissNotification(String id) {
-    setState(() {
-      notifications.removeWhere((n) => n.id == id);
-    });
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(AllNotificationController());
+    _scrollController.addListener(_onScroll);
   }
 
-  /// Groups notifications while preserving their original order,
-  /// so "Today" always appears before "2 Days Ago" etc.
-  Map<String, List<NotificationItem>> get _groupedNotifications {
-    final Map<String, List<NotificationItem>> grouped = {};
-    for (final item in notifications) {
-      grouped.putIfAbsent(item.dateGroup, () => []).add(item);
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      controller.getMoreNotification();
     }
-    return grouped;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final grouped = _groupedNotifications;
-
     return CustomScaffold(
       showAppBar: false,
       safeArea: false,
@@ -115,50 +64,149 @@ class _NotificationPageState extends State<NotificationPage> {
               children: [
                 // Header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CustomBackButton(onTap: () => Get.back()),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               "Notifications".tr,
-                              style: AppTextStyles.text24Bold.copyWith(
+                              style: AppTextStyles.text20Bold.copyWith(
                                 color: AppColors.white,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              "Your latest updates",
-                              style: AppTextStyles.text14.copyWith(
+                              "Your latest updates".tr,
+                              style: AppTextStyles.text12.copyWith(
                                 color: AppColors.white.withOpacity(0.5),
                               ),
                             ),
                           ],
                         ),
                       ),
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                        ),
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          elevation: 8,
+                          color: const Color(0xFF181824),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          icon: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF14141E)
+                                  .withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: FaIcon(
+                                FontAwesomeIcons.ellipsisVertical,
+                                color: Colors.white,
+                                size: 15,
+                              ),
+                            ),
+                          ),
+                          onSelected: (value) {
+                            if (value == 'mark_all') {
+                              controller.markAllAsRead();
+                            } else if (value == 'clear_all') {
+                              controller.clearAllNotifications();
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'mark_all',
+                              child: Row(
+                                children: [
+                                  const FaIcon(
+                                    FontAwesomeIcons.checkDouble,
+                                    size: 14,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "Mark all as read".tr,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'clear_all',
+                              child: Row(
+                                children: [
+                                  const FaIcon(
+                                    FontAwesomeIcons.trashCan,
+                                    size: 14,
+                                    color: Colors.redAccent,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "Clear all".tr,
+                                    style:
+                                        const TextStyle(color: Colors.redAccent),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () => Get.toNamed(Routes.notificationSetting),
                         child: Container(
-                          width: 44,
-                          height: 44,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF16161E),
+                            color:
+                                const Color(0xFF14141E).withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: Colors.white.withValues(alpha: 0.12),
                               width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Center(
                             child: FaIcon(
                               FontAwesomeIcons.sliders,
                               color: Colors.white,
-                              size: 16,
+                              size: 15,
                             ),
                           ),
                         ),
@@ -171,38 +219,94 @@ class _NotificationPageState extends State<NotificationPage> {
 
                 // Body
                 Expanded(
-                  child: notifications.isEmpty
-                      ? _buildEmptyState()
-                      : ListView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          children: grouped.entries.expand((entry) {
-                            final groupLabel = entry.key;
-                            final items = entry.value;
+                  child: Obx(() {
+                    final status = controller.allNotificationStatus.value;
+                    final groups = controller.groups;
 
-                            return [
+                    if (status == Status.loading && groups.isEmpty) {
+                      return _buildShimmerLoading();
+                    }
+
+                    if (status == Status.error && groups.isEmpty) {
+                      return _buildErrorState();
+                    }
+
+                    if (groups.isEmpty) {
+                      return RefreshIndicator(
+                        color: AppColors.primary,
+                        backgroundColor: const Color(0xFF161622),
+                        onRefresh: controller.allNotification,
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.6,
+                              child: _buildEmptyState(),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      color: AppColors.primary,
+                      backgroundColor: const Color(0xFF161622),
+                      onRefresh: controller.allNotification,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemCount: groups.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == groups.length) {
+                            return Obx(() {
+                              if (controller.moreNotificationStatus.value ==
+                                  Status.loading) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.primary,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const SizedBox(height: 16);
+                            });
+                          }
+
+                          final group = groups[index];
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Padding(
                                 padding: const EdgeInsets.only(
                                   top: 12,
                                   bottom: 10,
                                 ),
                                 child: Text(
-                                  groupLabel,
+                                  group.label,
                                   style: AppTextStyles.text14.copyWith(
                                     color: AppColors.white.withOpacity(0.5),
                                   ),
                                 ),
                               ),
-                              ...items.map(
+                              ...group.notifications.map(
                                 (item) => Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Dismissible(
                                     key: ValueKey(item.id),
                                     direction: DismissDirection.endToStart,
-                                    onDismissed: (_) =>
-                                        _dismissNotification(item.id),
+                                    onDismissed: (_) => controller
+                                        .deleteSingleNotification(item.id),
                                     background: Container(
                                       alignment: Alignment.centerRight,
                                       padding: const EdgeInsets.symmetric(
@@ -220,13 +324,24 @@ class _NotificationPageState extends State<NotificationPage> {
                                         size: 18,
                                       ),
                                     ),
-                                    child: _NotificationCard(item: item),
+                                    child: InkWell(
+                                      onTap: () {
+                                        if (!item.isRead) {
+                                          controller.markSingleAsRead(item.id);
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: _NotificationCard(item: item),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ];
-                          }).toList(),
-                        ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -248,7 +363,7 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            "No notifications yet",
+            "No notifications yet".tr,
             style: AppTextStyles.text16Bold.copyWith(
               color: AppColors.white.withOpacity(0.7),
             ),
@@ -257,15 +372,117 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FaIcon(
+            FontAwesomeIcons.circleExclamation,
+            size: 48,
+            color: AppColors.white.withOpacity(0.4),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Failed to load notifications".tr,
+            style: AppTextStyles.text16SemiBold.copyWith(
+              color: AppColors.white.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: controller.allNotification,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text("Retry".tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 4,
+      itemBuilder: (_, __) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF14141E).withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
+          ),
+          child: CustomShimmer(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      ShimmerBox(
+                        width: 160,
+                        height: 16,
+                        borderRadius: 4,
+                      ),
+                      SizedBox(height: 8),
+                      ShimmerBox(
+                        width: double.infinity,
+                        height: 12,
+                        borderRadius: 4,
+                      ),
+                      SizedBox(height: 6),
+                      ShimmerBox(
+                        width: 120,
+                        height: 12,
+                        borderRadius: 4,
+                      ),
+                      SizedBox(height: 10),
+                      ShimmerBox(
+                        width: 70,
+                        height: 10,
+                        borderRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const ShimmerBox(
+                  width: 60,
+                  height: 82,
+                  borderRadius: 10,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _NotificationCard extends StatelessWidget {
-  final NotificationItem item;
+  final AppNotification item;
 
   const _NotificationCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = item.imageUrl.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -326,7 +543,7 @@ class _NotificationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  item.message,
+                  item.body,
                   style: AppTextStyles.text13Medium.copyWith(
                     color: const Color(0xFFB0B0C0),
                     height: 1.35,
@@ -334,7 +551,7 @@ class _NotificationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item.time,
+                  item.timeAgo.isNotEmpty ? item.timeAgo : item.createdAt,
                   style: AppTextStyles.text11Medium.copyWith(
                     color: const Color(0xFF6E6E82),
                   ),
@@ -342,28 +559,30 @@ class _NotificationCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              item.thumbnail,
-              width: 60,
-              height: 82,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
+          if (hasImage) ...[
+            const SizedBox(width: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                item.imageUrl,
                 width: 60,
                 height: 82,
-                color: const Color(0xFF22222E),
-                child: const Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.film,
-                    color: Color(0xFF5A5A6E),
-                    size: 18,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 60,
+                  height: 82,
+                  color: const Color(0xFF22222E),
+                  child: const Center(
+                    child: FaIcon(
+                      FontAwesomeIcons.film,
+                      color: Color(0xFF5A5A6E),
+                      size: 18,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/enum.dart';
+import '../../../models/request/edit_profile_payload.dart';
 import '../../../models/response/profile_model.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/notification_service.dart';
 import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../auth/datasource/auth_datasource.dart';
 import '../../subscription/controller/subscription_controller.dart';
-import '../views/logout_page.dart';
 
 class SavedSeriesModel {
   final String id;
@@ -243,6 +244,7 @@ class ProfileController extends GetxController {
       emailEditController.text = user.email ?? '';
       phoneEditController.text = '${user.countryCode} ${user.phoneNumber}'
           .trim();
+      userAvatar.value = user.avatarUrl;
     } else {
       final names = userName.value.split(' ');
       firstNameEditController.text = names.isNotEmpty ? names.first : '';
@@ -267,14 +269,16 @@ class ProfileController extends GetxController {
 
     updateProfileStatus.value = Status.loading;
     try {
-      final result = await _datasource.completeProfile(
-        name: first,
+      final payload = EditProfilePayload(
+        firstName: first,
+        lastName: last,
         email: em,
-        lastname: last,
-        avatarUrl: userAvatar.value.isNotEmpty ? userAvatar.value : null,
+        avatarUrl: userAvatar.value,
       );
 
-      if (result != null) {
+      final result = await _datasource.editProfile(payload: payload);
+
+      if (result != null && result.success) {
         updateProfileStatus.value = Status.success;
         AppSnackbar.success(
           result.message.isNotEmpty
@@ -285,7 +289,11 @@ class ProfileController extends GetxController {
         Get.back();
       } else {
         updateProfileStatus.value = Status.error;
-        AppSnackbar.error('Failed to update profile. Please try again.');
+        AppSnackbar.error(
+          result?.message.isNotEmpty == true
+              ? result!.message
+              : 'Failed to update profile. Please try again.',
+        );
       }
     } catch (e) {
       updateProfileStatus.value = Status.error;
@@ -300,6 +308,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> performLogout() async {
+    await NotificationService.instance.unregisterTokenFromBackend();
     await StorageService.logout();
     userName.value = '';
     userEmail.value = '';
@@ -313,6 +322,7 @@ class ProfileController extends GetxController {
   Future<void> performDeleteAccount() async {
     final success = await _datasource.deleteAccount();
     if (success) {
+      await NotificationService.instance.unregisterTokenFromBackend();
       await StorageService.logout();
       userName.value = '';
       userEmail.value = '';

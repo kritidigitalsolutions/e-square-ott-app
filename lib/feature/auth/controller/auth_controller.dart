@@ -1,5 +1,7 @@
 import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/auth/datasource/auth_datasource.dart';
+import 'package:e_square_ott_app/models/request/edit_profile_payload.dart';
+import 'package:e_square_ott_app/models/response/edit_profile_model.dart';
 import 'package:e_square_ott_app/models/response/get_genre_model.dart';
 import 'package:e_square_ott_app/models/response/otp_response.dart';
 import 'package:e_square_ott_app/models/response/profile_model.dart';
@@ -7,6 +9,7 @@ import 'package:e_square_ott_app/models/response/resend_otp_response.dart';
 import 'package:e_square_ott_app/models/response/saved_interest_model.dart';
 import 'package:e_square_ott_app/models/response/user_model.dart';
 import 'package:e_square_ott_app/models/response/verify_otp_response.dart';
+import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_pages.dart';
@@ -38,6 +41,12 @@ class AuthController extends GetxController {
   final selectedGenres = <String>[].obs;
   final refreshTokenStatus = Status.init.obs;
   final deleteAccountStatus = Status.init.obs;
+  final editProfileStatus = Status.init.obs;
+  final editProfileResponse = Rxn<EditProfileResponse?>();
+  final editName = "".obs;
+  final editEmail = "".obs;
+  final editLastName = "".obs;
+  final profileUrl = "".obs;
 
   void setPhone(String value) {
     phoneNumber.value = value;
@@ -49,6 +58,22 @@ class AuthController extends GetxController {
 
   void setCountryCode(String value) {
     countryCode.value = value;
+  }
+
+  void setEditEmail(String value) {
+    editEmail.value = value;
+  }
+
+  void setEditName(String value) {
+    editName.value = value;
+  }
+
+  void setEditLastName(String value) {
+    editLastName.value = value;
+  }
+
+  void setProfileUrl(String value) {
+    profileUrl.value = value;
   }
 
   void setName(String value) {
@@ -133,6 +158,7 @@ class AuthController extends GetxController {
       if (result != null) {
         verifyOtpResponse.value = result;
         verifyOtpStatus.value = Status.success;
+        NotificationService.instance.registerAfterLogin();
         AppSnackbar.success(
           result.message.isNotEmpty
               ? result.message
@@ -259,6 +285,9 @@ class AuthController extends GetxController {
 
   Future<void> logoutProfile() async {
     logoutStatus.value = Status.loading;
+    try {
+      await NotificationService.instance.unregisterTokenFromBackend();
+    } catch (_) {}
     final result = await datasource.logout();
     if (result) {
       logoutStatus.value = Status.success;
@@ -332,6 +361,43 @@ class AuthController extends GetxController {
       return false;
     } finally {
       refreshTokenStatus.value = Status.init;
+    }
+  }
+
+  Future<bool> editProfile() async {
+    editProfileStatus.value = Status.loading;
+    final user = EditProfilePayload(
+      firstName: editName.value,
+      lastName: editLastName.value,
+      email: editEmail.value,
+      avatarUrl: profileUrl.value,
+    );
+    try {
+      final result = await datasource.editProfile(payload: user);
+      if (result != null && result.success) {
+        editProfileResponse.value = result;
+        editProfileStatus.value = Status.success;
+        AppSnackbar.success(
+          result.message.isNotEmpty
+              ? result.message
+              : "Profile updated successfully",
+        );
+        return true;
+      } else {
+        editProfileStatus.value = Status.error;
+        AppSnackbar.error(
+          result?.message.isNotEmpty == true
+              ? result!.message
+              : "Failed to update profile",
+        );
+        return false;
+      }
+    } catch (e) {
+      editProfileStatus.value = Status.error;
+      AppSnackbar.error("Error updating profile");
+      return false;
+    } finally {
+      editProfileStatus.value = Status.init;
     }
   }
 

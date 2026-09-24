@@ -1,3 +1,7 @@
+import 'package:e_square_ott_app/firebase_options.dart';
+import 'package:e_square_ott_app/shared/service/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'constants/app_colors.dart';
@@ -6,8 +10,21 @@ import 'core/localization/locale_controller.dart';
 import 'feature/subscription/controller/subscription_controller.dart';
 import 'routes/app_pages.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(
+      NotificationService.firebaseMessagingBackgroundHandler,
+    );
+    await NotificationService.initialize();
+  } catch (e) {
+    debugPrint("[Firebase Init Error]: $e");
+  }
+
   Get.put(SubscriptionController(), permanent: true);
   Get.put(LocaleController(), permanent: true);
   runApp(const MyApp());

@@ -9,7 +9,6 @@ import '../../../constants/app_text_styles.dart';
 import '../../../constants/enum.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
-import '../../../shared/widgets/custom_loading.dart';
 import '../controller/auth_controller.dart';
 
 class LoginScreen extends GetView<AuthController> {
@@ -149,14 +148,17 @@ class LoginScreen extends GetView<AuthController> {
                                 // Continue button
                                 AppButton(
                                   label: 'Continue',
-                                  onPressed: controller.canProceed.value &&
+                                  onPressed:
+                                      controller.canProceed.value &&
                                           controller.sendOtpStatus.value !=
                                               Status.loading
                                       ? controller.sendOtp
                                       : null,
-                                  isLoading: controller.sendOtpStatus.value ==
+                                  isLoading:
+                                      controller.sendOtpStatus.value ==
                                       Status.loading,
-                                  isEnabled: controller.canProceed.value &&
+                                  isEnabled:
+                                      controller.canProceed.value &&
                                       controller.sendOtpStatus.value !=
                                           Status.loading,
                                   height: AppSizes.buttonHeight,
