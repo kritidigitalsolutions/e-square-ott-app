@@ -1,178 +1,128 @@
+import 'dart:async';
+import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/feature/home/datasource/search.dart';
+import 'package:e_square_ott_app/models/response/search_discorvey_model.dart';
+import 'package:e_square_ott_app/models/response/search_suggestion_response.dart';
+import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../constants/app_images.dart';
-import '../models/movie_model.dart';
 import 'home_controller.dart';
 
 class SearchTabController extends GetxController {
+  final SearchDatasource datasource = SearchDatasource();
   final TextEditingController searchTextController = TextEditingController();
   final RxString searchQuery = ''.obs;
+  final int limit = 10;
 
-  // ── Recent Searches List
-  final RxList<String> recentSearches = <String>[
-    'The Last Promise',
-    'Behind Lies',
-    'Romance',
-  ].obs;
+  // ── API Statuses & Responses ──
+  final Rx<Status> landingSearchStatus = Status.init.obs;
+  final Rx<Status> searchStatus = Status.init.obs;
+  final Rxn<SearchDiscoveryResponse> landingResponse =
+      Rxn<SearchDiscoveryResponse>();
+  final Rxn<SearchSuggestionsResponse> searchResponse =
+      Rxn<SearchSuggestionsResponse>();
 
-  // ── Popular Searches List
-  final RxList<Map<String, String>> popularSearches = <Map<String, String>>[
-    {'number': '01', 'title': 'The Last promise'},
-    {'number': '02', 'title': 'The Last promise'},
-    {'number': '03', 'title': 'The Last promise'},
-  ].obs;
+  // ── Recent Searches (Local user history) ──
+  final RxList<String> recentSearches = <String>[].obs;
 
-  // ── Recommended Posters for Search Tab (3 columns)
-  final RxList<MovieModel> searchRecommendedList = <MovieModel>[
-    const MovieModel(
-      id: 'sr1',
-      title: 'MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'sr2',
-      title: 'BILLIONAIRE BRIDE',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'sr3',
-      title: 'MAKKAR CEO WIFE',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'sr4',
-      title: 'MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'sr5',
-      title: 'BILLIONAIRE BRIDE',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'sr6',
-      title: 'MAKKAR CEO WIFE',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-  ].obs;
+  Timer? _debounce;
 
-  // ── Searchable catalog for dynamic filtering
-  final RxList<MovieModel> allCatalog = <MovieModel>[
-    const MovieModel(
-      id: 'c1',
-      title: 'The Last Promise',
-      image: AppImages.banner1,
-      subtitle: 'Episode 24 • Romance / Drama',
-      genre: 'Romance',
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'c2',
-      title: 'Behind Lies',
-      image: AppImages.banner2,
-      subtitle: 'Episode 18 • Suspense',
-      genre: 'Suspense',
-      views: '3.1k',
-      plays: '4.2k',
-    ),
-    const MovieModel(
-      id: 'c3',
-      title: 'MAFIA ROMANCE',
-      image: AppImages.banner1,
-      subtitle: 'Episode 10 • Crime / Romance',
-      genre: 'Romance',
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'c4',
-      title: 'BILLIONAIRE BRIDE',
-      image: AppImages.banner2,
-      subtitle: 'Episode 15 • Drama',
-      genre: 'Drama',
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'c5',
-      title: 'MAKKAR CEO WIFE',
-      image: AppImages.banner3,
-      subtitle: 'Episode 30 • Comedy / Romance',
-      genre: 'Comedy',
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'c6',
-      title: 'How SPARKED CEO',
-      image: AppImages.banner2,
-      subtitle: 'Episode 18 • Romantic Comedy',
-      genre: 'Comedy',
-      views: '3.1k',
-      plays: '4.2k',
-    ),
-    const MovieModel(
-      id: 'c7',
-      title: 'ATE... KING',
-      image: AppImages.banner3,
-      subtitle: 'Episode 12 • Royal Romance',
-      genre: 'Romance',
-      views: '2.8k',
-      plays: '3.8k',
-    ),
-    const MovieModel(
-      id: 'c8',
-      title: 'ZINDA HOON MAIN',
-      image: AppImages.banner2,
-      subtitle: 'Episode 5 • Action / Drama',
-      genre: 'Drama',
-      views: '3.5k',
-      plays: '3.5k',
-    ),
-  ].obs;
+  // ── Getters for Real API Data ──
+  List<PopularSearch> get popularSearches =>
+      landingResponse.value?.data.popularSearches ?? [];
 
-  List<MovieModel> get searchResults {
-    final query = searchQuery.value.trim().toLowerCase();
-    if (query.isEmpty) return [];
-    return allCatalog.where((movie) {
-      final titleMatch = movie.title.toLowerCase().contains(query);
-      final genreMatch = movie.genre?.toLowerCase().contains(query) ?? false;
-      final subtitleMatch = movie.subtitle?.toLowerCase().contains(query) ?? false;
-      return titleMatch || genreMatch || subtitleMatch;
-    }).toList();
-  }
+  List<RecommendedDrama> get recommendedDramas =>
+      landingResponse.value?.data.recommendedForYou ?? [];
+
+  List<SearchSuggestion> get suggestions =>
+      searchResponse.value?.data.suggestions ?? [];
+
+  List<SearchDrama> get searchDramas =>
+      searchResponse.value?.data.dramas ?? [];
+
+  String get discoveryTitle =>
+      landingResponse.value?.data.title.isNotEmpty == true
+          ? landingResponse.value!.data.title
+          : 'Search';
+
+  String get discoverySubtitle =>
+      landingResponse.value?.data.subtitle.isNotEmpty == true
+          ? landingResponse.value!.data.subtitle
+          : 'Find a story that matches your mood';
 
   @override
   void onInit() {
     super.onInit();
+    setLandingSearch();
+
     searchTextController.addListener(() {
-      searchQuery.value = searchTextController.text;
+      final text = searchTextController.text;
+      searchQuery.value = text;
+      _onSearchInputChanged(text);
     });
   }
 
   @override
   void onClose() {
+    _debounce?.cancel();
     searchTextController.dispose();
     super.onClose();
   }
 
-  void onQueryChanged(String query) {
-    searchQuery.value = query;
+  void _onSearchInputChanged(String query) {
+    _debounce?.cancel();
+    final trimmed = query.trim();
+
+    if (trimmed.isEmpty) {
+      searchStatus.value = Status.init;
+      searchResponse.value = null;
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      setSearch(title: trimmed);
+    });
   }
 
+  // ── Fetch Discovery / Landing Data ──
+  Future<void> setLandingSearch() async {
+    landingSearchStatus.value = Status.loading;
+    try {
+      final res = await datasource.searchDiscovery();
+      if (res != null) {
+        landingResponse.value = res;
+        landingSearchStatus.value = Status.success;
+      } else {
+        landingSearchStatus.value = Status.error;
+      }
+    } catch (e) {
+      landingSearchStatus.value = Status.error;
+    }
+  }
+
+  // ── Search Suggestions / Dramas API ──
+  Future<void> setSearch({required String title}) async {
+    final query = title.trim();
+    if (query.isEmpty) return;
+
+    searchStatus.value = Status.loading;
+    try {
+      final res = await datasource.searchSuggestion(
+        query: query,
+        limit: limit,
+      );
+      if (res != null) {
+        searchResponse.value = res;
+        searchStatus.value = Status.success;
+      } else {
+        searchStatus.value = Status.error;
+      }
+    } catch (e) {
+      searchStatus.value = Status.error;
+    }
+  }
+
+  // ── Actions ──
   void selectSearchQuery(String query) {
     searchTextController.text = query;
     searchTextController.selection = TextSelection.fromPosition(
@@ -180,6 +130,7 @@ class SearchTabController extends GetxController {
     );
     searchQuery.value = query;
     addRecentSearch(query);
+    setSearch(title: query);
   }
 
   void addRecentSearch(String query) {
@@ -205,15 +156,31 @@ class SearchTabController extends GetxController {
   }
 
   void clearSearch() {
+    _debounce?.cancel();
     searchTextController.clear();
     searchQuery.value = '';
+    searchStatus.value = Status.init;
+    searchResponse.value = null;
   }
 
-  void onMovieTap(MovieModel movie) {
-    addRecentSearch(movie.title);
-    if (Get.isRegistered<HomeController>()) {
-      Get.find<HomeController>().onMovieTap(movie);
-    }
+  void onPopularSearchTap(PopularSearch item) {
+    addRecentSearch(item.title);
+    Get.toNamed(Routes.dramaPlayer, arguments: item);
+  }
+
+  void onRecommendedDramaTap(RecommendedDrama drama) {
+    addRecentSearch(drama.title);
+    Get.toNamed(Routes.dramaPlayer, arguments: drama);
+  }
+
+  void onSuggestionTap(SearchSuggestion suggestion) {
+    addRecentSearch(suggestion.title);
+    Get.toNamed(Routes.dramaPlayer, arguments: suggestion);
+  }
+
+  void onSearchDramaTap(SearchDrama drama) {
+    addRecentSearch(drama.title);
+    Get.toNamed(Routes.dramaPlayer, arguments: drama);
   }
 
   void handleBackPress() {

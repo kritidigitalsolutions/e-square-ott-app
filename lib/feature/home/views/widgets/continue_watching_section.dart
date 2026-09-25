@@ -4,9 +4,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
+import '../../../../models/response/countinue_watching_model.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
-import '../../models/movie_model.dart';
 
 class ContinueWatchingSection extends GetView<HomeController> {
   const ContinueWatchingSection({super.key});
@@ -14,7 +14,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final items = controller.continueWatchingList;
+      final items = controller.continueWatchingItems;
       if (items.isEmpty) return const SizedBox.shrink();
 
       return Container(
@@ -126,7 +126,7 @@ class ContinueWatchingSection extends GetView<HomeController> {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
-                  return _ContinueWatchingCard(movie: items[index]);
+                  return _ContinueWatchingCard(item: items[index]);
                 },
               ),
             ),
@@ -139,8 +139,8 @@ class ContinueWatchingSection extends GetView<HomeController> {
 
 /// Cinematic Card with glowing gold progress bar, episode tag, and resume play overlay
 class _ContinueWatchingCard extends StatefulWidget {
-  final MovieModel movie;
-  const _ContinueWatchingCard({required this.movie});
+  final ContinueWatchingItem item;
+  const _ContinueWatchingCard({required this.item});
 
   @override
   State<_ContinueWatchingCard> createState() => _ContinueWatchingCardState();
@@ -151,13 +151,22 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
-    final double progress = (movie.progress ?? 0.65).clamp(0.0, 1.0);
+    final item = widget.item;
+    final double progress =
+        (item.playback.progressPercentage / 100.0).clamp(0.0, 1.0);
+    final String posterUrl = item.drama.posterUrl.isNotEmpty
+        ? item.drama.posterUrl
+        : item.drama.bannerUrl;
+    final String epTag = item.episode.seasonEpisodeTag.isNotEmpty
+        ? item.episode.seasonEpisodeTag
+        : (item.episode.episodeNumber > 0
+            ? 'EP ${item.episode.episodeNumber}'
+            : 'EP 1');
 
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Get.find<HomeController>().onMovieTap(movie);
+        Get.find<HomeController>().onContinueWatchingItemTap(item);
       },
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -196,10 +205,10 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                       fit: StackFit.expand,
                       children: [
                         // Image
-                        Image.asset(
-                          movie.image,
+                        Image.network(
+                          posterUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, e, s) => Container(
+                          errorBuilder: (_, __, ___) => Container(
                             color: const Color(0xFF222230),
                             child: const Center(
                               child: FaIcon(
@@ -282,9 +291,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                               ],
                             ),
                             child: Text(
-                              movie.episodeInfo != null
-                                  ? movie.episodeInfo!.split(' of ').first
-                                  : 'EP 3',
+                              epTag,
                               style: const TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
                                 color: Color(0xFF0C0B10),
@@ -305,7 +312,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          movie.title,
+                          item.drama.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -328,7 +335,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                                   color: Colors.white.withValues(alpha: 0.15),
                                 ),
                                 FractionallySizedBox(
-                                  widthFactor: progress,
+                                  widthFactor: progress > 0 ? progress : 0.05,
                                   child: Container(
                                     decoration: const BoxDecoration(
                                       gradient: AppColors.primaryGradient,

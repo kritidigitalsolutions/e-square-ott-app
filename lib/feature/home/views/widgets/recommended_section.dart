@@ -4,45 +4,47 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
+import '../../../../models/response/admin_content_model.dart';
 import '../../controller/home_controller.dart';
-import '../../models/movie_model.dart';
 
 class RecommendedSection extends GetView<HomeController> {
   const RecommendedSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Section Header: Recommended for you >
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildSectionHeader('Recommended for you'.tr, onTap: () {}),
-        ),
-        const SizedBox(height: 14),
+    return Obx(() {
+      final recommended = controller.recommendedDramas;
+      if (recommended.isEmpty) return const SizedBox.shrink();
 
-        // ── Horizontal Scrolling Carousel
-        SizedBox(
-          height: 190,
-          child: Obx(() {
-            final recommended = controller.recommendedList;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Section Header: Recommended for you >
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildSectionHeader('Recommended for you'.tr, onTap: () {}),
+          ),
+          const SizedBox(height: 14),
 
-            return ListView.separated(
+          // ── Horizontal Scrolling Carousel
+          SizedBox(
+            height: 190,
+            child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: recommended.length,
               separatorBuilder: (context, index) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
-                final movie = recommended[index];
-                return _RecommendedPosterCard(movie: movie);
+                final drama = recommended[index];
+                return _RecommendedPosterCard(drama: drama);
               },
-            );
-          }),
-        ),
-      ],
-    );
+            ),
+          ),
+          const SizedBox(height: 26),
+        ],
+      );
+    });
   }
 
   Widget _buildSectionHeader(String title, {VoidCallback? onTap}) {
@@ -98,8 +100,8 @@ class RecommendedSection extends GetView<HomeController> {
 }
 
 class _RecommendedPosterCard extends StatefulWidget {
-  final MovieModel movie;
-  const _RecommendedPosterCard({required this.movie});
+  final PriorityDrama drama;
+  const _RecommendedPosterCard({required this.drama});
 
   @override
   State<_RecommendedPosterCard> createState() => _RecommendedPosterCardState();
@@ -110,12 +112,15 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
+    final drama = widget.drama;
+    final String posterUrl = drama.posterUrl.isNotEmpty
+        ? drama.posterUrl
+        : drama.bannerUrl;
 
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Get.find<HomeController>().onMovieTap(movie);
+        Get.find<HomeController>().onPriorityDramaTap(drama);
       },
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -148,10 +153,10 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
               fit: StackFit.expand,
               children: [
                 // Poster Image
-                Image.asset(
-                  movie.image,
+                Image.network(
+                  posterUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, e, s) => Container(
+                  errorBuilder: (_, __, ___) => Container(
                     color: const Color(0xFF1E1E26),
                     child: const Center(
                       child: FaIcon(
@@ -181,7 +186,7 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
                   ),
                 ),
 
-                // Top-Right Plays Badge
+                // Top-Right Plays / Rating Badge
                 Positioned(
                   top: 6,
                   right: 6,
@@ -208,7 +213,11 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
                         ),
                         const SizedBox(width: 3.5),
                         Text(
-                          movie.plays,
+                          drama.viewsFormatted.isNotEmpty
+                              ? drama.viewsFormatted
+                              : (drama.rating > 0
+                                  ? '★ ${drama.rating.toStringAsFixed(1)}'
+                                  : '3.5k'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 8.5,
@@ -226,7 +235,7 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
                   right: 8,
                   bottom: 8,
                   child: Text(
-                    movie.title,
+                    drama.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

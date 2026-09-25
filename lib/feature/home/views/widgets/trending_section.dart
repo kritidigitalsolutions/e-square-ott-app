@@ -4,50 +4,52 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
+import '../../../../models/response/admin_content_model.dart';
 import '../../controller/home_controller.dart';
-import '../../models/movie_model.dart';
 
 class TrendingSection extends GetView<HomeController> {
   const TrendingSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Section Header: Trending >
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildSectionHeader('Trending'.tr, onTap: () {}),
-        ),
-        const SizedBox(height: 14),
+    return Obx(() {
+      final trendingMovies = controller.trendingDramas;
+      if (trendingMovies.isEmpty) return const SizedBox.shrink();
 
-        // ── Netflix / Prime Top 10 Horizontal Carousel
-        SizedBox(
-          height: 200,
-          child: Obx(() {
-            final trendingMovies = controller.trendingList;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Section Header: Trending >
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildSectionHeader('Trending'.tr, onTap: () {}),
+          ),
+          const SizedBox(height: 14),
 
-            return ListView.separated(
+          // ── Netflix / Prime Top 10 Horizontal Carousel
+          SizedBox(
+            height: 200,
+            child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: trendingMovies.length,
               separatorBuilder: (context, index) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
-                final movie = trendingMovies[index];
-                final rank = movie.ranking ?? (index + 1);
+                final drama = trendingMovies[index];
+                final rank = index + 1;
                 return _TrendingCard(
-                  movie: movie,
+                  drama: drama,
                   rank: rank,
                   isFirst: index == 0,
                 );
               },
-            );
-          }),
-        ),
-      ],
-    );
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      );
+    });
   }
 
   Widget _buildSectionHeader(String title, {VoidCallback? onTap}) {
@@ -103,12 +105,12 @@ class TrendingSection extends GetView<HomeController> {
 }
 
 class _TrendingCard extends StatefulWidget {
-  final MovieModel movie;
+  final PriorityDrama drama;
   final int rank;
   final bool isFirst;
 
   const _TrendingCard({
-    required this.movie,
+    required this.drama,
     required this.rank,
     required this.isFirst,
   });
@@ -122,14 +124,17 @@ class _TrendingCardState extends State<_TrendingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
+    final drama = widget.drama;
     final rank = widget.rank;
     final isFirst = widget.isFirst;
+    final String posterUrl = drama.posterUrl.isNotEmpty
+        ? drama.posterUrl
+        : drama.bannerUrl;
 
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Get.find<HomeController>().onMovieTap(movie);
+        Get.find<HomeController>().onPriorityDramaTap(drama);
       },
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -209,10 +214,10 @@ class _TrendingCardState extends State<_TrendingCard> {
                       fit: StackFit.expand,
                       children: [
                         // Poster Image
-                        Image.asset(
-                          movie.image,
+                        Image.network(
+                          posterUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, e, s) => Container(
+                          errorBuilder: (_, __, ___) => Container(
                             color: const Color(0xFF1E1E26),
                             child: const Center(
                               child: FaIcon(
@@ -278,7 +283,7 @@ class _TrendingCardState extends State<_TrendingCard> {
                             ),
                           ),
 
-                        // Top-Right Plays Badge
+                        // Top-Right Plays / Rating Badge
                         Positioned(
                           top: 6,
                           right: 6,
@@ -305,7 +310,11 @@ class _TrendingCardState extends State<_TrendingCard> {
                                 ),
                                 const SizedBox(width: 3.5),
                                 Text(
-                                  movie.plays,
+                                  drama.viewsFormatted.isNotEmpty
+                                      ? drama.viewsFormatted
+                                      : (drama.rating > 0
+                                          ? '★ ${drama.rating.toStringAsFixed(1)}'
+                                          : '3.5k'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 8.5,
@@ -323,7 +332,7 @@ class _TrendingCardState extends State<_TrendingCard> {
                           right: 8,
                           bottom: 8,
                           child: Text(
-                            movie.title,
+                            drama.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

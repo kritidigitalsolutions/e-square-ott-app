@@ -71,7 +71,7 @@ class _SubscriptionConfirmPageState extends State<SubscriptionConfirmPage> {
                       CustomBackButton(onTap: () => Get.back()),
                       const SizedBox(width: 14),
                       Text(
-                        'Entertainment Square',
+                        'Confirm Subscription',
                         style: AppTextStyles.text14Medium.copyWith(
                           color: AppColors.textSecondary,
                           letterSpacing: 0.5,
@@ -115,7 +115,7 @@ class SubscriptionConfirmCard extends StatefulWidget {
 class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
   void _handlePayment() async {
     final subController = Get.find<SubscriptionController>();
-    final success = await subController.subscribe();
+    final success = await subController.initiatePurchase();
 
     if (success && mounted) {
       Get.until(
@@ -130,146 +130,264 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
   Widget build(BuildContext context) {
     final subController = Get.find<SubscriptionController>();
 
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 400),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 30),
-      decoration: BoxDecoration(
-        color: const Color(0xFF14141A),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF22222E), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.6),
-            blurRadius: 30,
-            spreadRadius: 4,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 8),
+    return Obx(() {
+      final isTrial = subController.isTrialSelected.value;
+      final selectedPlan = subController.selectedPlan.value;
+      final isUpgrade =
+          selectedPlan != null && subController.isUpgradePlan(selectedPlan);
+      final stackedDays = isUpgrade && selectedPlan != null
+          ? subController.calculateStackedDays(selectedPlan)
+          : null;
 
-          // ── Glowing Radiant Checkmark Icon Badge
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF221706),
-              border: Border.all(color: AppColors.primary, width: 2.0),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Center(
-              child: FaIcon(
-                FontAwesomeIcons.check,
-                color: Colors.white,
-                size: 34,
-              ),
-            ),
-          ),
-          const SizedBox(height: 22),
+      final planTitle = isTrial
+          ? '7-Day Free Trial (₹2 Token)'
+          : (selectedPlan?.name ?? 'VIP Membership');
 
-          // ── Title
-          const Text(
-            'Membership Selected',
-            style: TextStyle(
-              fontFamily: AppTextStyles.fontFamily,
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
+      final payAmount = isTrial
+          ? '₹2'
+          : (selectedPlan != null ? '₹${selectedPlan.price.toInt()}' : '₹99');
 
-          // ── Subtitle / Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: const TextStyle(
-                  fontFamily: AppTextStyles.fontFamily,
-                  color: Color(0xFF9E9EA8),
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                ),
-                children: [
-                  const TextSpan(text: 'Your '),
-                  const TextSpan(
-                    text: 'Entertainment\u00B2',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFD0D0DE),
-                    ),
-                  ),
-                  TextSpan(
-                    text:
-                        ' ${subController.selectedPlan.value == SubscriptionPlanType.monthly ? "Monthly (₹199/mo)" : "Yearly (₹1,499/yr)"} membership is ready. Complete payment to unlock the full library.',
+      return Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 400),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
+        decoration: BoxDecoration(
+          color: const Color(0xFF14141C),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF242432), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.6),
+              blurRadius: 30,
+              spreadRadius: 4,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // ── Radiant Crown / Checkmark Badge
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF221706),
+                border: Border.all(color: AppColors.primary, width: 2.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
+              child: const Center(
+                child: FaIcon(
+                  FontAwesomeIcons.crown,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
+            const SizedBox(height: 18),
 
-          // ── Primary Action: Continue to Pay Button (Using AppButton)
-          Obx(() {
-            return AppButton(
-              label: 'Continue to Pay',
+            // ── Title
+            Text(
+              isUpgrade ? 'Upgrade Membership' : 'Order Summary',
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // ── Plan Breakdown Box
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E0E14),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF20202C)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Selected Plan',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Color(0xFF8E8E9E),
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        planTitle,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0xFF20202C), height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Amount Payable',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Color(0xFF8E8E9E),
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        payAmount,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: AppColors.primary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isTrial) ...[
+                    const Divider(color: Color(0xFF20202C), height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text(
+                          'Day 7 Auto-Debit',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF8E8E9E),
+                            fontSize: 12.5,
+                          ),
+                        ),
+                        Text(
+                          '₹99 / month',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFFC0C0D0),
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (isUpgrade && stackedDays != null) ...[
+                    const Divider(color: Color(0xFF20202C), height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Stacked Days',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF82DC8E),
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$stackedDays Days VIP',
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF82DC8E),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── AutoPay Info ──
+            Row(
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.shield,
+                  color: Color(0xFF6BBA75),
+                  size: 14,
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '100% Secure payment via Razorpay UPI AutoPay (PhonePe, GPay, Paytm).',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Color(0xFF8E8E9E),
+                      fontSize: 11.5,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // ── Primary Action: Pay Button
+            AppButton(
+              label: isTrial
+                  ? 'Pay ₹2 & Start Trial'
+                  : 'Pay $payAmount & Activate VIP',
               onPressed: subController.isLoading.value ? null : _handlePayment,
               isLoading: subController.isLoading.value,
               backgroundColor: AppColors.primary,
               height: 52,
               borderRadius: 14,
-            );
-          }),
-          const SizedBox(height: 14),
+            ),
+            const SizedBox(height: 12),
 
-          // ── Secondary Action: Change Plan Button
-          GestureDetector(
-            onTap: () => Get.back(),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              height: 52,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A24),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  width: 1,
+            // ── Secondary Action: Change Plan Button
+            GestureDetector(
+              onTap: () => Get.back(),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                height: 50,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A24),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: const Center(
-                child: Text(
-                  'Change Plan',
-                  style: TextStyle(
-                    fontFamily: AppTextStyles.fontFamily,
-                    color: Colors.white,
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w600,
+                child: const Center(
+                  child: Text(
+                    'Change Plan',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 6),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 

@@ -1,43 +1,41 @@
+import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/feature/home/controller/home_controller.dart';
+import 'package:e_square_ott_app/feature/home/datasource/home_datasource.dart';
+import 'package:e_square_ott_app/models/response/admin_content_model.dart';
+import 'package:e_square_ott_app/models/response/episode_drawer_model.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
+import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../constants/app_images.dart';
-import '../../../shared/widgets/custom_sncakbar.dart';
-import '../models/explore_item_model.dart';
 
 class ExploreController extends GetxController {
+  final HomeDatasource datasource = HomeDatasource();
   final PageController pageController = PageController();
-  final RxInt currentExploreIndex = 0.obs;
 
-  final exploreList = <ExploreItemModel>[
-    ExploreItemModel(
-      id: 'e1',
-      tag: 'TRAILER PREVIEW',
-      title: 'The Last Promise',
-      genre: 'Romance • Drama',
-      description:
-          'One secret. One promise. One story that changes everything. Watch the trailer before you decide where the story takes you.',
-      image: AppImages.banner1,
-    ),
-    ExploreItemModel(
-      id: 'e2',
-      tag: 'TRAILER PREVIEW',
-      title: 'If This Is LOVE Let Me Burn',
-      genre: 'Romance • Thriller',
-      description:
-          'When passion collides with revenge, every breath becomes a dangerous game of love and survival.',
-      image: AppImages.banner2,
-    ),
-    ExploreItemModel(
-      id: 'e3',
-      tag: 'TRAILER PREVIEW',
-      title: 'The Billionaire Housewife',
-      genre: 'Drama • Suspense',
-      description:
-          'Behind the luxurious mansion walls lies a hidden truth that could destroy two powerful families forever.',
-      image: AppImages.banner3,
-    ),
-  ].obs;
+  // ── States ──
+  final Rx<Status> exploreStatus = Status.init.obs;
+  final RxList<PriorityDrama> exploreList = <PriorityDrama>[].obs;
+  final RxInt currentExploreIndex = 0.obs;
+  final RxBool isMuted = false.obs;
+  final RxInt currentPage = 1.obs;
+  final RxBool hasMore = true.obs;
+  final RxBool isLoadingMore = false.obs;
+
+  // ── User Interaction Sets ──
+  final RxSet<String> likedDramaIds = <String>{}.obs;
+  final RxSet<String> myWatchlistDramaIds = <String>{}.obs;
+
+  // ── Episodes Drawer State ──
+  final RxMap<String, EpisodesDrawerResponse> episodesCache =
+      <String, EpisodesDrawerResponse>{}.obs;
+  final RxBool isLoadingEpisodes = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _populateFromHomeIfAvailable();
+    fetchExploreDramas();
+  }
 
   @override
   void onClose() {
@@ -45,26 +43,151 @@ class ExploreController extends GetxController {
     super.onClose();
   }
 
-  void onPageChanged(int index) {
-    currentExploreIndex.value = index;
+  void _populateFromHomeIfAvailable() {
+    if (Get.isRegistered<HomeController>()) {
+      final homeController = Get.find<HomeController>();
+      if (homeController.allPriorityDramas.isNotEmpty) {
+        exploreList.assignAll(homeController.allPriorityDramas);
+        exploreStatus.value = Status.success;
+      }
+    }
   }
 
-  void toggleMyList(ExploreItemModel item) {
-    item.isInMyList.value = !item.isInMyList.value;
-    if (item.isInMyList.value) {
-      AppSnackbar.success(
-        '${item.title} has been added to your watchlist.',
-        title: 'Added to List',
+  Future<void> fetchExploreDramas() async {
+    if (exploreList.isEmpty) {
+      exploreStatus.value = Status.loading;
+    }
+    currentPage.value = 1;
+    try {
+      final res = await datasource.allContents(pageNo: 1, size: 20);
+      if (res != null && res.data.dramas.isNotEmpty) {
+        exploreList.assignAll(res.data.dramas);
+        hasMore.value = res.data.pagination.hasNextPage;
+        exploreStatus.value = Status.success;
+      } else {
+        // Fallback to allDrama if allContents is empty
+        final dramaRes = await datasource.allDrama(pageNo: 1, pageSize: 20);
+        if (dramaRes != null && dramaRes.data.dramas.isNotEmpty) {
+          final mapped = dramaRes.data.dramas.map((d) {
+            return PriorityDrama(
+              id: d.id,
+              title: d.title,
+              slug: d.slug,
+              synopsis: d.synopsis,
+              posterUrl: d.posterUrl,
+              bannerUrl: d.bannerUrl,
+              trailerUrl: d.trailerUrl,
+              genres: d.genres,
+              genreDisplay: d.genreDisplay,
+              totalEpisodes: d.totalEpisodes,
+              viewsCount: d.viewsCount,
+              viewsFormatted: d.rating > 0 ? '★ ${d.rating}' : '${d.viewsCount}',
+              rating: d.rating,
+              priority: 1,
+              isTrending: d.isTrending,
+              isNewRelease: d.isNewRelease,
+              trendingRank: null,
+              releaseDate: null,
+            );
+          }).toList();
+          exploreList.assignAll(mapped);
+          hasMore.value = dramaRes.data.pagination.hasNextPage;
+          exploreStatus.value = Status.success;
+        } else {
+          if (exploreList.isEmpty) {
+            exploreStatus.value = Status.error;
+          }
+        }
+      }
+    } catch (e) {
+      if (exploreList.isEmpty) {
+        exploreStatus.value = Status.error;
+      }
+    }
+  }
+
+  Future<void> loadMoreExploreDramas() async {
+    if (!hasMore.value || isLoadingMore.value) return;
+    isLoadingMore.value = true;
+    final nextPage = currentPage.value + 1;
+    try {
+      final res = await datasource.allContents(pageNo: nextPage, size: 20);
+      if (res != null && res.data.dramas.isNotEmpty) {
+        currentPage.value = nextPage;
+        exploreList.addAll(res.data.dramas);
+        hasMore.value = res.data.pagination.hasNextPage;
+      } else {
+        hasMore.value = false;
+      }
+    } catch (_) {
+      hasMore.value = false;
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  void onPageChanged(int index) {
+    currentExploreIndex.value = index;
+    // Load more when nearing end
+    if (index >= exploreList.length - 3 && hasMore.value) {
+      loadMoreExploreDramas();
+    }
+  }
+
+  void toggleMute() {
+    isMuted.value = !isMuted.value;
+  }
+
+  void toggleLike(String dramaId) {
+    if (likedDramaIds.contains(dramaId)) {
+      likedDramaIds.remove(dramaId);
+    } else {
+      likedDramaIds.add(dramaId);
+    }
+  }
+
+  void toggleMyList(PriorityDrama drama) {
+    if (myWatchlistDramaIds.contains(drama.id)) {
+      myWatchlistDramaIds.remove(drama.id);
+      AppSnackbar.info(
+        '${drama.title} has been removed from your list.',
+        title: 'Removed from List',
       );
     } else {
-      AppSnackbar.info(
-        '${item.title} has been removed from your watchlist.',
-        title: 'Removed from List',
+      myWatchlistDramaIds.add(drama.id);
+      AppSnackbar.success(
+        '${drama.title} has been added to your list.',
+        title: 'Added to List',
       );
     }
   }
 
-  void watchNow(ExploreItemModel item) {
-    Get.toNamed(Routes.dramaPlayer, arguments: item);
+  Future<EpisodesDrawerResponse?> fetchEpisodesForDrama(String dramaId) async {
+    if (episodesCache.containsKey(dramaId)) {
+      return episodesCache[dramaId];
+    }
+    isLoadingEpisodes.value = true;
+    try {
+      final res = await datasource.allEpisode(
+        dramaId: dramaId,
+        pageNo: 1,
+        limit: 50,
+      );
+      if (res != null) {
+        episodesCache[dramaId] = res;
+      }
+      isLoadingEpisodes.value = false;
+      return res;
+    } catch (e) {
+      isLoadingEpisodes.value = false;
+      return null;
+    }
+  }
+
+  void watchNow(PriorityDrama drama, {int episodeIndex = 0}) {
+    Get.toNamed(
+      Routes.dramaPlayer,
+      arguments: drama,
+    );
   }
 }

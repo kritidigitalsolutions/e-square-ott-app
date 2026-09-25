@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
-import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
@@ -126,15 +125,10 @@ class ProfileTabView extends StatelessWidget {
                                 avatar,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
-                                    _buildAvatarFallback(),
+                                    _buildAvatarFallback(iconSize: 16),
                               );
                             }
-                            return Image.asset(
-                              AppImages.banner1,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _buildAvatarFallback(),
-                            );
+                            return _buildAvatarFallback(iconSize: 16);
                           }),
                         ),
                       ),
@@ -324,14 +318,10 @@ class ProfileTabView extends StatelessWidget {
                             avatar,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) =>
-                                _buildAvatarFallback(),
+                                _buildAvatarFallback(iconSize: 26),
                           );
                         }
-                        return Image.asset(
-                          AppImages.banner1,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-                        );
+                        return _buildAvatarFallback(iconSize: 26);
                       }),
                     ),
                   ),
@@ -503,14 +493,47 @@ class ProfileTabView extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarFallback() {
+  Widget _buildAvatarFallback({double iconSize = 22}) {
+    final ctrl = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : null;
+    final name = ctrl?.userName.value.trim() ?? '';
+    if (name.isNotEmpty) {
+      final initial = name[0].toUpperCase();
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF2E2E3E), Color(0xFF1E1E2C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            initial,
+            style: TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              color: AppColors.primary,
+              fontSize: iconSize,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
-      color: const Color(0xFF2A2A38),
-      child: const Center(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF2E2E3E), Color(0xFF1E1E2C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
         child: FaIcon(
           FontAwesomeIcons.solidUser,
-          color: Colors.white70,
-          size: 24,
+          color: const Color(0xFFB0B0C4),
+          size: iconSize,
         ),
       ),
     );

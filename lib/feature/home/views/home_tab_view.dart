@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../constants/app_colors.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../controller/home_controller.dart';
 import 'widgets/continue_watching_section.dart';
@@ -21,53 +22,58 @@ class HomeTabView extends GetView<HomeController> {
       backgroundColor: Colors.transparent,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           // ── Top Bar Header (Logo + Notifications)
-          TopBarHeader(),
+          const TopBarHeader(),
 
-          // ── Scrollable Feed Area (Bounded by Expanded)
+          // ── Scrollable Feed Area (Bounded by Expanded) with Pull-To-Refresh
           Expanded(
-            child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 12),
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: const Color(0xFF14141E),
+              onRefresh: () async {
+                await Future.wait([
+                  controller.getAllContent(),
+                  controller.getAllContinueWatching(),
+                  controller.getAllDrama(),
+                  controller.fetchUnreadCount(),
+                ]);
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SizedBox(height: 12),
 
-                  // ── 1. Hero 3D Carousel (Top Auto-Playing Feature Banners)
-                  HeroCarouselSection(),
-                  SizedBox(height: 28),
+                    // ── 1. Hero 3D Carousel (Feature Banners)
+                    HeroCarouselSection(),
+                    SizedBox(height: 24),
 
-                  // ── 6. Continue Watching Section
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: ContinueWatchingSection(),
-                  ),
-                  // ── 2. Trending (Netflix Top 10 Horizontal Scroll)
-                  TrendingSection(),
-                  SizedBox(height: 24),
+                    // ── 2. Continue Watching Section (Hides if empty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: ContinueWatchingSection(),
+                    ),
 
-                  // ── 3. Category / Genre 4 Gradient Pills + Arrow Button
-                  // Padding(
-                  //   padding: EdgeInsets.symmetric(horizontal: 16),
-                  //   child: CategoriesSection(),
-                  // ),
-                  // SizedBox(height: 26),
+                    // ── 3. Trending Section (Hides if empty)
+                    TrendingSection(),
 
-                  // ── 4. Recommended for you (Horizontal Carousel)
-                  RecommendedSection(),
-                  SizedBox(height: 26),
+                    // ── 4. Recommended for you (Hides if empty)
+                    RecommendedSection(),
 
-                  // ── 5. Popular Genres (Glass Genre Cards with Vector Icons)
-                  PopularGenresSection(),
+                    // ── 5. Popular Genres (Glass Genre Cards with Vector Icons)
+                    PopularGenresSection(),
+                    SizedBox(height: 28),
 
-                  SizedBox(height: 28),
-
-                  // ── 7. New Releases Section
-                  NewReleasesSection(),
-                  SizedBox(height: 20),
-                ],
+                    // ── 6. New Releases Section (Hides if empty)
+                    NewReleasesSection(),
+                    SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),

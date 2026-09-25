@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/home/controller/home_controller.dart';
 import 'package:e_square_ott_app/feature/notification/datasource/notification_datasource.dart';
 import 'package:e_square_ott_app/models/response/all_notification_model.dart';
+import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:get/get.dart';
 
@@ -14,13 +15,17 @@ class AllNotificationController extends GetxController {
   final markAllReadStatus = Status.init.obs;
   final clearAllStatus = Status.init.obs;
   final allNotificationResponse = Rxn<NotificationsResponse?>();
+  final deleteNotificationStatus = Status.init.obs;
 
   final groups = <NotificationGroup>[].obs;
   final unreadCount = 0.obs;
   final pageNo = 0.obs;
   final size = 20.obs;
   final hasNextPage = false.obs;
-  final selectedType = Rxn<String>(); // NEW_EPISODE, NEW_RELEASE, RECOMMENDATION, SYSTEM
+  final selectedType =
+      Rxn<String>(); // NEW_EPISODE, NEW_RELEASE, RECOMMENDATION, SYSTEM
+
+  final Set<String> _shownLocalNotificationIds = <String>{};
 
   @override
   void onInit() {
@@ -34,7 +39,7 @@ class AllNotificationController extends GetxController {
   }
 
   // ── Fetch Notifications List ──
-  Future<void> allNotification() async {
+  Future<void> allNotification({bool showLocalForUnread = true}) async {
     allNotificationStatus.value = Status.loading;
     pageNo.value = 0;
     try {
@@ -49,6 +54,10 @@ class AllNotificationController extends GetxController {
         hasNextPage.value = result.data.pagination.hasNextPage;
         groups.assignAll(result.data.groups);
         allNotificationStatus.value = Status.success;
+
+        if (showLocalForUnread) {
+          _showUnreadNotificationsLocally(result.data.groups);
+        }
       } else {
         allNotificationStatus.value = Status.error;
       }
@@ -56,6 +65,41 @@ class AllNotificationController extends GetxController {
       allNotificationStatus.value = Status.error;
       print("allNotification error: $e");
     }
+  }
+
+  void _showUnreadNotificationsLocally(List<NotificationGroup> groups) {
+    try {
+      for (final group in groups) {
+        for (final item in group.notifications) {
+          if (!item.isRead && !_shownLocalNotificationIds.contains(item.id)) {
+            _shownLocalNotificationIds.add(item.id);
+            NotificationService.instance.showLocalNotification(
+              title: item.title.isNotEmpty ? item.title : 'E-Square OTT',
+              body: item.body,
+              data: {
+                'id': item.id,
+                'type': item.type,
+                'contentId': item.contentId,
+              },
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print("Error showing local notification for API notifications: $e");
+    }
+  }
+
+  Future<void> showLocalNotificationForItem(AppNotification item) async {
+    await NotificationService.instance.showLocalNotification(
+      title: item.title.isNotEmpty ? item.title : 'E-Square OTT',
+      body: item.body,
+      data: {
+        'id': item.id,
+        'type': item.type,
+        'contentId': item.contentId,
+      },
+    );
   }
 
   // ── Pagination: Load More Notifications ──
@@ -152,15 +196,9 @@ class AllNotificationController extends GetxController {
     }
   }
 
-  // ── Delete Single Notification (Swipe to Dismiss) ──
+  // ── Delete Single Notification ──
   Future<void> deleteSingleNotification(String id) async {
-    try {
-      // Remove locally
-      dismissNotification(id);
-      await datasource.deleteSingleNotification(id: id);
-    } catch (e) {
-      print("deleteSingleNotification error: $e");
-    }
+    await setDeleteNotification(id: id);
   }
 
   // ── Clear All Notifications ──
@@ -202,6 +240,12 @@ class AllNotificationController extends GetxController {
 
   void dismissNotification(String id) {
     for (final group in groups) {
+      for (final item in group.notifications) {
+        if (item.id == id && !item.isRead && unreadCount.value > 0) {
+          unreadCount.value--;
+          break;
+        }
+      }
       group.notifications.removeWhere((item) => item.id == id);
     }
     groups.removeWhere((group) => group.notifications.isEmpty);
@@ -218,5 +262,25 @@ class AllNotificationController extends GetxController {
       }
     }
     groups.refresh();
+  }
+
+  Future<void> setDeleteNotification({required String id}) async {
+    deleteNotificationStatus.value = Status.loading;
+    try {
+      dismissNotification(id);
+      final result = await datasource.deleteSingleNotification(id: id);
+      if (result) {
+        deleteNotificationStatus.value = Status.success;
+      } else {
+        deleteNotificationStatus.value = Status.error;
+        await allNotification();
+      }
+    } catch (e) {
+      deleteNotificationStatus.value = Status.error;
+      print("setDeleteNotification error: $e");
+      await allNotification();
+    } finally {
+      deleteNotificationStatus.value = Status.init;
+    }
   }
 }

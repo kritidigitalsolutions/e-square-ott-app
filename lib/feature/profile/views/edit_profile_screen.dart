@@ -272,12 +272,7 @@ class EditProfileScreen extends GetView<ProfileController> {
                                                       _buildAvatarFallback(),
                                                 )
                                               else
-                                                Image.asset(
-                                                  AppImages.banner1,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) =>
-                                                      _buildAvatarFallback(),
-                                                ),
+                                                _buildAvatarFallback(),
                                               if (isUploading)
                                                 Container(
                                                   color: Colors.black54,
@@ -483,12 +478,42 @@ class EditProfileScreen extends GetView<ProfileController> {
   }
 
   Widget _buildAvatarFallback() {
+    final name = controller.userName.value.trim();
+    if (name.isNotEmpty) {
+      final initial = name[0].toUpperCase();
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF2E2E3E), Color(0xFF1E1E2C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            initial,
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              color: AppColors.primary,
+              fontSize: 38,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
-      color: const Color(0xFF2A2A38),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF2E2E3E), Color(0xFF1E1E2C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: const Center(
         child: FaIcon(
           FontAwesomeIcons.solidUser,
-          color: Colors.white70,
+          color: Color(0xFFB0B0C4),
           size: 40,
         ),
       ),

@@ -13,6 +13,11 @@ import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../explore/models/explore_item_model.dart';
 import '../../subscription/controller/subscription_controller.dart';
+import '../../../models/response/admin_content_model.dart';
+import '../../../models/response/countinue_watching_model.dart';
+import '../../../models/response/drama_response.dart';
+import '../../../models/response/search_discorvey_model.dart';
+import '../../../models/response/search_suggestion_response.dart';
 import '../models/movie_model.dart';
 
 class DramaPlayerScreen extends StatefulWidget {
@@ -189,7 +194,65 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
     // Extract arguments from Get.arguments
     final args = Get.arguments;
-    if (args is MovieModel) {
+    if (args is PopularSearch) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.genreDisplay.isNotEmpty
+          ? args.genreDisplay
+          : 'Rating: ${args.rating} · ${args.viewsFormatted} plays';
+      _backdropImage = args.posterUrl;
+    } else if (args is RecommendedDrama) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.synopsis.isNotEmpty
+          ? args.synopsis
+          : (args.genreDisplay.isNotEmpty
+                ? args.genreDisplay
+                : 'Rating: ${args.rating}');
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is SearchSuggestion) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.viewsFormatted;
+      _backdropImage = args.posterUrl;
+    } else if (args is SearchDrama) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.slug;
+      _backdropImage = args.posterUrl;
+    } else if (args is Drama) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.synopsis;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is PriorityDrama) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.synopsis.isNotEmpty
+          ? args.synopsis
+          : (args.genreDisplay.isNotEmpty
+                ? args.genreDisplay
+                : 'Rating: ${args.rating}');
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is ContinueWatchingItem) {
+      _seriesTitle = args.drama.title;
+      _dramaDescription = args.drama.genreDisplay;
+      _backdropImage = args.drama.posterUrl.isNotEmpty
+          ? args.drama.posterUrl
+          : args.drama.bannerUrl;
+      if (args.episode.episodeNumber > 0) {
+        initialIndex = (args.episode.episodeNumber - 1).clamp(
+          0,
+          _episodes.length - 1,
+        );
+      }
+    } else if (args is ContinueWatchingDrama) {
+      _seriesTitle = args.title;
+      _dramaDescription = args.genreDisplay;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is MovieModel) {
       _seriesTitle = args.title;
       _dramaDescription =
           args.subtitle ??
@@ -220,6 +283,22 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
     _currentEpisodeIndex = initialIndex;
     _pageController = PageController(initialPage: initialIndex);
+  }
+
+  Widget _buildBackdropWidget({BoxFit fit = BoxFit.cover}) {
+    if (_backdropImage.startsWith('http://') ||
+        _backdropImage.startsWith('https://')) {
+      return Image.network(
+        _backdropImage,
+        fit: fit,
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF14141A)),
+      );
+    }
+    return Image.asset(
+      _backdropImage,
+      fit: fit,
+      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF14141A)),
+    );
   }
 
   @override
@@ -548,13 +627,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                     alignment: Alignment.center,
                                     fit: StackFit.expand,
                                     children: [
-                                      Image.asset(
-                                        _backdropImage,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, e, s) => Container(
-                                          color: const Color(0xFF22222E),
-                                        ),
-                                      ),
+                                      _buildBackdropWidget(),
                                       Container(
                                         color: Colors.black.withValues(
                                           alpha: 0.25,
@@ -687,11 +760,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       fit: StackFit.expand,
       children: [
         // Backdrop Image
-        Image.asset(
-          _backdropImage,
-          fit: BoxFit.cover,
-          errorBuilder: (_, e, s) => Container(color: const Color(0xFF14141A)),
-        ),
+        _buildBackdropWidget(),
 
         // Gradient Vignette Overlay
         Positioned.fill(
@@ -731,11 +800,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       fit: StackFit.expand,
       children: [
         // Blurred Backdrop Image
-        Image.asset(
-          _backdropImage,
-          fit: BoxFit.cover,
-          errorBuilder: (_, e, s) => Container(color: const Color(0xFF14141A)),
-        ),
+        _buildBackdropWidget(),
 
         // Dark Blur Filter & Dark Overlay
         BackdropFilter(
@@ -1136,11 +1201,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       fit: StackFit.expand,
       children: [
         // ── Blurred & Dimmed Backdrop Artwork
-        Image.asset(
-          _backdropImage,
-          fit: BoxFit.cover,
-          errorBuilder: (_, e, s) => Container(color: const Color(0xFF0F0F14)),
-        ),
+        _buildBackdropWidget(),
 
         // ── Dark Cinematic Overlay Gradient
         Positioned.fill(

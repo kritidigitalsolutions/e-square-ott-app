@@ -138,7 +138,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             if (value == 'mark_all') {
                               controller.markAllAsRead();
                             } else if (value == 'clear_all') {
-                              controller.clearAllNotifications();
+                              _confirmClearAll(context, controller);
                             }
                           },
                           itemBuilder: (context) => [
@@ -306,22 +306,41 @@ class _NotificationPageState extends State<NotificationPage> {
                                     key: ValueKey(item.id),
                                     direction: DismissDirection.endToStart,
                                     onDismissed: (_) => controller
-                                        .deleteSingleNotification(item.id),
+                                        .setDeleteNotification(id: item.id),
                                     background: Container(
                                       alignment: Alignment.centerRight,
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 20,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.redAccent.withOpacity(
-                                          0.8,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Color(0xFFE53935),
+                                          ],
+                                          stops: [0.0, 0.4],
                                         ),
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                      child: const FaIcon(
-                                        FontAwesomeIcons.trashCan,
-                                        color: Colors.white,
-                                        size: 18,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            "Delete".tr,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const FaIcon(
+                                            FontAwesomeIcons.trashCan,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     child: InkWell(
@@ -344,6 +363,70 @@ class _NotificationPageState extends State<NotificationPage> {
                   }),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmClearAll(
+    BuildContext context,
+    AllNotificationController controller,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161622),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        title: Text(
+          'Clear All Notifications?'.tr,
+          style: const TextStyle(
+            fontFamily: AppTextStyles.fontFamily,
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete all notifications? This cannot be undone.'
+              .tr,
+          style: TextStyle(
+            fontFamily: AppTextStyles.fontFamily,
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel'.tr,
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Colors.white.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              controller.clearAllNotifications();
+            },
+            child: Text(
+              'Clear All'.tr,
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

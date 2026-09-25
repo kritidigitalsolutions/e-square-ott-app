@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:developer';
 
@@ -16,20 +18,21 @@ import 'package:get/get.dart';
 // ─────────────────────────────────────────────────────────────
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('[FCM] Background message received: ${message.messageId}');
-  print('[FCM] Title: ${message.notification?.title}');
-  print('[FCM] Body : ${message.notification?.body}');
-  print('[FCM] Data : ${message.data}');
+  try {
+    await Firebase.initializeApp();
+    print('[FCM] Background message received: ${message.messageId}');
+    print('[FCM] Title: ${message.notification?.title}');
+    print('[FCM] Body : ${message.notification?.body}');
+    print('[FCM] Data : ${message.data}');
 
-  // If payload is data-only (no notification field), show local notification
-  if (message.notification == null) {
     final title =
+        message.notification?.title ??
         message.data['title'] ??
         message.data['heading'] ??
         message.data['name'] ??
         'E-Square OTT';
     final body =
+        message.notification?.body ??
         message.data['body'] ??
         message.data['message'] ??
         message.data['description'] ??
@@ -39,10 +42,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final localNotifications = FlutterLocalNotificationsPlugin();
       const AndroidInitializationSettings androidInitSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings iosInitSettings =
+          DarwinInitializationSettings();
       const InitializationSettings initSettings = InitializationSettings(
         android: androidInitSettings,
+        iOS: iosInitSettings,
       );
       await localNotifications.initialize(settings: initSettings);
+
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      await localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(channel);
 
       await localNotifications.show(
         id: message.hashCode,
@@ -60,10 +81,17 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             playSound: true,
             enableVibration: true,
           ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
         payload: jsonEncode(message.data),
       );
     }
+  } catch (e) {
+    print('[FCM] Error in background handler: $e');
   }
 }
 
@@ -74,8 +102,8 @@ class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
-  static Future<void> Function(RemoteMessage)
-  get firebaseMessagingBackgroundHandler => firebaseMessagingBackgroundHandler;
+  static Future<void> Function(RemoteMessage) get backgroundHandler =>
+      firebaseMessagingBackgroundHandler;
 
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =

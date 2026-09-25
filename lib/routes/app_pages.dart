@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/feature/home/views/drama_player_screen.dart';
 import 'package:e_square_ott_app/feature/home/views/episode_completed_screen.dart';
 import 'package:e_square_ott_app/feature/notification/view/notification_page.dart';
 import 'package:e_square_ott_app/feature/notification/view/notification_setting_page.dart';
+import 'package:e_square_ott_app/feature/profile/bindings/profile_binding.dart';
 import 'package:e_square_ott_app/feature/profile/views/privacy_policy_screen.dart';
 import 'package:e_square_ott_app/feature/profile/views/saved_series_screen.dart';
 import 'package:e_square_ott_app/feature/profile/views/settings_screen.dart';
@@ -146,17 +147,13 @@ class AppPages {
     GetPage(
       name: Routes.privacyPolicy,
       page: () => const PrivacyPolicyScreen(),
-      // customTransition: SharedAxisPageTransition(
-      //   transitionType: SharedAxisTransitionType.horizontal,
-      // ),
+      binding: ProfileBinding(),
       transitionDuration: const Duration(milliseconds: 350),
     ),
     GetPage(
       name: Routes.termCondition,
       page: () => const TermsConditionsScreen(),
-      // customTransition: SharedAxisPageTransition(
-      //   transitionType: SharedAxisTransitionType.horizontal,
-      // ),
+      binding: ProfileBinding(),
       transitionDuration: const Duration(milliseconds: 350),
     ),
     GetPage(

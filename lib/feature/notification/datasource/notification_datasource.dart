@@ -133,13 +133,11 @@ class NotificationDatasource {
   }
 
   // ── 5. Delete Single Notification ──
-  Future<CommonNotificationResponse?> deleteSingleNotification({
-    required String id,
-  }) async {
+  Future<bool> deleteSingleNotification({required String id}) async {
     try {
       final token = await StorageService.getToken();
       if (token == null) {
-        return null;
+        return false;
       }
       final url = Uri.parse(AppUrl.deleteSingleNotification(id: id));
       final response = await http.delete(
@@ -151,12 +149,14 @@ class NotificationDatasource {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return CommonNotificationResponse.fromJson(jsonDecode(response.body));
+        print("[NotificationDatasource] deleteSingleNotification success");
+        return true;
       }
-      return null;
+      print("[NotificationDatasource] deleteSingleNotification failed");
+      return false;
     } catch (e) {
       print("[NotificationDatasource] deleteSingleNotification error: $e");
-      return null;
+      return false;
     }
   }
 
@@ -245,7 +245,9 @@ class NotificationDatasource {
   Future<bool> savedFcm({required String fcmToken}) async {
     try {
       final token = await StorageService.getToken();
-      print("[FCM Datasource] savedFcm called | Token exists: ${token != null}");
+      print(
+        "[FCM Datasource] savedFcm called | Token exists: ${token != null}",
+      );
       if (token == null) {
         return false;
       }

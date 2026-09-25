@@ -4,45 +4,51 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
+import '../../../../models/response/admin_content_model.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
-import '../../models/movie_model.dart';
 
 class NewReleasesSection extends GetView<HomeController> {
   const NewReleasesSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Section Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildSectionHeader(
-            'New Releases'.tr,
-            onTap: () => Get.toNamed(Routes.newReleases),
-          ),
-        ),
-        const SizedBox(height: 14),
+    return Obx(() {
+      final newReleases = controller.newReleasesDramas;
+      if (newReleases.isEmpty) return const SizedBox.shrink();
 
-        // ── Horizontal List
-        SizedBox(
-          height: 190,
-          child: ListView.separated(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Section Header
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: controller.newReleasesList.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final movie = controller.newReleasesList[index];
-              return _NewReleasePosterCard(movie: movie);
-            },
+            child: _buildSectionHeader(
+              'New Releases'.tr,
+              onTap: () => Get.toNamed(Routes.newReleases),
+            ),
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 14),
+
+          // ── Horizontal List
+          SizedBox(
+            height: 190,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: newReleases.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final drama = newReleases[index];
+                return _NewReleasePosterCard(drama: drama);
+              },
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      );
+    });
   }
 
   Widget _buildSectionHeader(String title, {VoidCallback? onTap}) {
@@ -98,8 +104,8 @@ class NewReleasesSection extends GetView<HomeController> {
 }
 
 class _NewReleasePosterCard extends StatefulWidget {
-  final MovieModel movie;
-  const _NewReleasePosterCard({required this.movie});
+  final PriorityDrama drama;
+  const _NewReleasePosterCard({required this.drama});
 
   @override
   State<_NewReleasePosterCard> createState() => _NewReleasePosterCardState();
@@ -110,12 +116,15 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
+    final drama = widget.drama;
+    final String posterUrl = drama.posterUrl.isNotEmpty
+        ? drama.posterUrl
+        : drama.bannerUrl;
 
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Get.find<HomeController>().onMovieTap(movie);
+        Get.find<HomeController>().onPriorityDramaTap(drama);
       },
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -148,10 +157,10 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
               fit: StackFit.expand,
               children: [
                 // Poster
-                Image.asset(
-                  movie.image,
+                Image.network(
+                  posterUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, e, s) => Container(
+                  errorBuilder: (_, __, ___) => Container(
                     color: const Color(0xFF1E1E26),
                     child: const Center(
                       child: FaIcon(
@@ -207,7 +216,7 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
                   ),
                 ),
 
-                // Top-Right Plays Badge
+                // Top-Right Plays / Rating Badge
                 Positioned(
                   top: 6,
                   right: 6,
@@ -234,7 +243,11 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
                         ),
                         const SizedBox(width: 3.5),
                         Text(
-                          movie.plays,
+                          drama.viewsFormatted.isNotEmpty
+                              ? drama.viewsFormatted
+                              : (drama.rating > 0
+                                  ? '★ ${drama.rating.toStringAsFixed(1)}'
+                                  : '3.5k'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 8.5,
@@ -252,7 +265,7 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
                   right: 8,
                   bottom: 8,
                   child: Text(
-                    movie.title,
+                    drama.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

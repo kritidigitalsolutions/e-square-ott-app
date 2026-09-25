@@ -51,6 +51,9 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
   flutter_local_notifications: ^22.3.0
+  video_player: ^2.14.0
+  chewie: ^1.17.2
+  cached_network_image: ^4.0.2
 
 
 dev_dependencies:
@@ -63,6 +66,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 
 # For information on the generic Dart part of this file, see the
@@ -120,3 +124,10 @@ flutter:
         - asset: assets/font/AfacadFlux-ExtraBold.ttf
           weight: 800
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/logo.png"
+  remove_alpha_ios: true
