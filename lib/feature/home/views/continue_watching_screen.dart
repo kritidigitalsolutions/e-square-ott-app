@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../models/response/countinue_watching_model.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
-import '../models/movie_model.dart';
 
 class ContinueWatchingScreen extends StatefulWidget {
   const ContinueWatchingScreen({super.key});
@@ -78,16 +78,18 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
                   const SizedBox(height: 10),
                   Expanded(
                     child: Obx(() {
-                      final allItems = controller.continueWatchingList;
+                      final allItems = controller.continueWatchingItems;
                       final filteredItems = _selectedFilter == 'All'
                           ? allItems.toList()
-                          : allItems
-                                .where(
-                                  (m) =>
-                                      (m.genre?.toLowerCase() ?? '') ==
-                                      _selectedFilter.toLowerCase(),
-                                )
-                                .toList();
+                          : allItems.where((item) {
+                              final filter = _selectedFilter.toLowerCase();
+                              return item.drama.genreDisplay
+                                      .toLowerCase()
+                                      .contains(filter) ||
+                                  item.drama.genres.any(
+                                    (g) => g.toLowerCase().contains(filter),
+                                  );
+                            }).toList();
 
                       if (allItems.isEmpty) {
                         return _buildEmptyState();
@@ -121,14 +123,15 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
                                   18,
                                 ),
                                 child: _SpotlightHeroCard(
-                                  movie: filteredItems[0],
-                                  onResume: () => controller.resumeWatching(
+                                  item: filteredItems[0],
+                                  onResume: () =>
+                                      controller.onContinueWatchingItemTap(
                                     filteredItems[0],
                                   ),
                                   onDelete: () =>
                                       controller.removeContinueWatching(
-                                        filteredItems[0].id,
-                                      ),
+                                    filteredItems[0].historyId,
+                                  ),
                                 ),
                               ),
                             ),
@@ -268,7 +271,7 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
             ),
           ),
           Obx(() {
-            final count = controller.continueWatchingList.length;
+            final count = controller.continueWatchingItems.length;
             if (count == 0) return const SizedBox.shrink();
 
             return GestureDetector(
@@ -452,7 +455,7 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
     );
   }
 
-  Widget _buildGridSliver(List<MovieModel> items) {
+  Widget _buildGridSliver(List<ContinueWatchingItem> items) {
     if (items.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
@@ -467,18 +470,18 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
           childAspectRatio: 0.64,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
-          final movie = items[index];
+          final item = items[index];
           return _GridContinueWatchingCard(
-            movie: movie,
-            onTap: () => controller.resumeWatching(movie),
-            onDelete: () => controller.removeContinueWatching(movie.id),
+            item: item,
+            onTap: () => controller.onContinueWatchingItemTap(item),
+            onDelete: () => controller.removeContinueWatching(item.historyId),
           );
         }, childCount: items.length),
       ),
     );
   }
 
-  Widget _buildListSliver(List<MovieModel> items) {
+  Widget _buildListSliver(List<ContinueWatchingItem> items) {
     if (items.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
@@ -487,13 +490,14 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          final movie = items[index];
+          final item = items[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Dismissible(
-              key: ValueKey(movie.id),
+              key: ValueKey(item.historyId),
               direction: DismissDirection.endToStart,
-              onDismissed: (_) => controller.removeContinueWatching(movie.id),
+              onDismissed: (_) =>
+                  controller.removeContinueWatching(item.historyId),
               background: Container(
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.only(right: 20),
@@ -508,9 +512,10 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
                 ),
               ),
               child: _ListContinueWatchingCard(
-                movie: movie,
-                onTap: () => controller.resumeWatching(movie),
-                onDelete: () => controller.removeContinueWatching(movie.id),
+                item: item,
+                onTap: () => controller.onContinueWatchingItemTap(item),
+                onDelete: () =>
+                    controller.removeContinueWatching(item.historyId),
               ),
             ),
           );
@@ -757,12 +762,12 @@ class _ContinueWatchingScreenState extends State<ContinueWatchingScreen> {
 }
 
 class _SpotlightHeroCard extends StatefulWidget {
-  final MovieModel movie;
+  final ContinueWatchingItem item;
   final VoidCallback onResume;
   final VoidCallback onDelete;
 
   const _SpotlightHeroCard({
-    required this.movie,
+    required this.item,
     required this.onResume,
     required this.onDelete,
   });
@@ -776,8 +781,13 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
-    final progress = (movie.progress ?? 0.72).clamp(0.0, 1.0);
+    final item = widget.item;
+    final poster = item.drama.posterUrl.isNotEmpty
+        ? item.drama.posterUrl
+        : item.drama.bannerUrl;
+    final rawProgress = item.playback.progressPercentage;
+    final progress = (rawProgress > 1.0 ? rawProgress / 100.0 : rawProgress)
+        .clamp(0.0, 1.0);
     final percent = (progress * 100).toInt();
 
     return GestureDetector(
@@ -787,7 +797,6 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
       },
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
-      // onTapCancel: (_) => setState(() => _isPressed = false),
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
         scale: _isPressed ? 0.98 : 1.0,
@@ -819,13 +828,20 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  movie.image,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                  errorBuilder: (_, e, s) =>
-                      Container(color: const Color(0xFF181824)),
-                ),
+                if (poster.startsWith('http'))
+                  Image.network(
+                    poster,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, e, s) =>
+                        Container(color: const Color(0xFF181824)),
+                  )
+                else
+                  Image.asset(
+                    poster,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, e, s) =>
+                        Container(color: const Color(0xFF181824)),
+                  ),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -900,7 +916,9 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
                           ),
                         ),
                         child: Text(
-                          movie.episodeInfo ?? 'Episode 4 of 36',
+                          item.episode.seasonEpisodeTag.isNotEmpty
+                              ? item.episode.seasonEpisodeTag
+                              : 'Episode ${item.episode.episodeNumber}',
                           style: const TextStyle(
                             fontFamily: AppTextStyles.fontFamily,
                             color: Colors.white,
@@ -950,7 +968,7 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        movie.title,
+                        item.drama.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -974,7 +992,9 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                movie.remainingTime ?? '18 min remaining',
+                                item.playback.formattedRemaining.isNotEmpty
+                                    ? '${item.playback.formattedRemaining} remaining'
+                                    : 'In progress',
                                 style: const TextStyle(
                                   fontFamily: AppTextStyles.fontFamily,
                                   color: Color(0xFFD0D0E0),
@@ -1031,12 +1051,12 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
 }
 
 class _GridContinueWatchingCard extends StatefulWidget {
-  final MovieModel movie;
+  final ContinueWatchingItem item;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _GridContinueWatchingCard({
-    required this.movie,
+    required this.item,
     required this.onTap,
     required this.onDelete,
   });
@@ -1051,8 +1071,13 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
-    final progress = (movie.progress ?? 0.65).clamp(0.0, 1.0);
+    final item = widget.item;
+    final poster = item.drama.posterUrl.isNotEmpty
+        ? item.drama.posterUrl
+        : item.drama.bannerUrl;
+    final rawProgress = item.playback.progressPercentage;
+    final progress = (rawProgress > 1.0 ? rawProgress / 100.0 : rawProgress)
+        .clamp(0.0, 1.0);
     final percent = (progress * 100).toInt();
 
     return GestureDetector(
@@ -1062,7 +1087,6 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
       },
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
-      // onTapCancel: (_) => setState(() => _isPressed = false),
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
         scale: _isPressed ? 0.96 : 1.0,
@@ -1093,20 +1117,36 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(
-                        movie.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, e, s) => Container(
-                          color: const Color(0xFF1E1E2C),
-                          child: const Center(
-                            child: FaIcon(
-                              FontAwesomeIcons.film,
-                              color: Colors.white24,
-                              size: 24,
+                      if (poster.startsWith('http'))
+                        Image.network(
+                          poster,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, e, s) => Container(
+                            color: const Color(0xFF1E1E2C),
+                            child: const Center(
+                              child: FaIcon(
+                                FontAwesomeIcons.film,
+                                color: Colors.white24,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Image.asset(
+                          poster,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, e, s) => Container(
+                            color: const Color(0xFF1E1E2C),
+                            child: const Center(
+                              child: FaIcon(
+                                FontAwesomeIcons.film,
+                                color: Colors.white24,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
@@ -1143,9 +1183,9 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                             ],
                           ),
                           child: Text(
-                            movie.episodeInfo != null
-                                ? movie.episodeInfo!.split(' of ').first
-                                : 'EP 3',
+                            item.episode.seasonEpisodeTag.isNotEmpty
+                                ? item.episode.seasonEpisodeTag
+                                : 'EP ${item.episode.episodeNumber}',
                             style: const TextStyle(
                               fontFamily: AppTextStyles.fontFamily,
                               color: Colors.white,
@@ -1225,7 +1265,9 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              movie.remainingTime ?? '12m left',
+                              item.playback.formattedRemaining.isNotEmpty
+                                  ? item.playback.formattedRemaining
+                                  : 'In progress',
                               style: const TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
                                 color: Colors.white,
@@ -1245,7 +1287,7 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        movie.title,
+                        item.drama.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1310,12 +1352,12 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
 }
 
 class _ListContinueWatchingCard extends StatefulWidget {
-  final MovieModel movie;
+  final ContinueWatchingItem item;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _ListContinueWatchingCard({
-    required this.movie,
+    required this.item,
     required this.onTap,
     required this.onDelete,
   });
@@ -1330,8 +1372,13 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
-    final progress = (movie.progress ?? 0.65).clamp(0.0, 1.0);
+    final item = widget.item;
+    final poster = item.drama.posterUrl.isNotEmpty
+        ? item.drama.posterUrl
+        : item.drama.bannerUrl;
+    final rawProgress = item.playback.progressPercentage;
+    final progress = (rawProgress > 1.0 ? rawProgress / 100.0 : rawProgress)
+        .clamp(0.0, 1.0);
     final percent = (progress * 100).toInt();
 
     return GestureDetector(
@@ -1341,7 +1388,6 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
       },
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
-      // onTapCancel: (_) => setState(() => _isPressed = false),
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
         scale: _isPressed ? 0.98 : 1.0,
@@ -1382,7 +1428,22 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.asset(movie.image, fit: BoxFit.cover),
+                              if (poster.startsWith('http'))
+                                Image.network(
+                                  poster,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, e, s) => Container(
+                                    color: const Color(0xFF1E1E2C),
+                                  ),
+                                )
+                              else
+                                Image.asset(
+                                  poster,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, e, s) => Container(
+                                    color: const Color(0xFF1E1E2C),
+                                  ),
+                                ),
                               Positioned(
                                 top: 5,
                                 left: 5,
@@ -1396,9 +1457,9 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                                     borderRadius: BorderRadius.circular(5),
                                   ),
                                   child: Text(
-                                    movie.episodeInfo != null
-                                        ? movie.episodeInfo!.split(' of ').first
-                                        : 'EP 3',
+                                    item.episode.seasonEpisodeTag.isNotEmpty
+                                        ? item.episode.seasonEpisodeTag
+                                        : 'EP ${item.episode.episodeNumber}',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 8.5,
@@ -1441,7 +1502,7 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    movie.title,
+                                    item.drama.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -1470,7 +1531,9 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              movie.episodeInfo ?? 'Episode 3 of 42',
+                              item.episode.title.isNotEmpty
+                                  ? item.episode.title
+                                  : 'Episode ${item.episode.episodeNumber}',
                               style: const TextStyle(
                                 fontFamily: AppTextStyles.fontFamily,
                                 color: Color(0xFF9E9EAE),
@@ -1483,7 +1546,9 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  movie.remainingTime ?? '12 min left',
+                                  item.playback.formattedRemaining.isNotEmpty
+                                      ? '${item.playback.formattedRemaining} left'
+                                      : 'In progress',
                                   style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     color: Color(0xFF8E8E9F),

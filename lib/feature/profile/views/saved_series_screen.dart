@@ -1,13 +1,15 @@
+import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../models/response/saved_series_response.dart';
 import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
-import '../controller/profile_controller.dart';
+import '../../home/controller/whislist_controller.dart';
 
 class SavedSeriesScreen extends StatefulWidget {
   const SavedSeriesScreen({super.key});
@@ -17,10 +19,12 @@ class SavedSeriesScreen extends StatefulWidget {
 }
 
 class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
-  late final ProfileController controller =
-      Get.isRegistered<ProfileController>()
-          ? Get.find<ProfileController>()
-          : Get.put(ProfileController());
+  late final WhislistController controller =
+      Get.isRegistered<WhislistController>()
+          ? Get.find<WhislistController>()
+          : Get.put(WhislistController());
+
+  final ScrollController _scrollController = ScrollController();
   String _selectedGenre = 'All';
 
   final List<String> _genres = const [
@@ -29,7 +33,31 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
     'Drama',
     'Mystery',
     'Action',
+    'Comedy',
+    'Thriller',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    controller.getAllSavedWhislist();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        controller.isMoreWhislist.value &&
+        controller.getOtherWhislistStatus.value != Status.loading) {
+      controller.getOtherWhislist();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +67,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // ── Background
+          // ── Background Gradient
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -89,7 +117,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                           ),
                           const SizedBox(width: 8),
                           Obx(() {
-                            final count = controller.savedSeriesList.length;
+                            final count = controller.totalSavedCount;
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
@@ -241,37 +269,121 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                   );
                 }),
 
-                // ── Saved Series List / Empty State
+                // ── Saved Series List / Empty / Loading State
                 Expanded(
                   child: Obx(() {
+                    final status = controller.getAllSavedWhislistStatus.value;
                     final allItems = controller.savedSeriesList;
+
+                    if (status == Status.loading && allItems.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      );
+                    }
+
+                    if (status == Status.error && allItems.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const FaIcon(
+                              FontAwesomeIcons.circleExclamation,
+                              color: Colors.white54,
+                              size: 36,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Failed to load saved series'.tr,
+                              style: AppTextStyles.text14Medium.copyWith(
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  controller.getAllSavedWhislist(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text('Retry'.tr),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     final filtered = _selectedGenre == 'All'
                         ? allItems
-                        : allItems
-                            .where(
-                              (e) =>
-                                  e.category.toLowerCase() ==
-                                  _selectedGenre.toLowerCase(),
-                            )
-                            .toList();
+                        : allItems.where((e) {
+                            final genre = _selectedGenre.toLowerCase();
+                            return e.drama.genreDisplay
+                                    .toLowerCase()
+                                    .contains(genre) ||
+                                e.drama.genres.any(
+                                  (g) => g.toLowerCase().contains(genre),
+                                );
+                          }).toList();
 
                     if (filtered.isEmpty) {
                       return _buildEmptyState();
                     }
 
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = filtered[index];
-                        return _SavedSeriesCard(
-                          item: item,
-                          onRemove: () =>
-                              controller.removeSavedSeries(item.id),
-                        );
-                      },
+                    return RefreshIndicator(
+                      color: AppColors.primary,
+                      backgroundColor: const Color(0xFF14141E),
+                      onRefresh: () => controller.getAllSavedWhislist(),
+                      child: ListView.separated(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        itemCount: filtered.length +
+                            (controller.getOtherWhislistStatus.value ==
+                                    Status.loading
+                                ? 1
+                                : 0),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          if (index == filtered.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final item = filtered[index];
+                          final targetId = item.savedId.isNotEmpty
+                              ? item.savedId
+                              : (item.id.isNotEmpty
+                                  ? item.id
+                                  : item.drama.id);
+
+                          return _SavedSeriesCard(
+                            item: item,
+                            onRemove: () => controller.deleteSavedSeries(
+                              id: targetId,
+                              dramaId: item.drama.id,
+                            ),
+                          );
+                        },
+                      ),
                     );
                   }),
                 ),
@@ -327,8 +439,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Save your favorite dramas and series to watch them anytime.'
-                  .tr,
+              'Save your favorite dramas and series to watch them anytime.'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: AppTextStyles.fontFamily,
@@ -415,7 +526,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
 }
 
 class _SavedSeriesCard extends StatelessWidget {
-  final SavedSeriesModel item;
+  final SavedSeries item;
   final VoidCallback onRemove;
 
   const _SavedSeriesCard({
@@ -425,6 +536,12 @@ class _SavedSeriesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final poster = item.drama.posterUrl.isNotEmpty
+        ? item.drama.posterUrl
+        : (item.drama.bannerUrl.isNotEmpty
+            ? item.drama.bannerUrl
+            : item.drama.poster);
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF12121C),
@@ -454,10 +571,7 @@ class _SavedSeriesCard extends StatelessWidget {
                   HapticFeedback.lightImpact();
                   Get.toNamed(
                     Routes.dramaPlayer,
-                    arguments: {
-                      'title': item.title,
-                      'image': item.posterAsset,
-                    },
+                    arguments: item,
                   );
                 },
                 child: SizedBox(
@@ -468,20 +582,36 @@ class _SavedSeriesCard extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.asset(
-                          item.posterAsset,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF1E1E28),
-                            child: const Center(
-                              child: FaIcon(
-                                FontAwesomeIcons.film,
-                                color: Colors.white24,
-                                size: 22,
+                        if (poster.startsWith('http'))
+                          Image.network(
+                            poster,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1E1E28),
+                              child: const Center(
+                                child: FaIcon(
+                                  FontAwesomeIcons.film,
+                                  color: Colors.white24,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Image.asset(
+                            poster,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1E1E28),
+                              child: const Center(
+                                child: FaIcon(
+                                  FontAwesomeIcons.film,
+                                  color: Colors.white24,
+                                  size: 22,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
                         // Vignette
                         Positioned.fill(
@@ -509,8 +639,8 @@ class _SavedSeriesCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: Colors.black.withValues(alpha: 0.65),
                               border: Border.all(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.8),
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.8),
                                 width: 1,
                               ),
                             ),
@@ -541,7 +671,7 @@ class _SavedSeriesCard extends StatelessWidget {
                   children: [
                     // Title
                     Text(
-                      item.title,
+                      item.drama.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -558,35 +688,39 @@ class _SavedSeriesCard extends StatelessWidget {
                     // Badges row: Category + Episodes
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            item.category.tr,
-                            style: TextStyle(
-                              fontFamily: AppTextStyles.fontFamily,
-                              color: AppColors.primaryLight,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                        if (item.drama.genreDisplay.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              item.drama.genreDisplay.tr,
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: AppColors.primaryLight,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${item.episodes} ${"Episodes".tr}',
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            color: Colors.white.withValues(alpha: 0.6),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                        if (item.drama.genreDisplay.isNotEmpty &&
+                            item.drama.totalEpisodes > 0)
+                          const SizedBox(width: 6),
+                        if (item.drama.totalEpisodes > 0)
+                          Text(
+                            '${item.drama.totalEpisodes} ${"Episodes".tr}',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -599,10 +733,7 @@ class _SavedSeriesCard extends StatelessWidget {
                             HapticFeedback.lightImpact();
                             Get.toNamed(
                               Routes.dramaPlayer,
-                              arguments: {
-                                'title': item.title,
-                                'image': item.posterAsset,
-                              },
+                              arguments: item,
                             );
                           },
                           child: Container(
@@ -632,7 +763,10 @@ class _SavedSeriesCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  'Watch Now'.tr,
+                                  item.watchProgress?.actionLabel.isNotEmpty ==
+                                          true
+                                      ? item.watchProgress!.actionLabel.tr
+                                      : 'Watch Now'.tr,
                                   style: const TextStyle(
                                     fontFamily: AppTextStyles.fontFamily,
                                     color: Color(0xFF0C0B10),

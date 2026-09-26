@@ -11,23 +11,7 @@ import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../auth/datasource/auth_datasource.dart';
 import '../../subscription/controller/subscription_controller.dart';
 
-class SavedSeriesModel {
-  final String id;
-  final String title;
-  final String category;
-  final int episodes;
-  final String posterAsset;
-  final String views;
 
-  const SavedSeriesModel({
-    required this.id,
-    required this.title,
-    required this.category,
-    required this.episodes,
-    required this.posterAsset,
-    required this.views,
-  });
-}
 
 class WatchHistoryItemModel {
   final String id;
@@ -68,52 +52,6 @@ class ProfileController extends GetxController {
   final TextEditingController emailEditController = TextEditingController();
   final TextEditingController phoneEditController = TextEditingController();
   final Rx<Status> updateProfileStatus = Status.init.obs;
-
-  // ── Saved Series Reactive List
-  final RxList<SavedSeriesModel> savedSeriesList = <SavedSeriesModel>[
-    const SavedSeriesModel(
-      id: 'ss1',
-      title: 'FATAL ATTRACTION: DARK MAFIA ROMANCE',
-      category: 'Romance',
-      episodes: 36,
-      posterAsset: AppImages.banner1,
-      views: '5.2k',
-    ),
-    const SavedSeriesModel(
-      id: 'ss2',
-      title: 'FROM DIVORCEE TO BILLIONAIRE BRIDE',
-      category: 'Drama',
-      episodes: 24,
-      posterAsset: AppImages.banner2,
-      views: '7.8k',
-    ),
-    const SavedSeriesModel(
-      id: 'ss3',
-      title: 'SECURITY GUARD KI CEO GF',
-      category: 'Romance',
-      episodes: 18,
-      posterAsset: AppImages.banner3,
-      views: '4.6k',
-    ),
-    const SavedSeriesModel(
-      id: 'ss4',
-      title: 'धोखा A DARK SIDE OF LOVE',
-      category: 'Mystery',
-      episodes: 28,
-      posterAsset: AppImages.mysteryImage,
-      views: '6.1k',
-    ),
-    const SavedSeriesModel(
-      id: 'ss5',
-      title: 'UNDERCOVER BOSS LADY',
-      category: 'Action',
-      episodes: 40,
-      posterAsset: AppImages.actionImage,
-      views: '3.9k',
-    ),
-  ].obs;
-
-  // ── Watch History Reactive List
   final RxList<WatchHistoryItemModel> watchHistoryList =
       <WatchHistoryItemModel>[
         const WatchHistoryItemModel(
@@ -345,23 +283,7 @@ class ProfileController extends GetxController {
     super.onClose();
   }
 
-  // ── Saved Series Actions
-  void removeSavedSeries(String id) {
-    final item = savedSeriesList.firstWhereOrNull((e) => e.id == id);
-    savedSeriesList.removeWhere((e) => e.id == id);
-    AppSnackbar.info(
-      '${item?.title ?? "Series"} has been removed from Saved Series.',
-      title: 'Removed from List',
-    );
-  }
 
-  void clearAllSavedSeries() {
-    savedSeriesList.clear();
-    AppSnackbar.info(
-      'Saved Series list has been cleared.',
-      title: 'List Cleared',
-    );
-  }
 
   // ── Watch History Actions
   void removeWatchHistory(String id) {

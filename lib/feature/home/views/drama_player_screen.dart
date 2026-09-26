@@ -1,8 +1,15 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:e_square_ott_app/feature/home/datasource/home_datasource.dart';
+import 'package:e_square_ott_app/models/response/home_screen_model.dart';
+import 'package:e_square_ott_app/models/response/home_section_model.dart'
+    as section_model;
+import 'package:e_square_ott_app/models/response/saved_series_response.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:video_player/video_player.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_images.dart';
 import '../../../constants/app_text_styles.dart';
@@ -11,14 +18,17 @@ import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
-import '../../explore/models/explore_item_model.dart';
 import '../../subscription/controller/subscription_controller.dart';
 import '../../../models/response/admin_content_model.dart';
 import '../../../models/response/countinue_watching_model.dart';
 import '../../../models/response/drama_response.dart';
 import '../../../models/response/search_discorvey_model.dart';
 import '../../../models/response/search_suggestion_response.dart';
-import '../models/movie_model.dart';
+import '../../../shared/service/storage_service.dart';
+import '../../../shared/widgets/shimmer_loader.dart';
+import '../datasource/search.dart';
+import '../controller/search_tab_controller.dart';
+import '../controller/whislist_controller.dart';
 
 class DramaPlayerScreen extends StatefulWidget {
   const DramaPlayerScreen({super.key});
@@ -32,160 +42,35 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   int _currentEpisodeIndex = 0;
 
   // Drama Details from arguments or default fallback
-  late String _seriesTitle;
-  late String _dramaDescription;
-  late String _backdropImage;
+  String _seriesTitle = 'Drama';
+  String _dramaDescription = '';
+  String _backdropImage = AppImages.banner1;
+  String _videoUrl = '';
+  String _dramaId = '';
+
+  // Video Player Controller & State
+  VideoPlayerController? _videoPlayerController;
+  bool _isInitialized = false;
+  bool _isPlaying = false;
+  bool _showPlayCenterIcon = false;
+  Duration _currentPosition = Duration.zero;
+  Duration _totalDuration = Duration.zero;
 
   // Series Completion & Interaction State
   bool _isInMyList = false;
   bool _isLiked = false;
 
-  final List<Map<String, String>> _recommendedDramas = [
-    {
-      'title': 'THE CEO HAS MY BACK',
-      'plays': '3.5k',
-      'image': AppImages.banner1,
-    },
-    {
-      'title': 'THE BILLIONAIRE HOUSEWIFE',
-      'plays': '3.5k',
-      'image': AppImages.banner3,
-    },
-    {
-      'title': 'UNDERCOVER BOSS LADY',
-      'plays': '3.5k',
-      'image': AppImages.banner2,
-    },
-  ];
+  // Real Recommendations from Search Landing API
+  List<RecommendedDrama> _recommendedDramas = [];
 
   // Playback Settings State
   String _selectedSubtitle = 'Hindi';
   String _selectedQuality = 'Auto';
   String _selectedSpeed = '1x';
 
-  // 12 Total Episodes for the Reel Viewer
-  final List<Map<String, dynamic>> _episodes = [
-    {
-      'episodeNumber': 'S1 · E01',
-      'title': 'Episode 01 · The Beginning',
-      'duration': '2:08',
-      'currentTime': '1:31',
-      'totalTime': '2:14',
-      'progress': 0.70,
-      'status': 'Watched',
-      'isLocked': false,
-    },
-    {
-      'episodeNumber': 'S1 · E02',
-      'title': 'Episode 02 · Hidden Whispers',
-      'duration': '2:15',
-      'currentTime': '0:45',
-      'totalTime': '2:15',
-      'progress': 0.35,
-      'status': 'Watched',
-      'isLocked': false,
-    },
-    {
-      'episodeNumber': 'S1 · E03',
-      'title': 'Episode 03 · The Betrayal',
-      'duration': '2:20',
-      'currentTime': '2:00',
-      'totalTime': '2:20',
-      'progress': 0.90,
-      'status': 'Watched',
-      'isLocked': false,
-    },
-    {
-      'episodeNumber': 'S1 · E04',
-      'title': 'Episode 04 · Forbidden Fire',
-      'duration': '2:18',
-      'currentTime': '0:00',
-      'totalTime': '2:18',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E05',
-      'title': 'Episode 05 · Shattered Vows',
-      'duration': '2:12',
-      'currentTime': '0:00',
-      'totalTime': '2:12',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E06',
-      'title': 'Episode 06 · The Confrontation',
-      'duration': '2:25',
-      'currentTime': '0:00',
-      'totalTime': '2:25',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E07',
-      'title': 'Episode 07 · The Secret',
-      'duration': '2:14',
-      'currentTime': '0:00',
-      'totalTime': '2:14',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E08',
-      'title': 'Episode 08 · Dangerous Game',
-      'duration': '2:30',
-      'currentTime': '0:00',
-      'totalTime': '2:30',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E09',
-      'title': 'Episode 09 · A Dark Lie',
-      'duration': '2:10',
-      'currentTime': '0:00',
-      'totalTime': '2:10',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E10',
-      'title': 'Episode 10 · Redemption',
-      'duration': '2:22',
-      'currentTime': '0:00',
-      'totalTime': '2:22',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E11',
-      'title': 'Episode 11 · The Final Trap',
-      'duration': '2:40',
-      'currentTime': '0:00',
-      'totalTime': '2:40',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-    {
-      'episodeNumber': 'S1 · E12',
-      'title': 'Episode 12 · Forever Mine',
-      'duration': '2:50',
-      'currentTime': '0:00',
-      'totalTime': '2:50',
-      'progress': 0.0,
-      'status': 'Locked',
-      'isLocked': true,
-    },
-  ];
+  // Dynamic Episodes fetched from Backend API
+  List<Map<String, dynamic>> _episodes = [];
+  bool _isLoadingEpisodes = false;
 
   @override
   void initState() {
@@ -195,12 +80,14 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     // Extract arguments from Get.arguments
     final args = Get.arguments;
     if (args is PopularSearch) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.genreDisplay.isNotEmpty
           ? args.genreDisplay
           : 'Rating: ${args.rating} · ${args.viewsFormatted} plays';
       _backdropImage = args.posterUrl;
     } else if (args is RecommendedDrama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.synopsis.isNotEmpty
           ? args.synopsis
@@ -211,20 +98,39 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           ? args.posterUrl
           : args.bannerUrl;
     } else if (args is SearchSuggestion) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.viewsFormatted;
       _backdropImage = args.posterUrl;
     } else if (args is SearchDrama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.slug;
       _backdropImage = args.posterUrl;
     } else if (args is Drama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.synopsis;
       _backdropImage = args.posterUrl.isNotEmpty
           ? args.posterUrl
           : args.bannerUrl;
+    } else if (args is section_model.Drama) {
+      _dramaId = args.id.isNotEmpty ? args.id : args.mongoId;
+      _seriesTitle = args.title.isNotEmpty ? args.title : args.name;
+      _dramaDescription = args.synopsis.isNotEmpty
+          ? args.synopsis
+          : (args.description.isNotEmpty
+              ? args.description
+              : args.genreDisplay);
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : (args.bannerUrl.isNotEmpty
+              ? args.bannerUrl
+              : (args.thumbnailUrl.isNotEmpty
+                  ? args.thumbnailUrl
+                  : AppImages.banner1));
     } else if (args is PriorityDrama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.synopsis.isNotEmpty
           ? args.synopsis
@@ -235,44 +141,69 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           ? args.posterUrl
           : args.bannerUrl;
     } else if (args is ContinueWatchingItem) {
+      _dramaId = args.drama.id;
       _seriesTitle = args.drama.title;
       _dramaDescription = args.drama.genreDisplay;
       _backdropImage = args.drama.posterUrl.isNotEmpty
           ? args.drama.posterUrl
           : args.drama.bannerUrl;
       if (args.episode.episodeNumber > 0) {
-        initialIndex = (args.episode.episodeNumber - 1).clamp(
-          0,
-          _episodes.length - 1,
-        );
+        initialIndex = (args.episode.episodeNumber - 1);
       }
+    } else if (args is HomeBanner) {
+      _dramaId = args.dramaId.isNotEmpty ? args.dramaId : args.id;
+      _seriesTitle = args.title;
+      _dramaDescription = args.synopsis.isNotEmpty
+          ? args.synopsis
+          : (args.tagline.isNotEmpty ? args.tagline : args.genreDisplay);
+      _backdropImage = args.bannerUrl.isNotEmpty
+          ? args.bannerUrl
+          : (args.posterUrl.isNotEmpty ? args.posterUrl : AppImages.banner1);
+      if (args.cta.episodeNumber > 0) {
+        initialIndex = (args.cta.episodeNumber - 1);
+      }
+    } else if (args is SavedSeries) {
+      _dramaId = args.drama.id;
+      _seriesTitle = args.drama.title;
+      _dramaDescription = args.drama.synopsis.isNotEmpty
+          ? args.drama.synopsis
+          : args.drama.genreDisplay;
+      _backdropImage = args.drama.posterUrl.isNotEmpty
+          ? args.drama.posterUrl
+          : (args.drama.bannerUrl.isNotEmpty
+                ? args.drama.bannerUrl
+                : AppImages.banner1);
+      if (args.watchProgress != null &&
+          args.watchProgress!.resumeEpisodeNumber > 0) {
+        initialIndex = (args.watchProgress!.resumeEpisodeNumber - 1);
+      }
+    } else if (args is SavedDrama) {
+      _dramaId = args.id;
+      _seriesTitle = args.title;
+      _dramaDescription = args.synopsis.isNotEmpty
+          ? args.synopsis
+          : args.genreDisplay;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : (args.bannerUrl.isNotEmpty ? args.bannerUrl : AppImages.banner1);
     } else if (args is ContinueWatchingDrama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
       _dramaDescription = args.genreDisplay;
       _backdropImage = args.posterUrl.isNotEmpty
           ? args.posterUrl
           : args.bannerUrl;
-    } else if (args is MovieModel) {
-      _seriesTitle = args.title;
-      _dramaDescription =
-          args.subtitle ??
-          'He finally discovers the truth. But the promise he made could cost him everything.';
-      _backdropImage = args.image;
-    } else if (args is ExploreItemModel) {
-      _seriesTitle = args.title;
-      _dramaDescription = args.description;
-      _backdropImage = args.image;
     } else if (args is Map<String, dynamic>) {
+      _dramaId = args['id'] ?? '';
       _seriesTitle = args['title'] ?? 'If this is Love,\nLet me burn';
       _dramaDescription =
           args['description'] ??
           'He finally discovers the truth. But the promise he made could cost him everything.';
       _backdropImage = args['image'] ?? AppImages.banner1;
+      _videoUrl =
+          args['videoUrl'] ?? args['streamUrl'] ?? '';
       if (args['initialEpisodeIndex'] != null) {
-        initialIndex = (args['initialEpisodeIndex'] as int).clamp(
-          0,
-          _episodes.length - 1,
-        );
+        initialIndex = (args['initialEpisodeIndex'] as int);
       }
     } else {
       _seriesTitle = 'If this is Love,\nLet me burn';
@@ -281,8 +212,313 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       _backdropImage = AppImages.banner1;
     }
 
+    if (Get.isRegistered<WhislistController>()) {
+      _isInMyList = Get.find<WhislistController>().isDramaSaved(_dramaId);
+    } else {
+      final wCtrl = Get.put(WhislistController());
+      _isInMyList = wCtrl.isDramaSaved(_dramaId);
+    }
+
     _currentEpisodeIndex = initialIndex;
     _pageController = PageController(initialPage: initialIndex);
+    _loadRecommendations();
+    _fetchEpisodes(initialIndex);
+  }
+
+  void _fetchEpisodes(int initialIndex) async {
+    if (_dramaId.isEmpty) return;
+    setState(() {
+      _isLoadingEpisodes = true;
+    });
+    try {
+      final res = await HomeDatasource().allEpisode(
+        dramaId: _dramaId,
+        pageNo: 1,
+        limit: 100,
+      );
+      if (res != null && res.data.episodes.isNotEmpty && mounted) {
+        setState(() {
+          _episodes = res.data.episodes.map((ep) {
+            return {
+              'id': ep.id,
+              'episodeNumber': ep.seasonEpisodeTag.isNotEmpty
+                  ? ep.seasonEpisodeTag
+                  : 'S1 · E${ep.episodeNumber.toString().padLeft(2, '0')}',
+              'rawEpisodeNumber': ep.episodeNumber,
+              'title': ep.title.isNotEmpty
+                  ? ep.title
+                  : 'Episode ${ep.episodeNumber}',
+              'duration': ep.formattedDuration.isNotEmpty
+                  ? ep.formattedDuration
+                  : '2:00',
+              'currentTime': '0:00',
+              'totalTime': ep.formattedDuration.isNotEmpty
+                  ? ep.formattedDuration
+                  : '2:00',
+              'progress': 0.0,
+              'status': ep.isLocked
+                  ? 'Locked'
+                  : (ep.watched == true ? 'Watched' : 'Unwatched'),
+              'isLocked': ep.isLocked,
+              'isFree': ep.isFree,
+              'hasAccess': ep.hasAccess,
+              'thumbnailUrl': ep.thumbnailUrl,
+              'videoUrl': ep.videoUrl,
+            };
+          }).toList();
+        });
+        if (_episodes.isNotEmpty) {
+          final targetIndex = initialIndex.clamp(0, _episodes.length - 1);
+          _currentEpisodeIndex = targetIndex;
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(targetIndex);
+          }
+          _initEpisodeVideo(targetIndex);
+        }
+      }
+    } catch (e) {
+      print("[DramaPlayerScreen] _fetchEpisodes error: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingEpisodes = false;
+        });
+      }
+    }
+  }
+
+  void _loadRecommendations() async {
+    if (Get.isRegistered<SearchTabController>()) {
+      final searchCtrl = Get.find<SearchTabController>();
+      if (searchCtrl.recommendedDramas.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _recommendedDramas = searchCtrl.recommendedDramas;
+          });
+        }
+        return;
+      }
+    }
+
+    try {
+      final res = await SearchDatasource().searchDiscovery();
+      if (res != null && res.data.recommendedForYou.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _recommendedDramas = res.data.recommendedForYou;
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _initEpisodeVideo(int index) async {
+    _videoPlayerController?.removeListener(_onVideoUpdate);
+    _videoPlayerController?.dispose();
+    _videoPlayerController = null;
+    _isInitialized = false;
+    _isPlaying = false;
+
+    if (_episodes.isEmpty || index >= _episodes.length) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    final ep = _episodes[index];
+    String rawUrl = (ep['videoUrl'] ?? _videoUrl).toString().trim();
+
+    // If videoUrl not directly in episode list, fetch from episode access
+    if (rawUrl.isEmpty && _dramaId.isNotEmpty) {
+      try {
+        final epNum = ep['rawEpisodeNumber'] ?? (index + 1);
+        final accessRes = await HomeDatasource().episodeAccess(
+          id: _dramaId,
+          episodeId: epNum is int ? epNum : int.tryParse(epNum.toString()) ?? (index + 1),
+        );
+        if (accessRes != null && accessRes.data.episode.videoUrl.isNotEmpty) {
+          rawUrl = accessRes.data.episode.videoUrl.trim();
+          ep['videoUrl'] = rawUrl;
+        }
+      } catch (e) {
+        print("[DramaPlayerScreen] episodeAccess error: $e");
+      }
+    }
+
+    if (rawUrl.isEmpty ||
+        (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://'))) {
+      if (mounted) {
+        setState(() {
+          _isInitialized = false;
+        });
+      }
+      return;
+    }
+
+    VideoFormat? formatHint;
+    final lower = rawUrl.toLowerCase();
+    if (lower.contains('.m3u8') ||
+        lower.contains('/hls/') ||
+        lower.contains('m3u8') ||
+        lower.contains('format=m3u8')) {
+      formatHint = VideoFormat.hls;
+    } else if (lower.contains('.mpd') || lower.contains('/dash/')) {
+      formatHint = VideoFormat.dash;
+    } else if (lower.contains('.mp4')) {
+      formatHint = VideoFormat.other;
+    }
+
+    final token = await StorageService.getToken();
+    final headers = <String, String>{
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+
+    _videoPlayerController =
+        VideoPlayerController.networkUrl(
+            Uri.parse(rawUrl),
+            formatHint: formatHint,
+            httpHeaders: headers,
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+          ..initialize()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = true;
+                    _totalDuration =
+                        _videoPlayerController?.value.duration ?? Duration.zero;
+                  });
+                  _videoPlayerController?.setLooping(false);
+                  _applyCurrentSpeed();
+                  _videoPlayerController?.play();
+                }
+              })
+              .catchError((e) {
+                if (formatHint != null) {
+                  _retryEpisodeWithoutFormatHint(rawUrl);
+                } else {
+                  if (mounted) {
+                    setState(() {
+                      _isInitialized = false;
+                    });
+                  }
+                }
+              });
+
+    _videoPlayerController?.addListener(_onVideoUpdate);
+  }
+
+  void _retryEpisodeWithoutFormatHint(String url) async {
+    _videoPlayerController?.removeListener(_onVideoUpdate);
+    _videoPlayerController?.dispose();
+
+    final token = await StorageService.getToken();
+    final headers = <String, String>{
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+
+    _videoPlayerController =
+        VideoPlayerController.networkUrl(
+            Uri.parse(url),
+            httpHeaders: headers,
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+          ..initialize()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = true;
+                    _totalDuration =
+                        _videoPlayerController?.value.duration ?? Duration.zero;
+                  });
+                  _videoPlayerController?.setLooping(false);
+                  _applyCurrentSpeed();
+                  _videoPlayerController?.play();
+                }
+              })
+              .catchError((e) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = false;
+                  });
+                }
+              });
+    _videoPlayerController?.addListener(_onVideoUpdate);
+  }
+
+  void _onVideoUpdate() {
+    if (mounted && _videoPlayerController != null) {
+      final val = _videoPlayerController!.value;
+      final playing = val.isPlaying;
+      final pos = val.position;
+      final dur = val.duration;
+      if (playing != _isPlaying ||
+          pos.inSeconds != _currentPosition.inSeconds) {
+        setState(() {
+          _isPlaying = playing;
+          _currentPosition = pos;
+          if (dur > Duration.zero) _totalDuration = dur;
+        });
+      }
+      if (val.isInitialized &&
+          dur > Duration.zero &&
+          pos >= dur &&
+          !_videoPlayerController!.value.isLooping) {
+        _onVideoCompleted();
+      }
+    }
+  }
+
+  void _onVideoCompleted() {
+    if (_currentEpisodeIndex < _episodes.length) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _togglePlayPause() {
+    if (_videoPlayerController == null || !_isInitialized) return;
+    HapticFeedback.lightImpact();
+    setState(() {
+      if (_videoPlayerController!.value.isPlaying) {
+        _videoPlayerController?.pause();
+        _showPlayCenterIcon = true;
+      } else {
+        _videoPlayerController?.play();
+        _showPlayCenterIcon = false;
+      }
+    });
+
+    if (_showPlayCenterIcon) {
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (mounted) setState(() => _showPlayCenterIcon = false);
+      });
+    }
+  }
+
+  void _applyCurrentSpeed() {
+    double speed = 1.0;
+    if (_selectedSpeed == '0.75x')
+      speed = 0.75;
+    else if (_selectedSpeed == '1x')
+      speed = 1.0;
+    else if (_selectedSpeed == '1.25x')
+      speed = 1.25;
+    else if (_selectedSpeed == '1.5x')
+      speed = 1.5;
+    else if (_selectedSpeed == '2x')
+      speed = 2.0;
+    _videoPlayerController?.setPlaybackSpeed(speed);
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    if (d.inHours > 0) {
+      return '${d.inHours}:$minutes:$seconds';
+    }
+    return '$minutes:$seconds';
   }
 
   Widget _buildBackdropWidget({BoxFit fit = BoxFit.cover}) {
@@ -303,24 +539,28 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
   @override
   void dispose() {
+    _videoPlayerController?.removeListener(_onVideoUpdate);
+    _videoPlayerController?.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
-  void _toggleMyList() {
-    setState(() {
-      _isInMyList = !_isInMyList;
-    });
-    if (_isInMyList) {
-      AppSnackbar.success(
-        '$_seriesTitle has been added to your Saved Series.',
-        title: 'Added to List',
-      );
+  void _toggleMyList() async {
+    HapticFeedback.lightImpact();
+    if (_dramaId.isNotEmpty) {
+      final whislistController = Get.isRegistered<WhislistController>()
+          ? Get.find<WhislistController>()
+          : Get.put(WhislistController());
+      final res = await whislistController.toggleSavedSeries(dramaId: _dramaId);
+      if (mounted && res != null && res.success) {
+        setState(() {
+          _isInMyList = res.data.isSaved;
+        });
+      }
     } else {
-      AppSnackbar.info(
-        '$_seriesTitle has been removed from your Saved Series.',
-        title: 'Removed from List',
-      );
+      setState(() {
+        _isInMyList = !_isInMyList;
+      });
     }
   }
 
@@ -436,7 +676,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                     selectedValue: _selectedSpeed,
                     onSelect: (val) {
                       setSheetState(() => _selectedSpeed = val);
-                      setState(() => _selectedSpeed = val);
+                      setState(() {
+                        _selectedSpeed = val;
+                        _applyCurrentSpeed();
+                      });
                     },
                   ),
                 ],
@@ -579,6 +822,19 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                 child: Obx(() {
                   final isSubscribed = subController.isSubscribed.value;
 
+                  if (_episodes.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No episodes available'.tr,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontFamily: AppTextStyles.fontFamily,
+                          fontSize: 14,
+                        ),
+                      ),
+                    );
+                  }
+
                   return ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     itemCount: _episodes.length,
@@ -662,7 +918,8 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      ep['title'],
+                                      ep['title']?.toString() ??
+                                          'Episode ${index + 1}',
                                       style: TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
                                         color: Colors.white,
@@ -677,11 +934,11 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       isCurrent
-                                          ? '${ep['totalTime'] ?? ep['duration']} · Now Playing'
-                                          : '${ep['duration']} · ${isLocked ? 'Locked' : 'Watched'}',
-                                      style: TextStyle(
+                                          ? '${ep['totalTime'] ?? ep['duration'] ?? '2:00'} · Now Playing'
+                                          : '${ep['duration'] ?? '2:00'} · ${isLocked ? 'Locked' : 'Watched'}',
+                                      style: const TextStyle(
                                         fontFamily: AppTextStyles.fontFamily,
-                                        color: const Color(0xFF8E8E9E),
+                                        color: Color(0xFF8E8E9E),
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -723,6 +980,14 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       body: Obx(() {
         final isSubscribed = subController.isSubscribed.value;
 
+        if (_isLoadingEpisodes && _episodes.isEmpty && !_isInitialized) {
+          return const DramaPlayerShimmer();
+        }
+
+        if (!_isLoadingEpisodes && _episodes.isEmpty) {
+          return _buildNoEpisodesView();
+        }
+
         return PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.vertical,
@@ -731,17 +996,28 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
             setState(() {
               _currentEpisodeIndex = index;
             });
+            if (_episodes.isNotEmpty && index < _episodes.length) {
+              _initEpisodeVideo(index);
+            } else if (_episodes.isEmpty) {
+              _initEpisodeVideo(0);
+            } else {
+              _videoPlayerController?.pause();
+            }
           },
-          // 12 episodes + 1 series completed page at the end
-          itemCount: _episodes.length + 1,
+          itemCount: _episodes.isNotEmpty ? _episodes.length + 1 : 1,
           itemBuilder: (context, index) {
+            if (_episodes.isEmpty) {
+              return _buildUnlockedEpisodeView({}, 0);
+            }
+
             // End of series / completed page
             if (index == _episodes.length) {
               return _buildSeriesCompletedView();
             }
 
             final ep = _episodes[index];
-            final isLocked = !isSubscribed && index >= 3;
+            final isLocked =
+                !isSubscribed && (ep['isLocked'] == true || index >= 3);
 
             if (isLocked) {
               return _buildLockedEpisodeView(ep, index);
@@ -754,43 +1030,210 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     );
   }
 
-  // ── 1. Unlocked Episode View (Reel Screen matching Screenshot 1 Left)
-  Widget _buildUnlockedEpisodeView(Map<String, dynamic> ep, int index) {
+  // ── 0. Empty State View when no episodes are available
+  Widget _buildNoEpisodesView() {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Backdrop Image
+        // Blurred Backdrop Image
         _buildBackdropWidget(),
 
-        // Gradient Vignette Overlay
-        Positioned.fill(
+        // Dark Blur Filter & Dark Overlay
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withValues(alpha: 0.65),
-                  Colors.transparent,
                   Colors.black.withValues(alpha: 0.85),
+                  Colors.black.withValues(alpha: 0.92),
+                  Colors.black.withValues(alpha: 0.98),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: const [0.0, 0.45, 1.0],
+                stops: const [0.0, 0.5, 1.0],
               ),
             ),
           ),
         ),
 
-        // Top Navigation Bar
+        // Content
         SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildTopNavBar(ep['episodeNumber']),
-              _buildBottomControls(ep),
+              // Top Bar with Back Button
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    CustomBackButton(onTap: () => Get.back()),
+                  ],
+                ),
+              ),
+
+              const Spacer(),
+
+              // Center Empty State Box
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1E1E2A),
+                        border: Border.all(
+                          color: const Color(0xFF323246),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: FaIcon(
+                          FontAwesomeIcons.film,
+                          color: Color(0xFF8E8E9E),
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    Text(
+                      'No episodes available right now'.tr,
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+
+                    Text(
+                      'Episodes for this drama are currently being prepared or updated. Please check back later.'
+                          .tr,
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Color(0xFF8E8E9E),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w400,
+                        height: 1.45,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Primary Button: "Go Back"
+                    AppButton(
+                      label: 'Go Back'.tr,
+                      onPressed: () => Get.back(),
+                      backgroundColor: AppColors.primary,
+                      height: 48,
+                      borderRadius: 12,
+                    ),
+                  ],
+                ),
+              ),
+
+              const Spacer(flex: 2),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  // ── 1. Unlocked Episode View (Reel Screen matching Screenshot 1 Left)
+  Widget _buildUnlockedEpisodeView(Map<String, dynamic> ep, int index) {
+    return GestureDetector(
+      onTap: _togglePlayPause,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Video Player or Backdrop Image
+          if (_isInitialized && _videoPlayerController != null)
+            SizedBox.expand(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _videoPlayerController!.value.size.width,
+                  height: _videoPlayerController!.value.size.height,
+                  child: VideoPlayer(_videoPlayerController!),
+                ),
+              ),
+            )
+          else
+            _buildBackdropWidget(),
+
+          // Gradient Vignette Overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withValues(alpha: 0.65),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.85),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.0, 0.45, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // Center Play/Pause Indicator
+          if (_showPlayCenterIcon || (!_isPlaying && _isInitialized))
+            Center(
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.6),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Center(
+                  child: FaIcon(
+                    _isPlaying ? FontAwesomeIcons.pause : FontAwesomeIcons.play,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ),
+
+          // Top Navigation Bar and Bottom Controls
+          SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildTopNavBar(ep['episodeNumber']?.toString()),
+                _buildBottomControls(ep),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -827,7 +1270,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Top Bar
-              _buildTopNavBar(ep['episodeNumber']),
+              _buildTopNavBar(ep['episodeNumber']?.toString()),
 
               // Center Paywall Box (Lock badge, Title, Description, Unlock button)
               Padding(
@@ -971,7 +1414,11 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   }
 
   // ── Top Bar Navigation
-  Widget _buildTopNavBar(String episodeNumber) {
+  Widget _buildTopNavBar(String? episodeNumber) {
+    final epText = (episodeNumber != null && episodeNumber.isNotEmpty)
+        ? episodeNumber
+        : 'S1 · E${(_currentEpisodeIndex + 1).toString().padLeft(2, '0')}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -990,7 +1437,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                 border: Border.all(color: const Color(0xFF2E2E3E), width: 1),
               ),
               child: Text(
-                episodeNumber,
+                epText,
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: Colors.white,
@@ -1018,7 +1465,8 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
   // ── Bottom Controls (Episodes > button, Title, Description, Progress bar)
   Widget _buildBottomControls(Map<String, dynamic> ep) {
-    final isLastEpisode = ep['episodeNumber'] == 'S1 · E12';
+    final isLastEpisode = ep['episodeNumber'] == 'S1 · E12' ||
+        (_episodes.isNotEmpty && _currentEpisodeIndex == _episodes.length - 1);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -1141,29 +1589,47 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Playback Progress Bar (Red + White/Grey)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: ((ep['progress'] as double) * 100).toInt().clamp(
-                    1,
-                    100,
-                  ),
-                  child: Container(height: 3, color: const Color(0xFFE42429)),
+          // Playback Progress Bar (Scrubbable / Live indicator)
+          if (_isInitialized && _videoPlayerController != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: VideoProgressIndicator(
+                _videoPlayerController!,
+                allowScrubbing: true,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                colors: const VideoProgressColors(
+                  playedColor: Color(0xFFE42429),
+                  bufferedColor: Colors.white30,
+                  backgroundColor: Colors.white12,
                 ),
-                Expanded(
-                  flex: (((1.0 - (ep['progress'] as double)) * 100).toInt())
-                      .clamp(0, 100),
-                  child: Container(
-                    height: 3,
-                    color: Colors.white.withValues(alpha: 0.5),
+              ),
+            )
+          else
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: (((ep['progress'] as num?)?.toDouble() ?? 0.0) * 100)
+                        .toInt()
+                        .clamp(1, 100),
+                    child: Container(height: 3, color: const Color(0xFFE42429)),
                   ),
-                ),
-              ],
+                  Expanded(
+                    flex: (((1.0 -
+                                    ((ep['progress'] as num?)?.toDouble() ??
+                                        0.0)) *
+                                100)
+                            .toInt())
+                        .clamp(0, 100),
+                    child: Container(
+                      height: 3,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 6),
 
           // Timestamps: 1:31 / 2:14
@@ -1171,7 +1637,9 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                ep['currentTime'],
+                (_isInitialized && _videoPlayerController != null)
+                    ? _formatDuration(_currentPosition)
+                    : (ep['currentTime']?.toString() ?? '0:00'),
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: Color(0xFFA0A0B0),
@@ -1180,7 +1648,13 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                 ),
               ),
               Text(
-                ep['totalTime'],
+                (_isInitialized &&
+                        _videoPlayerController != null &&
+                        _totalDuration > Duration.zero)
+                    ? _formatDuration(_totalDuration)
+                    : (ep['totalTime']?.toString() ??
+                        ep['duration']?.toString() ??
+                        '2:00'),
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: Color(0xFFA0A0B0),
@@ -1447,31 +1921,23 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                       const SizedBox(height: 32),
 
                       // ── "Recommended for you" Section
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Recommended for you',
-                          style: AppTextStyles.text18Bold.copyWith(
-                            color: Colors.white,
+                      if (_recommendedDramas.isNotEmpty) ...[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Recommended for you'.tr,
+                            style: AppTextStyles.text18Bold.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
+                        const SizedBox(height: 14),
 
-                      // 3 Recommended Drama Poster Cards
-                      Row(
-                        children: _recommendedDramas.map((drama) {
-                          return Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              child: _buildRecommendedPosterCard(drama),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 24),
+                        // 3-Column Grid for real Search Landing Recommendations
+                        _buildRecommendedGrid(_recommendedDramas),
+                        const SizedBox(height: 28),
+                      ],
                     ],
                   ),
                 ),
@@ -1483,73 +1949,157 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     );
   }
 
-  Widget _buildRecommendedPosterCard(Map<String, String> drama) {
+  Widget _buildRecommendedGrid(List<RecommendedDrama> dramas) {
+    final rows = <List<RecommendedDrama>>[];
+    for (int i = 0; i < dramas.length; i += 3) {
+      rows.add(
+        dramas.sublist(i, i + 3 > dramas.length ? dramas.length : i + 3),
+      );
+    }
+
+    return Column(
+      children: [
+        for (int r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int c = 0; c < 3; c++) ...[
+                if (c > 0) const SizedBox(width: 10),
+                if (c < rows[r].length)
+                  Expanded(child: _buildRecommendedPosterCard(rows[r][c]))
+                else
+                  const Expanded(child: SizedBox()),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildRecommendedPosterCard(RecommendedDrama drama) {
+    final poster = drama.posterUrl.isNotEmpty
+        ? drama.posterUrl
+        : drama.bannerUrl;
+
     return GestureDetector(
       onTap: () {
+        HapticFeedback.lightImpact();
         Get.offNamed(
           Routes.dramaPlayer,
-          arguments: {'title': drama['title'], 'image': drama['image']},
+          arguments: drama,
           preventDuplicates: false,
         );
       },
-      child: AspectRatio(
-        aspectRatio: 0.68,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFF161620),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  drama['image']!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, e, s) => Container(
-                    color: const Color(0xFF22222E),
-                    child: const Icon(Icons.movie, color: Colors.white30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 0.68,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF161620),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const FaIcon(
-                          FontAwesomeIcons.play,
-                          color: Colors.white,
-                          size: 8,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          drama['plays']!,
-                          style: const TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      poster,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF22222E),
+                        child: const Center(
+                          child: FaIcon(
+                            FontAwesomeIcons.film,
+                            color: Colors.white24,
+                            size: 20,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    if (drama.viewsFormatted.isNotEmpty || drama.rating > 0)
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.72),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FaIcon(
+                                drama.rating > 0
+                                    ? FontAwesomeIcons.solidStar
+                                    : FontAwesomeIcons.play,
+                                color: drama.rating > 0
+                                    ? const Color(0xFFFFD700)
+                                    : Colors.white,
+                                size: 8,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                drama.viewsFormatted.isNotEmpty
+                                    ? drama.viewsFormatted
+                                    : drama.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: 6),
+          Text(
+            drama.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (drama.genreDisplay.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              drama.genreDisplay,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF8A8A9E),
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -100,6 +100,7 @@ class ContinueWatchingDrama {
   final String slug;
   final String posterUrl;
   final String bannerUrl;
+  final String trailerUrl;
   final double rating;
   final int totalEpisodes;
   final List<String> genres;
@@ -111,6 +112,7 @@ class ContinueWatchingDrama {
     required this.slug,
     required this.posterUrl,
     required this.bannerUrl,
+    this.trailerUrl = '',
     required this.rating,
     required this.totalEpisodes,
     required this.genres,
@@ -125,6 +127,9 @@ class ContinueWatchingDrama {
       posterUrl: (json['posterUrl'] ?? json['poster'] ?? json['image'] ?? '')
           .toString(),
       bannerUrl: (json['bannerUrl'] ?? json['banner'] ?? '').toString(),
+      trailerUrl:
+          (json['trailerUrl'] ?? json['trailer'] ?? json['videoUrl'] ?? '')
+              .toString(),
       rating: json['rating'] is num
           ? (json['rating'] as num).toDouble()
           : double.tryParse(json['rating']?.toString() ?? '0.0') ?? 0.0,
@@ -215,7 +220,7 @@ class PlaybackHistory {
       progressPercentage: json['progressPercentage'] is num
           ? (json['progressPercentage'] as num).toDouble()
           : double.tryParse(json['progressPercentage']?.toString() ?? '0.0') ??
-              0.0,
+                0.0,
       isCompleted: json['isCompleted'] ?? false,
       lastWatchedAt: json['lastWatchedAt'] != null
           ? DateTime.tryParse(json['lastWatchedAt'].toString())

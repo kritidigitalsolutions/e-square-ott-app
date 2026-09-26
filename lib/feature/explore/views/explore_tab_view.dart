@@ -9,8 +9,10 @@ import '../../../constants/app_text_styles.dart';
 import '../../../constants/enum.dart';
 import '../../../models/response/admin_content_model.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
+import '../../../shared/widgets/shimmer_loader.dart';
 import '../controller/explore_controller.dart';
 
 class ExploreTabView extends StatelessWidget {
@@ -28,9 +30,7 @@ class ExploreTabView extends StatelessWidget {
       body: Obx(() {
         if (controller.exploreStatus.value == Status.loading &&
             controller.exploreList.isEmpty) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
+          return const ExploreReelShimmer();
         }
 
         if (controller.exploreStatus.value == Status.error &&
@@ -100,7 +100,6 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
   bool _isInitialized = false;
   bool _isPlaying = false;
   bool _showPlayIcon = false;
-  bool _showHeartAnimation = false;
   bool _isExpanded = false;
 
   @override
@@ -109,13 +108,36 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
     _initVideoIfActive();
   }
 
-  void _initVideoIfActive() {
+  void _initVideoIfActive() async {
     final trailerUrl = widget.drama.trailerUrl.trim();
     if (trailerUrl.isNotEmpty &&
         (trailerUrl.startsWith('http://') ||
             trailerUrl.startsWith('https://'))) {
+      VideoFormat? formatHint;
+      final lower = trailerUrl.toLowerCase();
+      if (lower.contains('.m3u8') ||
+          lower.contains('/hls/') ||
+          lower.contains('m3u8') ||
+          lower.contains('format=m3u8')) {
+        formatHint = VideoFormat.hls;
+      } else if (lower.contains('.mpd') || lower.contains('/dash/')) {
+        formatHint = VideoFormat.dash;
+      } else if (lower.contains('.mp4')) {
+        formatHint = VideoFormat.other;
+      }
+
+      final token = await StorageService.getToken();
+      final headers = <String, String>{
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
       _videoPlayerController =
-          VideoPlayerController.networkUrl(Uri.parse(trailerUrl))
+          VideoPlayerController.networkUrl(
+              Uri.parse(trailerUrl),
+              formatHint: formatHint,
+              httpHeaders: headers,
+              videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+            )
             ..initialize()
                 .then((_) {
                   if (mounted) {
@@ -127,15 +149,55 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                   }
                 })
                 .catchError((e) {
-                  if (mounted) {
-                    setState(() {
-                      _isInitialized = false;
-                    });
+                  if (formatHint != null) {
+                    _retryWithoutFormatHint(trailerUrl);
+                  } else {
+                    if (mounted) {
+                      setState(() {
+                        _isInitialized = false;
+                      });
+                    }
                   }
                 });
 
       _videoPlayerController?.addListener(_onVideoUpdate);
     }
+  }
+
+  void _retryWithoutFormatHint(String url) async {
+    _videoPlayerController?.removeListener(_onVideoUpdate);
+    _videoPlayerController?.dispose();
+
+    final token = await StorageService.getToken();
+    final headers = <String, String>{
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+
+    _videoPlayerController =
+        VideoPlayerController.networkUrl(
+            Uri.parse(url),
+            httpHeaders: headers,
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+          ..initialize()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = true;
+                  });
+                  _videoPlayerController?.setLooping(true);
+                  _syncPlaybackWithIndex();
+                }
+              })
+              .catchError((e) {
+                if (mounted) {
+                  setState(() {
+                    _isInitialized = false;
+                  });
+                }
+              });
+
+    _videoPlayerController?.addListener(_onVideoUpdate);
   }
 
   void _onVideoUpdate() {
@@ -194,17 +256,6 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
     }
   }
 
-  void _onDoubleTap() {
-    HapticFeedback.mediumImpact();
-    controller.toggleLike(widget.drama.id);
-    setState(() {
-      _showHeartAnimation = true;
-    });
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) setState(() => _showHeartAnimation = false);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final drama = widget.drama;
@@ -230,7 +281,6 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
 
       return GestureDetector(
         onTap: _togglePlayPause,
-        onDoubleTap: _onDoubleTap,
         behavior: HitTestBehavior.opaque,
         child: Stack(
           fit: StackFit.expand,
@@ -312,27 +362,7 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                 ),
               ),
 
-            // ── 4. Double Tap Heart Burst Animation
-            if (_showHeartAnimation)
-              Center(
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.2),
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.elasticOut,
-                  builder: (context, scale, child) {
-                    return Transform.scale(
-                      scale: scale,
-                      child: const FaIcon(
-                        FontAwesomeIcons.solidHeart,
-                        color: Color(0xFFFF2A6D),
-                        size: 90,
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-            // ── 5. Right Floating Action Column (Reels Sidebar)
+            // ── 4. Right Floating Action Column (Reels Sidebar)
             Positioned(
               right: 14,
               bottom: 110,
@@ -349,17 +379,6 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Like Button
-                  _buildFloatingAction(
-                    icon: FontAwesomeIcons.solidHeart,
-                    label: '${drama.viewsCount > 0 ? drama.viewsCount : 420}',
-                    iconColor: controller.likedDramaIds.contains(drama.id)
-                        ? const Color(0xFFFF2A6D)
-                        : Colors.white,
-                    onTap: () => controller.toggleLike(drama.id),
-                  ),
-                  const SizedBox(height: 18),
-
                   // Episodes Drawer Button
                   _buildFloatingAction(
                     icon: FontAwesomeIcons.layerGroup,
@@ -369,16 +388,17 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                   const SizedBox(height: 18),
 
                   // Watchlist (+ My List) Button
-                  _buildFloatingAction(
-                    icon: controller.myWatchlistDramaIds.contains(drama.id)
-                        ? FontAwesomeIcons.check
-                        : FontAwesomeIcons.plus,
-                    label: 'My List',
-                    iconColor: controller.myWatchlistDramaIds.contains(drama.id)
-                        ? AppColors.primary
-                        : Colors.white,
-                    onTap: () => controller.toggleMyList(drama),
-                  ),
+                  Obx(() {
+                    final isInList = controller.isDramaInMyList(drama.id);
+                    return _buildFloatingAction(
+                      icon: isInList
+                          ? FontAwesomeIcons.check
+                          : FontAwesomeIcons.plus,
+                      label: 'My List',
+                      iconColor: isInList ? AppColors.primary : Colors.white,
+                      onTap: () => controller.toggleMyList(drama),
+                    );
+                  }),
                 ],
               ),
             ),

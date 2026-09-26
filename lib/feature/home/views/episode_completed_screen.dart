@@ -10,8 +10,16 @@ import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
-import '../../explore/models/explore_item_model.dart';
-import '../models/movie_model.dart';
+import '../../../models/response/admin_content_model.dart';
+import '../../../models/response/countinue_watching_model.dart';
+import '../../../models/response/drama_response.dart';
+import '../../../models/response/home_screen_model.dart';
+import '../../../models/response/home_section_model.dart' as section_model;
+import '../../../models/response/saved_series_response.dart';
+import '../../../models/response/search_discorvey_model.dart';
+import 'package:e_square_ott_app/feature/home/controller/whislist_controller.dart';
+import '../controller/search_tab_controller.dart';
+import '../datasource/search.dart';
 
 class EpisodeCompletedScreen extends StatefulWidget {
   const EpisodeCompletedScreen({super.key});
@@ -21,63 +29,133 @@ class EpisodeCompletedScreen extends StatefulWidget {
 }
 
 class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
-  late String _seriesTitle;
-  late String _backdropImage;
+  String _seriesTitle = 'The Last Promise';
+  String _backdropImage = AppImages.banner1;
+  String _dramaId = '';
   bool _isInMyList = false;
   bool _isLiked = false;
 
-  final List<Map<String, String>> _recommendedDramas = [
-    {
-      'title': 'THE CEO HAS MY BACK',
-      'plays': '3.5k',
-      'image': AppImages.banner1,
-    },
-    {
-      'title': 'THE BILLIONAIRE HOUSEWIFE',
-      'plays': '3.5k',
-      'image': AppImages.banner3,
-    },
-    {
-      'title': 'UNDERCOVER BOSS LADY',
-      'plays': '3.5k',
-      'image': AppImages.banner2,
-    },
-  ];
+  List<RecommendedDrama> _recommendedDramas = [];
 
   @override
   void initState() {
     super.initState();
     final args = Get.arguments;
-    if (args is MovieModel) {
+    if (args is PriorityDrama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
-      _backdropImage = args.image;
-    } else if (args is ExploreItemModel) {
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is Drama) {
+      _dramaId = args.id;
       _seriesTitle = args.title;
-      _backdropImage = args.image;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
+    } else if (args is section_model.Drama) {
+      _dramaId = args.id.isNotEmpty ? args.id : args.mongoId;
+      _seriesTitle = args.title.isNotEmpty ? args.title : args.name;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : (args.bannerUrl.isNotEmpty
+              ? args.bannerUrl
+              : (args.thumbnailUrl.isNotEmpty
+                  ? args.thumbnailUrl
+                  : AppImages.banner1));
+    } else if (args is ContinueWatchingItem) {
+      _dramaId = args.drama.id;
+      _seriesTitle = args.drama.title;
+      _backdropImage = args.drama.posterUrl.isNotEmpty
+          ? args.drama.posterUrl
+          : args.drama.bannerUrl;
+    } else if (args is HomeBanner) {
+      _dramaId = args.dramaId.isNotEmpty ? args.dramaId : args.id;
+      _seriesTitle = args.title;
+      _backdropImage = args.bannerUrl.isNotEmpty
+          ? args.bannerUrl
+          : (args.posterUrl.isNotEmpty ? args.posterUrl : AppImages.banner1);
+    } else if (args is SavedSeries) {
+      _dramaId = args.drama.id;
+      _seriesTitle = args.drama.title;
+      _backdropImage = args.drama.posterUrl.isNotEmpty
+          ? args.drama.posterUrl
+          : (args.drama.bannerUrl.isNotEmpty
+                ? args.drama.bannerUrl
+                : AppImages.banner1);
+    } else if (args is SavedDrama) {
+      _dramaId = args.id;
+      _seriesTitle = args.title;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : (args.bannerUrl.isNotEmpty ? args.bannerUrl : AppImages.banner1);
+    } else if (args is RecommendedDrama) {
+      _dramaId = args.id;
+      _seriesTitle = args.title;
+      _backdropImage = args.posterUrl.isNotEmpty
+          ? args.posterUrl
+          : args.bannerUrl;
     } else if (args is Map<String, dynamic>) {
+      _dramaId = args['id'] ?? '';
       _seriesTitle = args['title'] ?? 'The Last Promise';
       _backdropImage = args['image'] ?? AppImages.banner1;
     } else {
       _seriesTitle = 'The Last Promise';
       _backdropImage = AppImages.banner1;
     }
+
+    if (Get.isRegistered<WhislistController>()) {
+      _isInMyList = Get.find<WhislistController>().isDramaSaved(_dramaId);
+    } else {
+      final wCtrl = Get.put(WhislistController());
+      _isInMyList = wCtrl.isDramaSaved(_dramaId);
+    }
+
+    _loadRecommendations();
   }
 
-  void _toggleMyList() {
+  void _loadRecommendations() async {
+    if (Get.isRegistered<SearchTabController>()) {
+      final searchCtrl = Get.find<SearchTabController>();
+      if (searchCtrl.recommendedDramas.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _recommendedDramas = searchCtrl.recommendedDramas;
+          });
+        }
+        return;
+      }
+    }
+
+    try {
+      final res = await SearchDatasource().searchDiscovery();
+      if (res != null && res.data.recommendedForYou.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _recommendedDramas = res.data.recommendedForYou;
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _toggleMyList() async {
     HapticFeedback.lightImpact();
-    setState(() {
-      _isInMyList = !_isInMyList;
-    });
-    if (_isInMyList) {
-      AppSnackbar.success(
-        '$_seriesTitle has been added to your Saved Series.',
-        title: 'Added to List',
-      );
+    if (_dramaId.isNotEmpty) {
+      final whislistController = Get.isRegistered<WhislistController>()
+          ? Get.find<WhislistController>()
+          : Get.put(WhislistController());
+      final res =
+          await whislistController.toggleSavedSeries(dramaId: _dramaId);
+      if (mounted && res != null && res.success) {
+        setState(() {
+          _isInMyList = res.data.isSaved;
+        });
+      }
     } else {
-      AppSnackbar.info(
-        '$_seriesTitle has been removed from your Saved Series.',
-        title: 'Removed from List',
-      );
+      setState(() {
+        _isInMyList = !_isInMyList;
+      });
     }
   }
 
@@ -87,15 +165,9 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
       _isLiked = !_isLiked;
     });
     if (_isLiked) {
-      AppSnackbar.success(
-        'Thank you for liking this drama!',
-        title: 'Rate',
-      );
+      AppSnackbar.success('Thank you for liking this drama!', title: 'Rate');
     } else {
-      AppSnackbar.info(
-        'Your rating has been updated.',
-        title: 'Rate',
-      );
+      AppSnackbar.info('Your rating has been updated.', title: 'Rate');
     }
   }
 
@@ -148,8 +220,10 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
               children: [
                 // Top Header with Back Button & Completed Pill Badge
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -162,10 +236,14 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFF10B981,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.4),
                             width: 1,
                           ),
                         ),
@@ -276,8 +354,9 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                               boxShadow: _isInMyList
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.2),
+                                        color: AppColors.primary.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         blurRadius: 10,
                                       ),
                                     ]
@@ -334,8 +413,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                     border: Border.all(
                                       color: _isLiked
                                           ? AppColors.primary
-                                          : Colors.white
-                                              .withValues(alpha: 0.1),
+                                          : Colors.white.withValues(alpha: 0.1),
                                       width: 1,
                                     ),
                                   ),
@@ -381,7 +459,9 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                                     color: const Color(0xFF14141E),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       width: 1,
                                     ),
                                   ),
@@ -413,49 +493,42 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                         const SizedBox(height: 28),
 
                         // ── "Recommended for you" Section
-                        Row(
-                          children: [
-                            Container(
-                              width: 3.5,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.6),
-                                    blurRadius: 6,
-                                  ),
-                                ],
+                        if (_recommendedDramas.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Container(
+                                width: 3.5,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Recommended for you'.tr,
-                              style: AppTextStyles.text18Bold.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
+                              const SizedBox(width: 8),
+                              Text(
+                                'Recommended for you'.tr,
+                                style: AppTextStyles.text18Bold.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
 
-                        // 3 Recommended Drama Poster Cards
-                        Row(
-                          children: _recommendedDramas.map((drama) {
-                            return Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                child: _buildRecommendedPosterCard(drama),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 20),
+                          // 3-Column Grid for real Search Landing Recommendations
+                          _buildRecommendedGrid(_recommendedDramas),
+                          const SizedBox(height: 24),
+                        ],
                       ],
                     ),
                   ),
@@ -468,110 +541,180 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
     );
   }
 
-  Widget _buildRecommendedPosterCard(Map<String, String> drama) {
+  Widget _buildRecommendedGrid(List<RecommendedDrama> dramas) {
+    final rows = <List<RecommendedDrama>>[];
+    for (int i = 0; i < dramas.length; i += 3) {
+      rows.add(
+        dramas.sublist(i, i + 3 > dramas.length ? dramas.length : i + 3),
+      );
+    }
+
+    return Column(
+      children: [
+        for (int r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int c = 0; c < 3; c++) ...[
+                if (c > 0) const SizedBox(width: 10),
+                if (c < rows[r].length)
+                  Expanded(child: _buildRecommendedPosterCard(rows[r][c]))
+                else
+                  const Expanded(child: SizedBox()),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildRecommendedPosterCard(RecommendedDrama drama) {
+    final poster = drama.posterUrl.isNotEmpty
+        ? drama.posterUrl
+        : drama.bannerUrl;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Get.toNamed(
+        Get.offNamed(
           Routes.dramaPlayer,
-          arguments: {
-            'title': drama['title'],
-            'image': drama['image'],
-          },
+          arguments: drama,
+          preventDuplicates: false,
         );
       },
-      child: AspectRatio(
-        aspectRatio: 0.68,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
-            color: const Color(0xFF141420),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.4),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 0.68,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(13),
+                color: const Color(0xFF141420),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  drama['image']!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, e, s) => Container(
-                    color: const Color(0xFF22222E),
-                    child: const Icon(Icons.movie, color: Colors.white30),
-                  ),
-                ),
-
-                // Bottom gradient for readability
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.8),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.4, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Top Right Plays Badge
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const FaIcon(
-                          FontAwesomeIcons.play,
-                          color: AppColors.primary,
-                          size: 7,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          drama['plays']!,
-                          style: const TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            color: Colors.white,
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w700,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      poster,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF22222E),
+                        child: const Center(
+                          child: FaIcon(
+                            FontAwesomeIcons.film,
+                            color: Colors.white24,
+                            size: 20,
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.75),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (drama.viewsFormatted.isNotEmpty || drama.rating > 0)
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FaIcon(
+                                drama.rating > 0
+                                    ? FontAwesomeIcons.solidStar
+                                    : FontAwesomeIcons.play,
+                                color: drama.rating > 0
+                                    ? const Color(0xFFFFD700)
+                                    : AppColors.primary,
+                                size: 7,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                drama.viewsFormatted.isNotEmpty
+                                    ? drama.viewsFormatted
+                                    : drama.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Colors.white,
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: 6),
+          Text(
+            drama.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (drama.genreDisplay.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              drama.genreDisplay,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: Color(0xFF8A8A9E),
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

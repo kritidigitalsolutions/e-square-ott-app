@@ -84,6 +84,7 @@ class DrawerEpisode {
   final int durationSeconds;
   final String formattedDuration;
   final String thumbnailUrl;
+  final String videoUrl;
   final bool isFree;
   final bool hasAccess;
   final bool isLocked;
@@ -99,6 +100,7 @@ class DrawerEpisode {
     required this.durationSeconds,
     required this.formattedDuration,
     required this.thumbnailUrl,
+    this.videoUrl = '',
     required this.isFree,
     required this.hasAccess,
     required this.isLocked,
@@ -120,6 +122,14 @@ class DrawerEpisode {
       durationSeconds: json['durationSeconds'] ?? 0,
       formattedDuration: json['formattedDuration'] ?? '',
       thumbnailUrl: json['thumbnailUrl'] ?? '',
+      videoUrl: (json['videoUrl'] ??
+              json['streamUrl'] ??
+              json['hlsUrl'] ??
+              json['playbackUrl'] ??
+              json['video'] ??
+              json['url'] ??
+              '')
+          .toString(),
       isFree: json['isFree'] ?? false,
       hasAccess: json['hasAccess'] ?? false,
       isLocked: json['isLocked'] ?? false,

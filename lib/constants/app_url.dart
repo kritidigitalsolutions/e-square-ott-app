@@ -1,5 +1,5 @@
 class AppUrl {
-  static const baseUrl = "http://192.168.1.5:5001/api/v1";
+  static const baseUrl = "http://192.168.1.25:5001/api/v1";
   static const requestOtp = "$baseUrl/auth/request-otp";
   static const verifyOtp = "$baseUrl/auth/verify-otp";
   static const resendOtp = "$baseUrl/auth/resend-otp";
@@ -73,4 +73,31 @@ class AppUrl {
       "$baseUrl/home/content?page=$pageNo&limit=$size&genre=&sortOrder=asc";
   static String countinueWatching({required int pageNo, required int limit}) =>
       "$baseUrl/home/continue-watching?page=$pageNo&limit=$limit";
+  static String homeSection({required int pageNo, required int limit}) =>
+      "$baseUrl/home/sections?page=$pageNo&limit=$limit";
+  static String savedWhistlist({required String dramaId}) =>
+      "$baseUrl/user/saved-series/$dramaId";
+  static String checkWhislist({required String dramaId}) =>
+      "$baseUrl/user/saved-series/check/$dramaId";
+  static String deleteAllSavedSeries = "$baseUrl/user/saved-series";
+  static String removeWhistlist = "$baseUrl/user/saved-series";
+  static String allSavedSeries({
+    required int pageNo,
+    required int limit,
+    String? search,
+    String? genre,
+    String? sortBy,
+  }) {
+    String url = "$baseUrl/user/saved-series?page=$pageNo&limit=$limit";
+    if (search != null) url += "&search=$search";
+    if (genre != null) url += "&genre=$genre";
+    if (sortBy != null) url += "&sortBy=$sortBy";
+    return url;
+  }
+
+  static String singleRemoveWhistlist(String seriesId) {
+    return "$baseUrl/user/saved-series/$seriesId";
+  }
+
+  static String allHomePageBanner = "$baseUrl/home/banners?limit=100";
 }

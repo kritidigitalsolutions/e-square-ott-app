@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
+import '../../../models/response/admin_content_model.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_buttons.dart';
 import '../controller/home_controller.dart';
-import '../models/movie_model.dart';
 
 class NewReleasesScreen extends GetView<HomeController> {
   const NewReleasesScreen({super.key});
@@ -42,13 +43,13 @@ class NewReleasesScreen extends GetView<HomeController> {
                       if (controller.isNewReleaseSearchOpen.value) {
                         return Row(
                           children: [
-                            // Back Button (Always navigates back)
+                            // Back Button
                             CustomBackButton(
                               onTap: () => Get.back(),
                             ),
                             const SizedBox(width: 12),
 
-                            // In-line Search TextField Bar with dedicated Close Button
+                            // In-line Search TextField Bar
                             Expanded(
                               child: Container(
                                 height: 44,
@@ -93,7 +94,6 @@ class NewReleasesScreen extends GetView<HomeController> {
                                         ),
                                       ),
                                     ),
-                                    // Dedicated Close Button to hide search
                                     GestureDetector(
                                       onTap: controller.closeNewReleaseSearch,
                                       behavior: HitTestBehavior.opaque,
@@ -145,7 +145,7 @@ class NewReleasesScreen extends GetView<HomeController> {
                             ),
                           ),
 
-                          // Search Icon Button (Toggles in-line search)
+                          // Search Icon Button
                           GestureDetector(
                             onTap: controller.toggleNewReleaseSearch,
                             behavior: HitTestBehavior.opaque,
@@ -241,11 +241,34 @@ class NewReleasesScreen extends GetView<HomeController> {
                   // ── 2-Column Poster Grid
                   Expanded(
                     child: Obx(() {
-                      final movies = controller.filteredNewReleases;
+                      final allDramas = controller.newReleasesDramas.isNotEmpty
+                          ? controller.newReleasesDramas
+                          : controller.allPriorityDramas;
+                      final genre = controller.selectedNewReleaseGenre.value;
+                      final query = controller.newReleaseSearchQuery.value
+                          .trim()
+                          .toLowerCase();
 
-                      if (movies.isEmpty) {
-                        final isSearching = controller
-                            .newReleaseSearchQuery.value.isNotEmpty;
+                      final dramas = allDramas.where((d) {
+                        final matchesGenre = genre == 'All' ||
+                            d.genreDisplay
+                                .toLowerCase()
+                                .contains(genre.toLowerCase()) ||
+                            d.genres.any(
+                              (g) => g.toLowerCase().contains(genre.toLowerCase()),
+                            );
+                        final matchesQuery = query.isEmpty ||
+                            d.title.toLowerCase().contains(query) ||
+                            d.genreDisplay.toLowerCase().contains(query) ||
+                            d.genres.any(
+                              (g) => g.toLowerCase().contains(query),
+                            );
+                        return matchesGenre && matchesQuery;
+                      }).toList();
+
+                      if (dramas.isEmpty) {
+                        final isSearching =
+                            controller.newReleaseSearchQuery.value.isNotEmpty;
                         return Center(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -285,9 +308,9 @@ class NewReleasesScreen extends GetView<HomeController> {
                           mainAxisSpacing: 14,
                           childAspectRatio: 0.68,
                         ),
-                        itemCount: movies.length,
+                        itemCount: dramas.length,
                         itemBuilder: (context, index) {
-                          return _buildPosterCard(movies[index]);
+                          return _buildPosterCard(dramas[index]);
                         },
                       );
                     }),
@@ -302,9 +325,15 @@ class NewReleasesScreen extends GetView<HomeController> {
   }
 
   // ── Poster Card with Top-Left & Top-Right Badges
-  Widget _buildPosterCard(MovieModel movie) {
+  Widget _buildPosterCard(PriorityDrama drama) {
+    final poster =
+        drama.posterUrl.isNotEmpty ? drama.posterUrl : drama.bannerUrl;
+
     return GestureDetector(
-      onTap: () => controller.onMovieTap(movie),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        controller.onPriorityDramaTap(drama);
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
@@ -320,48 +349,121 @@ class NewReleasesScreen extends GetView<HomeController> {
             fit: StackFit.expand,
             children: [
               // Poster Artwork
-              Image.asset(
-                movie.image,
-                fit: BoxFit.cover,
-                errorBuilder: (_, e, s) => Container(
-                  color: const Color(0xFF22222E),
-                  child: const Icon(
-                    Icons.movie_outlined,
-                    color: Colors.white30,
-                    size: 32,
+              if (poster.startsWith('http'))
+                Image.network(
+                  poster,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, e, s) => Container(
+                    color: const Color(0xFF22222E),
+                    child: const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.film,
+                        color: Colors.white24,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Image.asset(
+                  poster,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, e, s) => Container(
+                    color: const Color(0xFF22222E),
+                    child: const Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.film,
+                        color: Colors.white24,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Gradient Overlay
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.8),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.5, 1.0],
+                    ),
                   ),
                 ),
               ),
 
               // Badges on Top
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 10,
-                      ),
-                      const SizedBox(width: 1),
-                      Text(
-                        movie.plays,
-                        style: const TextStyle(
+              if (drama.viewsFormatted.isNotEmpty)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.play_arrow_rounded,
                           color: Colors.white,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w700,
+                          size: 10,
+                        ),
+                        const SizedBox(width: 1),
+                        Text(
+                          drama.viewsFormatted,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Bottom details
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      drama.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (drama.genreDisplay.isNotEmpty)
+                      Text(
+                        drama.genreDisplay,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: AppColors.primaryLight.withValues(alpha: 0.8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],

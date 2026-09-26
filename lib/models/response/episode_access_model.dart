@@ -106,6 +106,7 @@ class AccessEpisode {
   final String seasonEpisodeTag;
   final String title;
   final int durationSeconds;
+  final String videoUrl;
 
   AccessEpisode({
     required this.id,
@@ -114,6 +115,7 @@ class AccessEpisode {
     required this.seasonEpisodeTag,
     required this.title,
     required this.durationSeconds,
+    this.videoUrl = '',
   });
 
   factory AccessEpisode.fromJson(Map<String, dynamic> json) {
@@ -124,6 +126,14 @@ class AccessEpisode {
       seasonEpisodeTag: json['seasonEpisodeTag'] ?? '',
       title: json['title'] ?? '',
       durationSeconds: json['durationSeconds'] ?? 0,
+      videoUrl: (json['videoUrl'] ??
+              json['streamUrl'] ??
+              json['hlsUrl'] ??
+              json['playbackUrl'] ??
+              json['video'] ??
+              json['url'] ??
+              '')
+          .toString(),
     );
   }
 }

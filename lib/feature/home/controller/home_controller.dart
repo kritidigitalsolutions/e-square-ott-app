@@ -8,6 +8,9 @@ import 'package:e_square_ott_app/models/response/drama_detail_response.dart';
 import 'package:e_square_ott_app/models/response/drama_response.dart';
 import 'package:e_square_ott_app/models/response/episode_access_model.dart';
 import 'package:e_square_ott_app/models/response/episode_drawer_model.dart';
+import 'package:e_square_ott_app/models/response/home_screen_model.dart';
+import 'package:e_square_ott_app/models/response/home_section_model.dart'
+    as section_model;
 import 'package:e_square_ott_app/models/response/playback_progress_response.dart';
 import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +20,6 @@ import '../../../constants/app_images.dart';
 import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../models/category_model.dart';
-import '../models/movie_model.dart';
 
 class HomeController extends GetxController {
   final NotificationDatasource _notificationDatasource =
@@ -33,189 +35,6 @@ class HomeController extends GetxController {
   // ── Notification Unread Count
   final RxInt unreadNotifications = 0.obs;
 
-  // ── Hero 3D Banners
-  final heroBanners = <MovieModel>[
-    const MovieModel(
-      id: 'h1',
-      title: 'If This Is LOVE Let Me Burn',
-      image: AppImages.banner1,
-      subtitle: 'Episode 24 • Romance / Drama',
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'h2',
-      title: 'How SPARKED CEO',
-      image: AppImages.banner2,
-      subtitle: 'Episode 18 • Romantic Comedy',
-      views: '3.1k',
-      plays: '4.2k',
-    ),
-    const MovieModel(
-      id: 'h3',
-      title: 'ATE... KING',
-      image: AppImages.banner3,
-      subtitle: 'Episode 12 • Royal Romance',
-      views: '2.8k',
-      plays: '3.8k',
-    ),
-  ].obs;
-
-  // ── Continue Watching List
-  final continueWatchingList = <MovieModel>[
-    const MovieModel(
-      id: 'cw1',
-      title: 'Fatal Attraction: Dark Mafia Romance',
-      image: AppImages.banner1,
-      episodeInfo: 'Episode 4 of 36',
-      remainingTime: '18 min remaining',
-      progress: 0.72,
-      views: '4.8k',
-      plays: '5.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cw2',
-      title: 'From Divorcee to Billionaire Bride',
-      image: AppImages.banner2,
-      episodeInfo: 'Episode 12 of 24',
-      remainingTime: '8 min remaining',
-      progress: 0.85,
-      views: '6.2k',
-      plays: '7.1k',
-      genre: 'Drama',
-    ),
-    const MovieModel(
-      id: 'cw3',
-      title: 'Security Guard Ki CEO GF',
-      image: AppImages.banner3,
-      episodeInfo: 'Episode 2 of 18',
-      remainingTime: '24 min remaining',
-      progress: 0.35,
-      views: '3.4k',
-      plays: '4.2k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cw4',
-      title: 'Undercover Billionaire Heir',
-      image: AppImages.actionImage,
-      episodeInfo: 'Episode 7 of 40',
-      remainingTime: '14 min remaining',
-      progress: 0.54,
-      views: '5.1k',
-      plays: '6.0k',
-      genre: 'Action',
-    ),
-    const MovieModel(
-      id: 'cw5',
-      title: 'Zinda Hoon Main: Revenge',
-      image: AppImages.thrillerImage,
-      episodeInfo: 'Episode 19 of 20',
-      remainingTime: '6 min remaining',
-      progress: 0.92,
-      views: '8.4k',
-      plays: '9.8k',
-      genre: 'Thriller',
-    ),
-  ].obs;
-
-  // ── New Releases List
-  final newReleasesList = <MovieModel>[
-    const MovieModel(
-      id: 'nr1',
-      title: 'SECURITY GUARD KI CEO GF',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'nr2',
-      title: 'ZINDA HOON MAIN',
-      image: AppImages.banner2,
-      views: '3.5k',
-      plays: '3.5k',
-      genre: 'Drama',
-    ),
-    const MovieModel(
-      id: 'nr3',
-      title: 'MY WIFE Rented Me Out',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Mystery',
-    ),
-  ].obs;
-
-  // ── Full All New Releases List (2-Column Grid matching New Releases Screen)
-  final allNewReleasesList = <MovieModel>[
-    const MovieModel(
-      id: 'anr1',
-      title: 'SECURITY GUARD KI CEO GF',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'anr2',
-      title: 'ZINDA HOON MAIN',
-      image: AppImages.banner2,
-      views: '3.5k',
-      plays: '3.5k',
-      genre: 'Drama',
-    ),
-    const MovieModel(
-      id: 'anr3',
-      title: 'MY WIFE Rented Me Out',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Mystery',
-    ),
-    const MovieModel(
-      id: 'anr4',
-      title: 'धोखा A Dark Side of Love',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Drama',
-    ),
-    const MovieModel(
-      id: 'anr5',
-      title: 'SECURITY GUARD KI CEO GF',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'anr6',
-      title: 'ZINDA HOON MAIN',
-      image: AppImages.banner2,
-      views: '3.5k',
-      plays: '3.5k',
-      genre: 'Drama',
-    ),
-    const MovieModel(
-      id: 'anr7',
-      title: 'MY WIFE Rented Me Out',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Mystery',
-    ),
-    const MovieModel(
-      id: 'anr8',
-      title: 'धोखा A Dark Side of Love',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Drama',
-    ),
-  ].obs;
-
   // ── Genre Filter & Search State for New Releases
   final RxString selectedNewReleaseGenre = 'All'.obs;
   final List<String> newReleaseGenres = const [
@@ -224,6 +43,8 @@ class HomeController extends GetxController {
     'Drama',
     'Mystery',
     'Comedy',
+    'Action',
+    'Thriller',
   ];
 
   final RxBool isNewReleaseSearchOpen = false.obs;
@@ -231,17 +52,23 @@ class HomeController extends GetxController {
       TextEditingController();
   final RxString newReleaseSearchQuery = ''.obs;
 
-  List<MovieModel> get filteredNewReleases {
+  List<PriorityDrama> get filteredNewReleases {
     final genre = selectedNewReleaseGenre.value;
     final query = newReleaseSearchQuery.value.trim().toLowerCase();
+    final dramas = newReleasesDramas.isNotEmpty
+        ? newReleasesDramas
+        : allPriorityDramas;
 
-    return allNewReleasesList.where((m) {
+    return dramas.where((m) {
       final matchesGenre =
-          genre == 'All' || (m.genre?.toLowerCase() == genre.toLowerCase());
+          genre == 'All' ||
+          m.genreDisplay.toLowerCase().contains(genre.toLowerCase()) ||
+          m.genres.any((g) => g.toLowerCase().contains(genre.toLowerCase()));
       final matchesQuery =
           query.isEmpty ||
           m.title.toLowerCase().contains(query) ||
-          (m.genre?.toLowerCase().contains(query) ?? false);
+          m.genreDisplay.toLowerCase().contains(query) ||
+          m.genres.any((g) => g.toLowerCase().contains(query));
       return matchesGenre && matchesQuery;
     }).toList();
   }
@@ -384,104 +211,6 @@ class HomeController extends GetxController {
     ),
   ].obs;
 
-  // ── Trending Top Ranked List (1, 2, 3, 4)
-  final trendingList = <MovieModel>[
-    const MovieModel(
-      id: 'tr1',
-      title: 'SECURITY GUARD KI CEO GF',
-      image: AppImages.banner1,
-      ranking: 1,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'tr2',
-      title: 'ZINDA HOON MAIN',
-      image: AppImages.banner2,
-      ranking: 2,
-      views: '3.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'tr3',
-      title: 'MY WIFE Rented Me Out',
-      image: AppImages.banner3,
-      ranking: 3,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'tr4',
-      title: 'धोखा A Dark Side of Love',
-      image: AppImages.banner1,
-      ranking: 4,
-      views: '2.5k',
-      plays: '3.8k',
-    ),
-    const MovieModel(
-      id: 'tr5',
-      title: 'THE CEO HAS MY BACK',
-      image: AppImages.banner2,
-      ranking: 5,
-      views: '4.1k',
-      plays: '4.8k',
-    ),
-    const MovieModel(
-      id: 'tr6',
-      title: 'UNDERCOVER BOSS LADY',
-      image: AppImages.banner3,
-      ranking: 6,
-      views: '3.9k',
-      plays: '4.2k',
-    ),
-  ].obs;
-
-  // ── Recommended for You List
-  final recommendedList = <MovieModel>[
-    const MovieModel(
-      id: 'rec1',
-      title: 'TU ISSAQ MERA',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'rec2',
-      title: 'TU ISSAQ 2 MERA',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'rec3',
-      title: 'DEEWANGI',
-      image: AppImages.banner1,
-      views: '3.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'rec4',
-      title: 'SAY NO TO PIRACY',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'rec5',
-      title: 'THE UNTOUCHABLE CEO',
-      image: AppImages.banner3,
-      views: '3.5k',
-      plays: '3.5k',
-    ),
-    const MovieModel(
-      id: 'rec6',
-      title: 'LUXURY EMPLOYEE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-    ),
-  ].obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -493,12 +222,20 @@ class HomeController extends GetxController {
     });
 
     // ── Fetch live backend data ──
+    fetchAllBanner();
+    fetchAllSectionsHome();
     getAllContent();
     getAllContinueWatching();
     getAllDrama();
   }
 
   // ── Dynamic Getters for Home Sections (Using Live API Data) ──
+  List<section_model.HomeSection> get homeSections =>
+      homeSectionsResponse.value?.data.sections ?? [];
+
+  List<HomeBanner> get homeBanners =>
+      homeBannerResponse.value?.data.banners ?? [];
+
   List<ContinueWatchingItem> get continueWatchingItems =>
       continueWatchingResponse.value?.data.items ?? [];
 
@@ -527,6 +264,10 @@ class HomeController extends GetxController {
   }
 
   List<Drama> get allDramas => allDramaResponse.value?.data.dramas ?? [];
+
+  void onBannerTap(HomeBanner banner) {
+    Get.toNamed(Routes.dramaPlayer, arguments: banner);
+  }
 
   void onPriorityDramaTap(PriorityDrama drama) {
     Get.toNamed(Routes.dramaPlayer, arguments: drama);
@@ -572,98 +313,46 @@ class HomeController extends GetxController {
     });
   }
 
-  void onMovieTap(MovieModel movie) {
-    Get.toNamed(Routes.dramaPlayer, arguments: movie);
-  }
-
-  void removeContinueWatching(String id) {
-    continueWatchingList.removeWhere((item) => item.id == id);
+  void removeContinueWatching(String historyId) {
+    if (continueWatchingResponse.value != null) {
+      final currentItems = continueWatchingResponse.value!.data.items
+          .where((i) => i.historyId != historyId)
+          .toList();
+      continueWatchingResponse.value = ContinueWatchingResponse(
+        success: continueWatchingResponse.value!.success,
+        statusCode: continueWatchingResponse.value!.statusCode,
+        message: continueWatchingResponse.value!.message,
+        data: ContinueWatchingData(
+          items: currentItems,
+          pagination: continueWatchingResponse.value!.data.pagination,
+        ),
+      );
+    }
     AppSnackbar.info('Series removed from Continue Watching', title: 'Removed');
   }
 
   void clearAllContinueWatching() {
-    continueWatchingList.clear();
+    if (continueWatchingResponse.value != null) {
+      continueWatchingResponse.value = ContinueWatchingResponse(
+        success: continueWatchingResponse.value!.success,
+        statusCode: continueWatchingResponse.value!.statusCode,
+        message: continueWatchingResponse.value!.message,
+        data: ContinueWatchingData(
+          items: [],
+          pagination: continueWatchingResponse.value!.data.pagination,
+        ),
+      );
+    }
     AppSnackbar.info('Continue Watching history cleared', title: 'Cleared');
   }
 
-  void resumeWatching(MovieModel movie) {
-    Get.toNamed(Routes.dramaPlayer, arguments: movie);
-  }
-
-  // ── Selected Category & Category Dramas List (matching Category Dramas Screen)
+  // ── Selected Category (matching Category Dramas Screen)
   final Rx<CategoryModel> selectedCategory = CategoryModel(
     id: 'romance',
     title: 'Romance',
     icon: FontAwesomeIcons.solidHeart,
     gradientColors: [Color(0xFFD32F2F), Color(0xFF6A0C0C)],
   ).obs;
-
-  final RxList<MovieModel> categoryDramas = <MovieModel>[
-    const MovieModel(
-      id: 'cd1',
-      title: 'FATAL ATTRACTION: A DARK MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd2',
-      title: 'FROM DIVORCEE TO BILLIONAIRE BRIDE',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd3',
-      title: 'MAKKAR CEO WIFE',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd4',
-      title: 'FATAL ATTRACTION: A DARK MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd5',
-      title: 'FATAL ATTRACTION: A DARK MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd6',
-      title: 'FROM DIVORCEE TO BILLIONAIRE BRIDE',
-      image: AppImages.banner2,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd7',
-      title: 'MAKKAR CEO WIFE',
-      image: AppImages.banner3,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-    const MovieModel(
-      id: 'cd8',
-      title: 'FATAL ATTRACTION: A DARK MAFIA ROMANCE',
-      image: AppImages.banner1,
-      views: '2.5k',
-      plays: '3.5k',
-      genre: 'Romance',
-    ),
-  ].obs;
 
   void onCategoryTap(CategoryModel category) {
     selectedCategory.value = category;
@@ -701,6 +390,43 @@ class HomeController extends GetxController {
   final hasMoreContinueWatching = false.obs;
   final continueWatchingPageNo = 0.obs;
   final continueWatchingLimit = 10.obs;
+  final isHomeBannerStatus = Status.init.obs;
+  final homeBannerResponse = Rxn<HomeBannersResponse?>();
+  final homeSectionsStatus = Status.init.obs;
+  final homeSectionsResponse = Rxn<section_model.HomeSectionsResponse?>();
+  final homeSectionsPageNo = 1.obs;
+  final homeSectionsLimit = 20.obs;
+
+  Future<void> fetchAllSectionsHome() async {
+    homeSectionsStatus.value = Status.loading;
+    try {
+      final response = await datasource.allSectionHome(
+        pageNo: homeSectionsPageNo.value,
+        limit: homeSectionsLimit.value,
+      );
+      if (response != null && response.success) {
+        homeSectionsResponse.value = response;
+        homeSectionsStatus.value = Status.success;
+      } else {
+        homeSectionsStatus.value = Status.error;
+      }
+    } catch (e) {
+      print("[HomeController] fetchAllSectionsHome error: $e");
+      homeSectionsStatus.value = Status.error;
+    }
+  }
+
+  Future<void> fetchAllBanner() async {
+    isHomeBannerStatus.value = Status.loading;
+    final response = await datasource.allBanners();
+    if (response != null) {
+      homeBannerResponse.value = response;
+      isHomeBannerStatus.value = Status.success;
+    } else {
+      isHomeBannerStatus.value = Status.error;
+    }
+  }
+
   Future<void> fetchSingleDrama({required String id}) async {
     singleDramaStatus.value = Status.loading;
     final response = await datasource.dramaDetail(id: id);

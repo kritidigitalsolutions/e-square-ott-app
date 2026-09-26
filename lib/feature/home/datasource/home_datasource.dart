@@ -9,6 +9,8 @@ import 'package:e_square_ott_app/models/response/drama_detail_response.dart';
 import 'package:e_square_ott_app/models/response/drama_response.dart';
 import 'package:e_square_ott_app/models/response/episode_access_model.dart';
 import 'package:e_square_ott_app/models/response/episode_drawer_model.dart';
+import 'package:e_square_ott_app/models/response/home_screen_model.dart';
+import 'package:e_square_ott_app/models/response/home_section_model.dart';
 import 'package:e_square_ott_app/models/response/playback_progress_response.dart';
 import 'package:e_square_ott_app/models/response/upload_file_model.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
@@ -215,6 +217,35 @@ class HomeDatasource {
       print(
         "All Countinue Watching  failed with status: ${response.statusCode}",
       );
+      return null;
+    }
+  }
+
+  Future<HomeBannersResponse?> allBanners() async {
+    final url = Uri.parse(AppUrl.allHomePageBanner);
+    var response = await http.get(url, headers: {"Accept": "application/json"});
+    if (response.statusCode == 200) {
+      print("Banner-> ${response.body}");
+      return HomeBannersResponse.fromJson(jsonDecode(response.body));
+    } else {
+      return null;
+    }
+  }
+
+  Future<HomeSectionsResponse?> allSectionHome({
+    required int pageNo,
+    required int limit,
+  }) async {
+    final url = Uri.parse(AppUrl.homeSection(pageNo: pageNo, limit: limit));
+    var response = await http.get(url);
+    print(
+      "[HomeDatasource] allSectionHome [${response.statusCode}]: ${response.body}",
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return HomeSectionsResponse.fromJson(data);
+    } else {
+      print(' All Section Home  failed with status: ${response.statusCode}');
       return null;
     }
   }

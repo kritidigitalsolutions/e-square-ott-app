@@ -1,5 +1,6 @@
 import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/home/controller/home_controller.dart';
+import 'package:e_square_ott_app/feature/home/controller/whislist_controller.dart';
 import 'package:e_square_ott_app/feature/home/datasource/home_datasource.dart';
 import 'package:e_square_ott_app/models/response/admin_content_model.dart';
 import 'package:e_square_ott_app/models/response/episode_drawer_model.dart';
@@ -146,19 +147,28 @@ class ExploreController extends GetxController {
     }
   }
 
-  void toggleMyList(PriorityDrama drama) {
-    if (myWatchlistDramaIds.contains(drama.id)) {
-      myWatchlistDramaIds.remove(drama.id);
-      AppSnackbar.info(
-        '${drama.title} has been removed from your list.',
-        title: 'Removed from List',
-      );
-    } else {
-      myWatchlistDramaIds.add(drama.id);
-      AppSnackbar.success(
-        '${drama.title} has been added to your list.',
-        title: 'Added to List',
-      );
+  bool isDramaInMyList(String dramaId) {
+    final whislistController = Get.isRegistered<WhislistController>()
+        ? Get.find<WhislistController>()
+        : Get.put(WhislistController());
+    return whislistController.isDramaSaved(dramaId) ||
+        myWatchlistDramaIds.contains(dramaId);
+  }
+
+  Future<void> toggleMyList(PriorityDrama drama) async {
+    if (drama.id.isNotEmpty) {
+      final whislistController = Get.isRegistered<WhislistController>()
+          ? Get.find<WhislistController>()
+          : Get.put(WhislistController());
+      final res =
+          await whislistController.toggleSavedSeries(dramaId: drama.id);
+      if (res != null && res.success) {
+        if (res.data.isSaved) {
+          myWatchlistDramaIds.add(drama.id);
+        } else {
+          myWatchlistDramaIds.remove(drama.id);
+        }
+      }
     }
   }
 
