@@ -1,3 +1,24 @@
+List<String> _parseStringList(dynamic list) {
+  if (list == null || list is! List) return [];
+  return list
+      .map((e) {
+        if (e is String) return e;
+        if (e is Map) {
+          final val =
+              e['name'] ??
+              e['title'] ??
+              e['genre'] ??
+              e['slug'] ??
+              e['_id'] ??
+              e['id'];
+          return val?.toString() ?? '';
+        }
+        return e.toString();
+      })
+      .where((s) => s.isNotEmpty)
+      .toList();
+}
+
 class HomeBannersResponse {
   final bool success;
   final int statusCode;
@@ -14,9 +35,11 @@ class HomeBannersResponse {
   factory HomeBannersResponse.fromJson(Map<String, dynamic> json) {
     return HomeBannersResponse(
       success: json['success'] ?? false,
-      statusCode: json['statusCode'] ?? 0,
-      message: json['message'] ?? '',
-      data: HomeBannersData.fromJson(json['data'] ?? {}),
+      statusCode: json['statusCode'] is int
+          ? json['statusCode']
+          : int.tryParse(json['statusCode']?.toString() ?? '0') ?? 0,
+      message: (json['message'] ?? '').toString(),
+      data: HomeBannersData.fromJson(json['data']),
     );
   }
 }
@@ -27,13 +50,34 @@ class HomeBannersData {
 
   HomeBannersData({required this.banners, required this.total});
 
-  factory HomeBannersData.fromJson(Map<String, dynamic> json) {
-    return HomeBannersData(
-      banners: (json['banners'] as List? ?? [])
-          .map((e) => HomeBanner.fromJson(e))
-          .toList(),
-      total: json['total'] ?? 0,
-    );
+  factory HomeBannersData.fromJson(dynamic json) {
+    if (json == null) {
+      return HomeBannersData(banners: [], total: 0);
+    }
+    if (json is List) {
+      return HomeBannersData(
+        banners: json
+            .whereType<Map<String, dynamic>>()
+            .map((e) => HomeBanner.fromJson(e))
+            .toList(),
+        total: json.length,
+      );
+    }
+    if (json is Map<String, dynamic>) {
+      final list = json['banners'] ?? json['items'] ?? json['data'] ?? [];
+      if (list is List) {
+        return HomeBannersData(
+          banners: list
+              .whereType<Map<String, dynamic>>()
+              .map((e) => HomeBanner.fromJson(e))
+              .toList(),
+          total: json['total'] is int
+              ? json['total']
+              : int.tryParse(json['total']?.toString() ?? '0') ?? list.length,
+        );
+      }
+    }
+    return HomeBannersData(banners: [], total: 0);
   }
 }
 
@@ -89,30 +133,156 @@ class HomeBanner {
   });
 
   factory HomeBanner.fromJson(Map<String, dynamic> json) {
+    final dramaMap = json['drama'] is Map<String, dynamic>
+        ? json['drama'] as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    final id = (json['id'] ??
+            json['_id'] ??
+            json['bannerId'] ??
+            dramaMap['_id'] ??
+            dramaMap['id'] ??
+            '')
+        .toString();
+
+    final bannerId = (json['bannerId'] ?? json['_id'] ?? json['id'] ?? '')
+        .toString();
+
+    final dramaId = (json['dramaId'] ??
+            dramaMap['_id'] ??
+            dramaMap['id'] ??
+            json['id'] ??
+            json['_id'] ??
+            '')
+        .toString();
+
+    final title = (json['title'] ??
+            json['name'] ??
+            dramaMap['title'] ??
+            dramaMap['name'] ??
+            '')
+        .toString();
+
+    final slug = (json['slug'] ?? dramaMap['slug'] ?? '').toString();
+
+    final tagline = (json['tagline'] ??
+            json['subtitle'] ??
+            dramaMap['tagline'] ??
+            dramaMap['subtitle'] ??
+            '')
+        .toString();
+
+    final synopsis = (json['synopsis'] ??
+            json['description'] ??
+            dramaMap['synopsis'] ??
+            dramaMap['description'] ??
+            '')
+        .toString();
+
+    // ── Robust Banner URL resolution (Banner Image is prioritized) ──
+    final bannerUrl = (json['bannerUrl'] ??
+            json['banner'] ??
+            json['bannerImage'] ??
+            json['imageUrl'] ??
+            json['image'] ??
+            json['backdropUrl'] ??
+            json['backdrop'] ??
+            json['url'] ??
+            dramaMap['bannerUrl'] ??
+            dramaMap['banner'] ??
+            dramaMap['bannerImage'] ??
+            dramaMap['image'] ??
+            dramaMap['imageUrl'] ??
+            '')
+        .toString();
+
+    // ── Robust Poster URL resolution ──
+    final posterUrl = (json['posterUrl'] ??
+            json['poster'] ??
+            json['posterImage'] ??
+            json['thumbnailUrl'] ??
+            json['thumbnail'] ??
+            dramaMap['posterUrl'] ??
+            dramaMap['poster'] ??
+            dramaMap['posterImage'] ??
+            dramaMap['thumbnailUrl'] ??
+            dramaMap['image'] ??
+            '')
+        .toString();
+
+    final trailerUrl = (json['trailerUrl'] ??
+            json['trailer'] ??
+            dramaMap['trailerUrl'] ??
+            dramaMap['trailer'] ??
+            '')
+        .toString();
+
+    final badge = (json['badge'] ?? json['tag'] ?? dramaMap['badge'] ?? '')
+        .toString();
+
+    final rawGenres = json['genres'] ?? dramaMap['genres'];
+    final genres = _parseStringList(rawGenres);
+
+    final genreDisplay = (json['genreDisplay'] ??
+            (genres.isNotEmpty ? genres.join(' • ') : '') ??
+            dramaMap['genreDisplay'] ??
+            '')
+        .toString();
+
+    final ratingVal = json['rating'] ?? dramaMap['rating'];
+    final rating = ratingVal is num
+        ? ratingVal.toDouble()
+        : double.tryParse(ratingVal?.toString() ?? '0') ?? 0.0;
+
+    final views = (json['views'] ?? dramaMap['views'] ?? '').toString();
+
+    final viewsCountVal = json['viewsCount'] ?? dramaMap['viewsCount'];
+    final viewsCount = viewsCountVal is int
+        ? viewsCountVal
+        : int.tryParse(viewsCountVal?.toString() ?? '0') ?? 0;
+
+    final totalEpisodesVal =
+        json['totalEpisodes'] ?? dramaMap['totalEpisodes'];
+    final totalEpisodes = totalEpisodesVal is int
+        ? totalEpisodesVal
+        : int.tryParse(totalEpisodesVal?.toString() ?? '0') ?? 0;
+
+    final freeEpisodesVal =
+        json['freeEpisodes'] ?? dramaMap['freeEpisodes'];
+    final freeEpisodes = freeEpisodesVal is int
+        ? freeEpisodesVal
+        : int.tryParse(freeEpisodesVal?.toString() ?? '0') ?? 0;
+
+    final isPaid = (json['isPaid'] ?? dramaMap['isPaid'] ?? false) == true;
+    final plan = (json['plan'] ?? dramaMap['plan'] ?? '').toString();
+    final isSaved = (json['isSaved'] ?? dramaMap['isSaved'] ?? false) == true;
+    final isInWatchlist =
+        (json['isInWatchlist'] ?? dramaMap['isInWatchlist'] ?? false) == true;
+
     return HomeBanner(
-      id: json['id'] ?? '',
-      bannerId: json['bannerId'] ?? '',
-      dramaId: json['dramaId'] ?? '',
-      title: json['title'] ?? '',
-      slug: json['slug'] ?? '',
-      tagline: json['tagline'] ?? '',
-      synopsis: json['synopsis'] ?? '',
-      bannerUrl: json['bannerUrl'] ?? '',
-      posterUrl: json['posterUrl'] ?? '',
-      trailerUrl: json['trailerUrl'] ?? '',
-      badge: json['badge'] ?? '',
-      genres: List<String>.from(json['genres'] ?? []),
-      genreDisplay: json['genreDisplay'] ?? '',
-      rating: (json['rating'] ?? 0).toDouble(),
-      views: json['views'] ?? '',
-      viewsCount: json['viewsCount'] ?? 0,
-      totalEpisodes: json['totalEpisodes'] ?? 0,
-      freeEpisodes: json['freeEpisodes'] ?? 0,
-      isPaid: json['isPaid'] ?? false,
-      plan: json['plan'] ?? '',
-      isSaved: json['isSaved'] ?? false,
-      isInWatchlist: json['isInWatchlist'] ?? false,
-      cta: BannerCta.fromJson(json['cta'] ?? {}),
+      id: id,
+      bannerId: bannerId,
+      dramaId: dramaId,
+      title: title,
+      slug: slug,
+      tagline: tagline,
+      synopsis: synopsis,
+      bannerUrl: bannerUrl,
+      posterUrl: posterUrl,
+      trailerUrl: trailerUrl,
+      badge: badge,
+      genres: genres,
+      genreDisplay: genreDisplay,
+      rating: rating,
+      views: views,
+      viewsCount: viewsCount,
+      totalEpisodes: totalEpisodes,
+      freeEpisodes: freeEpisodes,
+      isPaid: isPaid,
+      plan: plan,
+      isSaved: isSaved,
+      isInWatchlist: isInWatchlist,
+      cta: BannerCta.fromJson(json['cta'] is Map<String, dynamic> ? json['cta'] : {}),
     );
   }
 }
@@ -134,11 +304,13 @@ class BannerCta {
 
   factory BannerCta.fromJson(Map<String, dynamic> json) {
     return BannerCta(
-      primaryLabel: json['primaryLabel'] ?? '',
-      primaryAction: json['primaryAction'] ?? '',
-      episodeNumber: json['episodeNumber'] ?? 0,
-      secondaryLabel: json['secondaryLabel'] ?? '',
-      secondaryAction: json['secondaryAction'] ?? '',
+      primaryLabel: (json['primaryLabel'] ?? '').toString(),
+      primaryAction: (json['primaryAction'] ?? '').toString(),
+      episodeNumber: json['episodeNumber'] is int
+          ? json['episodeNumber']
+          : int.tryParse(json['episodeNumber']?.toString() ?? '0') ?? 0,
+      secondaryLabel: (json['secondaryLabel'] ?? '').toString(),
+      secondaryAction: (json['secondaryAction'] ?? '').toString(),
     );
   }
 }

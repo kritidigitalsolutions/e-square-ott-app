@@ -320,40 +320,85 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
             const SizedBox(height: 16),
 
             // ── AutoPay Info ──
-            Row(
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.shield,
-                  color: Color(0xFF6BBA75),
-                  size: 14,
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '100% Secure payment via Razorpay UPI AutoPay (PhonePe, GPay, Paytm).',
-                    style: TextStyle(
-                      fontFamily: AppTextStyles.fontFamily,
-                      color: Color(0xFF8E8E9E),
-                      fontSize: 11.5,
-                      height: 1.3,
+            if (!subController.isVip)
+              Row(
+                children: const [
+                  FaIcon(
+                    FontAwesomeIcons.shield,
+                    color: Color(0xFF6BBA75),
+                    size: 14,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '100% Secure payment via Razorpay UPI AutoPay (PhonePe, GPay, Paytm).',
+                      style: TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Color(0xFF8E8E9E),
+                        fontSize: 11.5,
+                        height: 1.3,
+                      ),
                     ),
                   ),
+                ],
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2B1C10),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFD97706).withValues(alpha: 0.6),
+                  ),
                 ),
-              ],
-            ),
+                child: Row(
+                  children: const [
+                    FaIcon(
+                      FontAwesomeIcons.circleExclamation,
+                      color: Color(0xFFFBBF24),
+                      size: 15,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'You already have an active subscription. Plan changes or upgrades are not allowed.',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Color(0xFFFDE68A),
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 24),
 
             // ── Primary Action: Pay Button
-            AppButton(
-              label: isTrial
-                  ? 'Pay ₹2 & Start Trial'
-                  : 'Pay $payAmount & Activate VIP',
-              onPressed: subController.isLoading.value ? null : _handlePayment,
-              isLoading: subController.isLoading.value,
-              backgroundColor: AppColors.primary,
-              height: 52,
-              borderRadius: 14,
-            ),
+            if (!subController.isVip)
+              AppButton(
+                label: isTrial
+                    ? 'Pay ₹2 & Start Trial'
+                    : 'Pay $payAmount & Activate VIP',
+                onPressed: subController.isLoading.value
+                    ? null
+                    : _handlePayment,
+                isLoading: subController.isLoading.value,
+                backgroundColor: AppColors.primary,
+                height: 52,
+                borderRadius: 14,
+              )
+            else
+              AppButton(
+                label: 'Back to VIP Streaming',
+                onPressed: () => Get.back(),
+                backgroundColor: AppColors.primary,
+                height: 52,
+                borderRadius: 14,
+              ),
             const SizedBox(height: 12),
 
             // ── Secondary Action: Change Plan Button

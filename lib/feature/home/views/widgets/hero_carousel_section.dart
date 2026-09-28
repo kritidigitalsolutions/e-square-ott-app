@@ -109,9 +109,9 @@ class _HeroHomeBannerCard extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final poster = banner.posterUrl.isNotEmpty
-        ? banner.posterUrl
-        : (banner.bannerUrl.isNotEmpty ? banner.bannerUrl : '');
+    final poster = banner.bannerUrl.isNotEmpty
+        ? banner.bannerUrl
+        : (banner.posterUrl.isNotEmpty ? banner.posterUrl : '');
 
     final badgeText = banner.badge.isNotEmpty
         ? banner.badge
@@ -483,7 +483,8 @@ class _HeroPriorityDramaCard extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final poster = drama.posterUrl.isNotEmpty ? drama.posterUrl : drama.bannerUrl;
+    final poster =
+        drama.bannerUrl.isNotEmpty ? drama.bannerUrl : drama.posterUrl;
 
     return GestureDetector(
       onTap: () {

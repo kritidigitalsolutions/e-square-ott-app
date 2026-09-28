@@ -133,6 +133,13 @@ class SubscriptionController extends GetxController {
 
   /// Select a plan
   void selectPlan(SubscriptionPlan plan) {
+    if (isVip) {
+      AppSnackbar.warning(
+        'You already have an active subscription. Plan changes or upgrades are not allowed.',
+        title: 'Subscription Active',
+      );
+      return;
+    }
     selectedPlan.value = plan;
     isTrialSelected.value = false;
     setPlanId(plan.id);
@@ -141,6 +148,13 @@ class SubscriptionController extends GetxController {
 
   /// Select 7-Day Free Trial (Rs. 2 Token Mandate)
   void selectTrialOption() {
+    if (isVip) {
+      AppSnackbar.warning(
+        'You already have an active subscription. Free trial cannot be claimed.',
+        title: 'Subscription Active',
+      );
+      return;
+    }
     isTrialSelected.value = true;
     setIsTrial(true);
     final trialPlan = plans.firstWhereOrNull(
@@ -153,16 +167,8 @@ class SubscriptionController extends GetxController {
     }
   }
 
-  /// Check if user is upgrading from their current active plan
+  /// Check if user is upgrading from their current active plan (disabled)
   bool isUpgradePlan(SubscriptionPlan targetPlan) {
-    if (!isVip) return false;
-    if (currentPlanCode == 'PLAN_1M' &&
-        (targetPlan.code == 'PLAN_6M' || targetPlan.code == 'PLAN_12M')) {
-      return true;
-    }
-    if (currentPlanCode == 'PLAN_6M' && targetPlan.code == 'PLAN_12M') {
-      return true;
-    }
     return false;
   }
 
@@ -300,6 +306,14 @@ class SubscriptionController extends GetxController {
 
   // ── Initiate Purchase / Order (UI Button trigger) ──
   Future<bool> initiatePurchase() async {
+    if (isVip) {
+      AppSnackbar.warning(
+        'You already have an active subscription. Plan change or upgrade is not allowed.',
+        title: 'Subscription Active',
+      );
+      return false;
+    }
+
     final plan = selectedPlan.value;
     if (plan == null) {
       AppSnackbar.error(

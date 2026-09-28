@@ -59,6 +59,7 @@ class ExploreController extends GetxController {
       exploreStatus.value = Status.loading;
     }
     currentPage.value = 1;
+    episodesCache.clear();
     try {
       final res = await datasource.allContents(pageNo: 1, size: 20);
       if (res != null && res.data.dramas.isNotEmpty) {

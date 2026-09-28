@@ -18,7 +18,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_images.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/utils/log_util.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
+import '../../explore/controller/explore_controller.dart';
 import '../models/category_model.dart';
 
 class HomeController extends GetxController {
@@ -34,6 +36,33 @@ class HomeController extends GetxController {
 
   // ── Notification Unread Count
   final RxInt unreadNotifications = 0.obs;
+
+  // ── Home Category Filter State
+  final RxString selectedCategoryFilter = 'All'.obs;
+  final List<String> homeCategoryFilters = const [
+    'All',
+    'Romance',
+    'Drama',
+    'Comedy',
+    'Suspense',
+    'Mystery',
+    'Action',
+    'Thriller',
+    'Sci-Fi',
+    'Horror',
+  ];
+
+  void selectCategoryFilter(String category) {
+    if (selectedCategoryFilter.value.toLowerCase() == category.toLowerCase()) {
+      selectedCategoryFilter.value = 'All';
+    } else {
+      selectedCategoryFilter.value = category;
+    }
+  }
+
+  void resetCategoryFilter() {
+    selectedCategoryFilter.value = 'All';
+  }
 
   // ── Genre Filter & Search State for New Releases
   final RxString selectedNewReleaseGenre = 'All'.obs;
@@ -287,8 +316,8 @@ class HomeController extends GetxController {
       if (res != null && res.success) {
         unreadNotifications.value = res.unreadCount;
       }
-    } catch (e) {
-      print("[HomeController] fetchUnreadCount error: $e");
+    } catch (e, stack) {
+      LogUtil.error("[HomeController] fetchUnreadCount error: $e", name: "HomeController", error: e, stackTrace: stack);
     }
   }
 
@@ -397,6 +426,23 @@ class HomeController extends GetxController {
   final homeSectionsPageNo = 1.obs;
   final homeSectionsLimit = 20.obs;
 
+  Future<void> refreshHome() async {
+    final futures = <Future<dynamic>>[
+      fetchAllBanner(),
+      fetchAllSectionsHome(),
+      getAllContinueWatching(),
+      getAllContent(),
+      getAllDrama(),
+      fetchUnreadCount(),
+    ];
+
+    if (Get.isRegistered<ExploreController>()) {
+      futures.add(Get.find<ExploreController>().fetchExploreDramas());
+    }
+
+    await Future.wait(futures);
+  }
+
   Future<void> fetchAllSectionsHome() async {
     homeSectionsStatus.value = Status.loading;
     try {
@@ -410,8 +456,8 @@ class HomeController extends GetxController {
       } else {
         homeSectionsStatus.value = Status.error;
       }
-    } catch (e) {
-      print("[HomeController] fetchAllSectionsHome error: $e");
+    } catch (e, stack) {
+      LogUtil.error("[HomeController] fetchAllSectionsHome error: $e", name: "HomeController", error: e, stackTrace: stack);
       homeSectionsStatus.value = Status.error;
     }
   }

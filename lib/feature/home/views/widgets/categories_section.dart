@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
@@ -28,7 +30,10 @@ class CategoriesSection extends GetView<HomeController> {
 
           // Dark Circular More Button (>)
           GestureDetector(
-            onTap: () => Get.toNamed(Routes.categories),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Get.toNamed(Routes.categories);
+            },
             behavior: HitTestBehavior.opaque,
             child: Container(
               width: 44,
@@ -74,23 +79,31 @@ class CategoriesSection extends GetView<HomeController> {
 
   Widget _buildCategoryCard(CategoryModel cat) {
     final accent = cat.accentColor ?? cat.gradientColors.first;
+    final isSelected = controller.selectedCategoryFilter.value.toLowerCase() ==
+        cat.title.toLowerCase();
 
     return GestureDetector(
-      onTap: () => controller.onCategoryTap(cat),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        controller.selectCategoryFilter(cat.title);
+      },
       behavior: HitTestBehavior.opaque,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         height: 76,
         decoration: BoxDecoration(
           color: const Color(0xFF14141E),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-            color: accent.withValues(alpha: 0.5),
-            width: 1.2,
+            color: isSelected ? Colors.white : accent.withValues(alpha: 0.5),
+            width: isSelected ? 2.0 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: accent.withValues(alpha: 0.25),
-              blurRadius: 10,
+              color: isSelected
+                  ? accent.withValues(alpha: 0.6)
+                  : accent.withValues(alpha: 0.25),
+              blurRadius: isSelected ? 14 : 10,
               offset: const Offset(0, 3),
             ),
             BoxShadow(
@@ -123,9 +136,9 @@ class CategoriesSection extends GetView<HomeController> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withValues(alpha: 0.3),
-                        Colors.black.withValues(alpha: 0.7),
-                        Colors.black.withValues(alpha: 0.92),
+                        Colors.black.withValues(alpha: isSelected ? 0.15 : 0.3),
+                        Colors.black.withValues(alpha: isSelected ? 0.55 : 0.7),
+                        Colors.black.withValues(alpha: isSelected ? 0.85 : 0.92),
                       ],
                       stops: const [0.0, 0.5, 1.0],
                     ),
@@ -141,9 +154,9 @@ class CategoriesSection extends GetView<HomeController> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        accent.withValues(alpha: 0.22),
+                        accent.withValues(alpha: isSelected ? 0.4 : 0.22),
                         Colors.transparent,
-                        accent.withValues(alpha: 0.28),
+                        accent.withValues(alpha: isSelected ? 0.45 : 0.28),
                       ],
                     ),
                   ),
@@ -164,7 +177,9 @@ class CategoriesSection extends GetView<HomeController> {
                         color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: accent.withValues(alpha: 0.6),
+                          color: isSelected
+                              ? Colors.white
+                              : accent.withValues(alpha: 0.6),
                           width: 1,
                         ),
                       ),
@@ -182,13 +197,14 @@ class CategoriesSection extends GetView<HomeController> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: AppTextStyles.fontFamily,
                         color: Colors.white,
                         fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontWeight:
+                            isSelected ? FontWeight.w900 : FontWeight.w700,
                         letterSpacing: 0.2,
-                        shadows: [
+                        shadows: const [
                           Shadow(
                             color: Colors.black,
                             blurRadius: 4,
@@ -207,3 +223,93 @@ class CategoriesSection extends GetView<HomeController> {
     );
   }
 }
+
+/// ── Horizontal Category Filter Pills Bar (All, Romance, Drama, Comedy, etc.)
+class CategoryFilterBar extends GetView<HomeController> {
+  const CategoryFilterBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final selected = controller.selectedCategoryFilter.value;
+      final filters = controller.homeCategoryFilters;
+
+      return SizedBox(
+        height: 36,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: filters.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final filter = filters[index];
+            final isSelected = selected.toLowerCase() == filter.toLowerCase();
+
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                controller.selectCategoryFilter(filter);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppColors.primaryGradient : null,
+                  color: isSelected ? null : const Color(0xFF14141E),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? Colors.transparent
+                        : Colors.white.withValues(alpha: 0.12),
+                    width: 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (filter == 'All') ...[
+                        FaIcon(
+                          FontAwesomeIcons.shapes,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF8A8A9E),
+                          size: 11,
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        filter.tr,
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFFB0B0C4),
+                          fontSize: 12,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+}
+

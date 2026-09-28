@@ -1,8 +1,8 @@
 import 'package:e_square_ott_app/constants/enum.dart';
-import 'package:e_square_ott_app/feature/home/controller/home_controller.dart';
 import 'package:e_square_ott_app/feature/notification/datasource/notification_datasource.dart';
 import 'package:e_square_ott_app/models/response/all_notification_model.dart';
 import 'package:e_square_ott_app/shared/service/notification_service.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:get/get.dart';
 
@@ -22,36 +22,48 @@ class AllNotificationController extends GetxController {
   final pageNo = 0.obs;
   final size = 20.obs;
   final hasNextPage = false.obs;
-  final selectedType =
-      Rxn<String>(); // NEW_EPISODE, NEW_RELEASE, RECOMMENDATION, SYSTEM
+  final selectedType = Rxn<String>(); // null means all types
 
-  final Set<String> _shownLocalNotificationIds = <String>{};
+  final Set<String> _shownLocalNotificationIds = {};
 
   @override
   void onInit() {
     super.onInit();
-    allNotification();
-    ever<int>(unreadCount, (count) {
-      if (Get.isRegistered<HomeController>()) {
-        Get.find<HomeController>().unreadNotifications.value = count;
-      }
-    });
+    allNotification(showLocalForUnread: true);
+    fetchUnreadCount();
   }
 
-  // ── Fetch Notifications List ──
-  Future<void> allNotification({bool showLocalForUnread = true}) async {
+  // ── 1. Fetch First Page of Notifications ──
+  Future<void> allNotification({bool showLocalForUnread = false}) async {
     allNotificationStatus.value = Status.loading;
     pageNo.value = 0;
+
     try {
-      final result = await datasource.allNotification(
-        pageNo: 0,
+      var result = await datasource.allNotification(
+        pageNo: pageNo.value,
         size: size.value,
         type: selectedType.value,
       );
+
+      // If page 0 returned empty but has pagination data or vice-versa, handle gracefully
+      if (result != null &&
+          result.success &&
+          result.data.groups.isEmpty &&
+          result.data.pagination.page == 1 &&
+          result.data.pagination.hasPrevPage) {
+        result = await datasource.allNotification(
+          pageNo: 0,
+          size: size.value,
+          type: selectedType.value,
+        );
+      }
+
       if (result != null && result.success) {
         allNotificationResponse.value = result;
-        unreadCount.value = result.data.unreadCount;
+        pageNo.value = result.data.pagination.page;
         hasNextPage.value = result.data.pagination.hasNextPage;
+        unreadCount.value = result.data.unreadCount;
+
         groups.assignAll(result.data.groups);
         allNotificationStatus.value = Status.success;
 
@@ -61,9 +73,14 @@ class AllNotificationController extends GetxController {
       } else {
         allNotificationStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       allNotificationStatus.value = Status.error;
-      print("allNotification error: $e");
+      LogUtil.error(
+        "allNotification error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -85,8 +102,13 @@ class AllNotificationController extends GetxController {
           }
         }
       }
-    } catch (e) {
-      print("Error showing local notification for API notifications: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "Error showing local notification for API notifications: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -94,11 +116,7 @@ class AllNotificationController extends GetxController {
     await NotificationService.instance.showLocalNotification(
       title: item.title.isNotEmpty ? item.title : 'E-Square OTT',
       body: item.body,
-      data: {
-        'id': item.id,
-        'type': item.type,
-        'contentId': item.contentId,
-      },
+      data: {'id': item.id, 'type': item.type, 'contentId': item.contentId},
     );
   }
 
@@ -136,9 +154,14 @@ class AllNotificationController extends GetxController {
       } else {
         moreNotificationStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       moreNotificationStatus.value = Status.error;
-      print("getMoreNotification error: $e");
+      LogUtil.error(
+        "getMoreNotification error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -149,8 +172,13 @@ class AllNotificationController extends GetxController {
       if (result != null && result.success) {
         unreadCount.value = result.unreadCount;
       }
-    } catch (e) {
-      print("fetchUnreadCount error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "fetchUnreadCount error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -165,8 +193,13 @@ class AllNotificationController extends GetxController {
           unreadCount.value--;
         }
       }
-    } catch (e) {
-      print("markSingleAsRead error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "markSingleAsRead error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -190,9 +223,14 @@ class AllNotificationController extends GetxController {
       } else {
         markAllReadStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       markAllReadStatus.value = Status.error;
-      print("markAllAsRead error: $e");
+      LogUtil.error(
+        "markAllAsRead error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -214,9 +252,14 @@ class AllNotificationController extends GetxController {
       } else {
         clearAllStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       clearAllStatus.value = Status.error;
-      print("clearAllNotifications error: $e");
+      LogUtil.error(
+        "clearAllNotifications error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -227,8 +270,13 @@ class AllNotificationController extends GetxController {
       if (success) {
         await allNotification();
       }
-    } catch (e) {
-      print("seedSampleNotifications error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "seedSampleNotifications error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -275,9 +323,14 @@ class AllNotificationController extends GetxController {
         deleteNotificationStatus.value = Status.error;
         await allNotification();
       }
-    } catch (e) {
+    } catch (e, stack) {
       deleteNotificationStatus.value = Status.error;
-      print("setDeleteNotification error: $e");
+      LogUtil.error(
+        "setDeleteNotification error: $e",
+        name: "AllNotificationController",
+        error: e,
+        stackTrace: stack,
+      );
       await allNotification();
     } finally {
       deleteNotificationStatus.value = Status.init;

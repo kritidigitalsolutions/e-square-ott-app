@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/notification/datasource/notification_datasource.dart';
 import 'package:e_square_ott_app/models/request/notification_setting_payload.dart';
 import 'package:e_square_ott_app/models/response/notification_setting_model.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:get/get.dart';
 
@@ -33,9 +34,9 @@ class NotifcationController extends GetxController {
       } else {
         getNotificationStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       getNotificationStatus.value = Status.error;
-      print("fetchNotificationSettings error: $e");
+      LogUtil.error("fetchNotificationSettings error: $e", name: "NotificationController", error: e, stackTrace: stack);
     } finally {
       getNotificationStatus.value = Status.init;
     }
@@ -100,8 +101,9 @@ class NotifcationController extends GetxController {
         );
         return false;
       }
-    } catch (e) {
+    } catch (e, stack) {
       notificationSettingStatus.value = Status.error;
+      LogUtil.error("updateNotification error: $e", name: "NotificationController", error: e, stackTrace: stack);
       AppSnackbar.error("Error updating settings: $e");
       return false;
     } finally {

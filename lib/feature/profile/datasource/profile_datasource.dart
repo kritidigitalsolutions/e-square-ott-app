@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:e_square_ott_app/constants/app_url.dart';
 import 'package:e_square_ott_app/models/response/legal_document_model.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileDatasource {
@@ -13,6 +13,10 @@ class ProfileDatasource {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+    );
+    LogUtil.log(
+      "[ProfileDatasource] privacyPolicy [${response.statusCode}]: ${response.body}",
+      name: "ProfileDatasource",
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return LegalDocumentResponse.fromJson(jsonDecode(response.body));
@@ -28,6 +32,10 @@ class ProfileDatasource {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+    );
+    LogUtil.log(
+      "[ProfileDatasource] termAndCondition [${response.statusCode}]: ${response.body}",
+      name: "ProfileDatasource",
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return LegalDocumentResponse.fromJson(jsonDecode(response.body));

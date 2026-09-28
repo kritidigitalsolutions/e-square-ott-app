@@ -4,6 +4,7 @@ import 'package:e_square_ott_app/models/request/notification_setting_payload.dar
 import 'package:e_square_ott_app/models/response/all_notification_model.dart';
 import 'package:e_square_ott_app/models/response/notification_setting_model.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:http/http.dart' as http;
 
 class NotificationDatasource {
@@ -27,7 +28,7 @@ class NotificationDatasource {
           unreadOnly: unreadOnly,
         ),
       );
-      print("[NotificationDatasource] GET $url");
+      LogUtil.log("[NotificationDatasource] GET $url", name: "NotificationDatasource");
       final response = await http.get(
         url,
         headers: {
@@ -36,16 +37,22 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
-      print(
+      LogUtil.log(
         "[NotificationDatasource] GET response [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return NotificationsResponse.fromJson(jsonDecode(response.body));
       } else {
         return null;
       }
-    } catch (e) {
-      print("[NotificationDatasource] allNotification error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] allNotification error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -66,12 +73,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] getUnreadCount [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return UnreadCountResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] getUnreadCount error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] getUnreadCount error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -94,14 +110,23 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] markSingleAsRead [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return MarkSingleNotificationResponse.fromJson(
           jsonDecode(response.body),
         );
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] markSingleAsRead error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] markSingleAsRead error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -122,12 +147,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] markAllAsRead [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return MarkAllNotificationResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] markAllAsRead error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] markAllAsRead error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -148,14 +182,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] deleteSingleNotification [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print("[NotificationDatasource] deleteSingleNotification success");
         return true;
       }
-      print("[NotificationDatasource] deleteSingleNotification failed");
       return false;
-    } catch (e) {
-      print("[NotificationDatasource] deleteSingleNotification error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] deleteSingleNotification error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }
@@ -176,12 +217,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] clearAllNotifications [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return ClearAllNotificationResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] clearAllNotifications error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] clearAllNotifications error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -202,12 +252,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] getNotificationSettings [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return NotificationSettingsResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] getNotificationSettings error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] getNotificationSettings error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -231,12 +290,21 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] updateNotification [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return NotificationSettingsResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[NotificationDatasource] updateNotification error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] updateNotification error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -245,14 +313,15 @@ class NotificationDatasource {
   Future<bool> savedFcm({required String fcmToken}) async {
     try {
       final token = await StorageService.getToken();
-      print(
+      LogUtil.log(
         "[FCM Datasource] savedFcm called | Token exists: ${token != null}",
+        name: "FCMDatasource",
       );
       if (token == null) {
         return false;
       }
       final url = Uri.parse(AppUrl.registerFcm);
-      print("[FCM Datasource] POST $url | payload: {'fcmToken': '$fcmToken'}");
+      LogUtil.log("[FCM Datasource] POST $url | payload: {'fcmToken': '$fcmToken'}", name: "FCMDatasource");
       final response = await http.post(
         url,
         headers: {
@@ -262,12 +331,18 @@ class NotificationDatasource {
         },
         body: jsonEncode({'fcmToken': fcmToken}),
       );
-      print(
+      LogUtil.log(
         "[FCM Datasource] POST response [${response.statusCode}]: ${response.body}",
+        name: "FCMDatasource",
       );
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      print("[NotificationDatasource] savedFcm error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] savedFcm error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }
@@ -280,7 +355,7 @@ class NotificationDatasource {
         return false;
       }
       final url = Uri.parse(AppUrl.deleteFcm);
-      print("[FCM Datasource] DELETE $url");
+      LogUtil.log("[FCM Datasource] DELETE $url", name: "FCMDatasource");
       final response = await http.delete(
         url,
         headers: {
@@ -290,12 +365,18 @@ class NotificationDatasource {
         },
         body: jsonEncode({'fcmToken': fcmToken}),
       );
-      print(
+      LogUtil.log(
         "[FCM Datasource] DELETE response [${response.statusCode}]: ${response.body}",
+        name: "FCMDatasource",
       );
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      print("[NotificationDatasource] deleteFcm error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] deleteFcm error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }
@@ -316,9 +397,18 @@ class NotificationDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[NotificationDatasource] seedNotifications [${response.statusCode}]: ${response.body}",
+        name: "NotificationDatasource",
+      );
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      print("[NotificationDatasource] seedNotifications error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[NotificationDatasource] seedNotifications error: $e",
+        name: "NotificationDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }

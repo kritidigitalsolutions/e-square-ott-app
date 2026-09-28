@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:e_square_ott_app/constants/app_url.dart';
 import 'package:e_square_ott_app/models/request/create_order_payload.dart';
 import 'package:e_square_ott_app/models/request/verify_subscription_payload.dart';
@@ -9,12 +8,17 @@ import 'package:e_square_ott_app/models/response/subscription_status_model.dart'
 import 'package:e_square_ott_app/models/response/upgrade_order_response.dart';
 import 'package:e_square_ott_app/models/response/verify_subscription_model.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:http/http.dart' as http;
 
 class SubscriptionDatasource {
   Future<SubscriptionPlansResponse?> allPlans() async {
     final url = Uri.parse(AppUrl.allPlans);
     var response = await http.get(url);
+    LogUtil.log(
+      "[SubscriptionDatasource] allPlans [${response.statusCode}]: ${response.body}",
+      name: "SubscriptionDatasource",
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return SubscriptionPlansResponse.fromJson(jsonDecode(response.body));
     } else {
@@ -38,11 +42,17 @@ class SubscriptionDatasource {
       },
       body: jsonEncode(payload),
     );
+    LogUtil.log(
+      "[SubscriptionDatasource] createOrder [${response.statusCode}]: ${response.body}",
+      name: "SubscriptionDatasource",
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print("create order ${response.body}");
       return CreateOrderResponse.fromJson(jsonDecode(response.body));
     } else {
-      print("create order error ${response.body}");
+      LogUtil.error(
+        "[SubscriptionDatasource] create order error ${response.body}",
+        name: "SubscriptionDatasource",
+      );
       return null;
     }
   }
@@ -63,11 +73,17 @@ class SubscriptionDatasource {
       },
       body: jsonEncode(payload),
     );
+    LogUtil.log(
+      "[SubscriptionDatasource] verifySubscription [${response.statusCode}]: ${response.body}",
+      name: "SubscriptionDatasource",
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print("verify subscription ${response.body}");
       return VerifySubscriptionResponse.fromJson(jsonDecode(response.body));
     } else {
-      print("verify subscription error ${response.body}");
+      LogUtil.error(
+        "[SubscriptionDatasource] verify subscription error ${response.body}",
+        name: "SubscriptionDatasource",
+      );
       return null;
     }
   }
@@ -86,11 +102,17 @@ class SubscriptionDatasource {
       },
       body: jsonEncode({"planId": id}),
     );
+    LogUtil.log(
+      "[SubscriptionDatasource] upgradePlan [${response.statusCode}]: ${response.body}",
+      name: "SubscriptionDatasource",
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print("upgrade plan ${response.body}");
       return UpgradeOrderResponse.fromJson(jsonDecode(response.body));
     } else {
-      print("upgrade plan error ${response.body}");
+      LogUtil.error(
+        "[SubscriptionDatasource] upgrade plan error ${response.body}",
+        name: "SubscriptionDatasource",
+      );
       return null;
     }
   }
@@ -108,11 +130,17 @@ class SubscriptionDatasource {
         "Content-Type": "application/json",
       },
     );
+    LogUtil.log(
+      "[SubscriptionDatasource] statusSubscription [${response.statusCode}]: ${response.body}",
+      name: "SubscriptionDatasource",
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print("subscription status ${response.body}");
       return SubscriptionStatusResponse.fromJson(jsonDecode(response.body));
     } else {
-      print("subscription status error ${response.body}");
+      LogUtil.error(
+        "[SubscriptionDatasource] subscription status error ${response.body}",
+        name: "SubscriptionDatasource",
+      );
       return null;
     }
   }

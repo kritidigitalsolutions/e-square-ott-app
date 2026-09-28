@@ -1,5 +1,5 @@
 class AppUrl {
-  static const baseUrl = "http://192.168.1.25:5001/api/v1";
+  static const baseUrl = "http://192.168.1.39:5001/api/v1";
   static const requestOtp = "$baseUrl/auth/request-otp";
   static const verifyOtp = "$baseUrl/auth/verify-otp";
   static const resendOtp = "$baseUrl/auth/resend-otp";

@@ -25,7 +25,10 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    controller = Get.put(AllNotificationController());
+    controller = Get.isRegistered<AllNotificationController>()
+        ? Get.find<AllNotificationController>()
+        : Get.put(AllNotificationController());
+    controller.allNotification();
     _scrollController.addListener(_onScroll);
   }
 

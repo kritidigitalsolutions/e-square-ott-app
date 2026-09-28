@@ -8,7 +8,6 @@ import '../controller/home_controller.dart';
 import 'widgets/continue_watching_section.dart';
 import 'widgets/dynamic_home_sections.dart';
 import 'widgets/hero_carousel_section.dart';
-import 'widgets/popular_genres_section.dart';
 import 'widgets/top_bar_header.dart';
 
 class HomeTabView extends GetView<HomeController> {
@@ -43,16 +42,7 @@ class HomeTabView extends GetView<HomeController> {
               return RefreshIndicator(
                 color: AppColors.primary,
                 backgroundColor: const Color(0xFF14141E),
-                onRefresh: () async {
-                  await Future.wait([
-                    controller.fetchAllBanner(),
-                    controller.fetchAllSectionsHome(),
-                    controller.getAllContinueWatching(),
-                    controller.getAllContent(),
-                    controller.getAllDrama(),
-                    controller.fetchUnreadCount(),
-                  ]);
-                },
+                onRefresh: () => controller.refreshHome(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
@@ -65,7 +55,7 @@ class HomeTabView extends GetView<HomeController> {
 
                       // ── 1. Hero 3D Carousel (Feature Banners)
                       HeroCarouselSection(),
-                      SizedBox(height: 24),
+                      SizedBox(height: 20),
 
                       // ── 2. Continue Watching Section (Hides if empty)
                       Padding(
@@ -73,11 +63,8 @@ class HomeTabView extends GetView<HomeController> {
                         child: ContinueWatchingSection(),
                       ),
 
-                      // ── 3. Dynamic API Sections (Headers & Dramas from Backend only)
+                      // ── 3. Dynamic API Sections (with Popular Genres after 2nd section)
                       DynamicHomeSections(),
-
-                      // ── 4. Popular Genres (Glass Genre Cards)
-                      PopularGenresSection(),
                       SizedBox(height: 20),
                     ],
                   ),
@@ -90,3 +77,4 @@ class HomeTabView extends GetView<HomeController> {
     );
   }
 }
+

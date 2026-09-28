@@ -7,6 +7,7 @@ import '../../../models/response/profile_model.dart';
 import '../../../routes/app_pages.dart';
 import '../../../shared/service/notification_service.dart';
 import '../../../shared/service/storage_service.dart';
+import '../../../shared/utils/log_util.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../auth/datasource/auth_datasource.dart';
 import '../../subscription/controller/subscription_controller.dart';
@@ -132,9 +133,9 @@ class ProfileController extends GetxController {
       } else {
         profileStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       profileStatus.value = Status.error;
-      print("fetchProfile error in ProfileController: $e");
+      LogUtil.error("fetchProfile error in ProfileController: $e", name: "ProfileController", error: e, stackTrace: stack);
     }
   }
 

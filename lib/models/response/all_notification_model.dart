@@ -42,12 +42,32 @@ class NotificationsData {
   });
 
   factory NotificationsData.fromJson(Map<String, dynamic> json) {
+    List<NotificationGroup> parsedGroups = [];
+    if (json['groups'] is List) {
+      parsedGroups = (json['groups'] as List<dynamic>)
+          .map((e) => NotificationGroup.fromJson(e))
+          .toList();
+    }
+
+    // Fallback if groups is empty but flat notifications/items array is present
+    if (parsedGroups.isEmpty) {
+      final rawList = json['notifications'] ?? json['items'] ?? json['list'];
+      if (rawList is List && rawList.isNotEmpty) {
+        final notifs = rawList
+            .map((e) => AppNotification.fromJson(e is Map<String, dynamic> ? e : {}))
+            .toList();
+        if (notifs.isNotEmpty) {
+          parsedGroups = [
+            NotificationGroup(label: 'Recent', notifications: notifs),
+          ];
+        }
+      }
+    }
+
     return NotificationsData(
       unreadCount: json['unreadCount'] ?? 0,
       pagination: NotificationPagination.fromJson(json['pagination'] ?? {}),
-      groups: (json['groups'] as List<dynamic>? ?? [])
-          .map((e) => NotificationGroup.fromJson(e))
-          .toList(),
+      groups: parsedGroups,
     );
   }
 

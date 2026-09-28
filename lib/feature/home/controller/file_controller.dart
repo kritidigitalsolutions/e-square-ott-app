@@ -1,6 +1,7 @@
 import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/home/datasource/home_datasource.dart';
 import 'package:e_square_ott_app/models/response/upload_file_model.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,9 +54,9 @@ class FileController extends GetxController {
         AppSnackbar.error('File upload failed. Please try again.');
         return null;
       }
-    } catch (e) {
+    } catch (e, stack) {
       isFileUpload.value = Status.error;
-      print("pickAndUploadImage error: $e");
+      LogUtil.error("pickAndUploadImage error: $e", name: "FileController", error: e, stackTrace: stack);
       AppSnackbar.error('Error uploading file: $e');
       return null;
     } finally {

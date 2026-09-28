@@ -21,8 +21,8 @@ class SavedSeriesScreen extends StatefulWidget {
 class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
   late final WhislistController controller =
       Get.isRegistered<WhislistController>()
-          ? Get.find<WhislistController>()
-          : Get.put(WhislistController());
+      ? Get.find<WhislistController>()
+      : Get.put(WhislistController());
 
   final ScrollController _scrollController = ScrollController();
   String _selectedGenre = 'All';
@@ -82,8 +82,10 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
               children: [
                 // ── Top Header
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -99,8 +101,9 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                               borderRadius: BorderRadius.circular(2),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.6),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   blurRadius: 6,
                                 ),
                               ],
@@ -239,8 +242,9 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.35),
+                                        color: AppColors.primary.withValues(
+                                          alpha: 0.35,
+                                        ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 2),
                                       ),
@@ -302,8 +306,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () =>
-                                  controller.getAllSavedWhislist(),
+                              onPressed: () => controller.getAllSavedWhislist(),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.black,
@@ -322,9 +325,9 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                         ? allItems
                         : allItems.where((e) {
                             final genre = _selectedGenre.toLowerCase();
-                            return e.drama.genreDisplay
-                                    .toLowerCase()
-                                    .contains(genre) ||
+                            return e.drama.genreDisplay.toLowerCase().contains(
+                                  genre,
+                                ) ||
                                 e.drama.genres.any(
                                   (g) => g.toLowerCase().contains(genre),
                                 );
@@ -344,13 +347,13 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        itemCount: filtered.length +
+                        itemCount:
+                            filtered.length +
                             (controller.getOtherWhislistStatus.value ==
                                     Status.loading
                                 ? 1
                                 : 0),
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 12),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           if (index == filtered.length) {
                             return const Padding(
@@ -371,9 +374,7 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                           final item = filtered[index];
                           final targetId = item.savedId.isNotEmpty
                               ? item.savedId
-                              : (item.id.isNotEmpty
-                                  ? item.id
-                                  : item.drama.id);
+                              : (item.id.isNotEmpty ? item.id : item.drama.id);
 
                           return _SavedSeriesCard(
                             item: item,
@@ -529,18 +530,15 @@ class _SavedSeriesCard extends StatelessWidget {
   final SavedSeries item;
   final VoidCallback onRemove;
 
-  const _SavedSeriesCard({
-    required this.item,
-    required this.onRemove,
-  });
+  const _SavedSeriesCard({required this.item, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
     final poster = item.drama.posterUrl.isNotEmpty
         ? item.drama.posterUrl
         : (item.drama.bannerUrl.isNotEmpty
-            ? item.drama.bannerUrl
-            : item.drama.poster);
+              ? item.drama.bannerUrl
+              : item.drama.poster);
 
     return Container(
       decoration: BoxDecoration(
@@ -569,10 +567,7 @@ class _SavedSeriesCard extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  Get.toNamed(
-                    Routes.dramaPlayer,
-                    arguments: item,
-                  );
+                  Get.toNamed(Routes.dramaPlayer, arguments: item);
                 },
                 child: SizedBox(
                   width: 78,
@@ -639,8 +634,7 @@ class _SavedSeriesCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: Colors.black.withValues(alpha: 0.65),
                               border: Border.all(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.8),
+                                color: AppColors.primary.withValues(alpha: 0.8),
                                 width: 1,
                               ),
                             ),
@@ -731,10 +725,7 @@ class _SavedSeriesCard extends StatelessWidget {
                         GestureDetector(
                           onTap: () {
                             HapticFeedback.lightImpact();
-                            Get.toNamed(
-                              Routes.dramaPlayer,
-                              arguments: item,
-                            );
+                            Get.toNamed(Routes.dramaPlayer, arguments: item);
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -746,8 +737,9 @@ class _SavedSeriesCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary
-                                      .withValues(alpha: 0.3),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),

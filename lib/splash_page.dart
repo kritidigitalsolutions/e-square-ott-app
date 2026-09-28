@@ -2,6 +2,7 @@ import 'package:e_square_ott_app/constants/app_constants.dart';
 import 'package:e_square_ott_app/feature/auth/datasource/auth_datasource.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,7 +61,7 @@ class _SplashPageState extends State<SplashPage>
       final token = await StorageService.getToken();
       if (token != null && token.trim().isNotEmpty) {
         final isRefreshed = await AuthDatasource().refreshToken();
-        print(token);
+        LogUtil.log("Auth Token: $token", name: "Splash");
         if (isRefreshed) {
           Get.offAllNamed(Routes.home);
         } else {

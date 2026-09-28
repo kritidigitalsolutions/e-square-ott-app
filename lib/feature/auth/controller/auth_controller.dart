@@ -13,6 +13,7 @@ import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/utils/log_util.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 
 class AuthController extends GetxController {
@@ -277,9 +278,9 @@ class AuthController extends GetxController {
       } else {
         getProfileStatus.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       getProfileStatus.value = Status.error;
-      print("getProfile error: $e");
+      LogUtil.error("getProfile error: $e", name: "AuthController", error: e, stackTrace: stack);
     }
   }
 
@@ -309,9 +310,9 @@ class AuthController extends GetxController {
       } else {
         allGenre.value = Status.error;
       }
-    } catch (e) {
+    } catch (e, stack) {
       allGenre.value = Status.error;
-      print("getAllGenres error: $e");
+      LogUtil.error("getAllGenres error: $e", name: "AuthController", error: e, stackTrace: stack);
     }
   }
 
@@ -335,9 +336,9 @@ class AuthController extends GetxController {
         selectInterestStatus.value = Status.error;
         AppSnackbar.error('Failed to save interests. Please try again.');
       }
-    } catch (e) {
+    } catch (e, stack) {
       selectInterestStatus.value = Status.error;
-      print("saveSelectedInterests error: $e");
+      LogUtil.error("saveSelectedInterests error: $e", name: "AuthController", error: e, stackTrace: stack);
       AppSnackbar.error('Error saving interests: $e');
     } finally {
       selectInterestStatus.value = Status.init;
@@ -355,9 +356,9 @@ class AuthController extends GetxController {
         refreshTokenStatus.value = Status.error;
         return false;
       }
-    } catch (e) {
+    } catch (e, stack) {
       refreshTokenStatus.value = Status.error;
-      print("refreshToken error: $e");
+      LogUtil.error("refreshToken error: $e", name: "AuthController", error: e, stackTrace: stack);
       return false;
     } finally {
       refreshTokenStatus.value = Status.init;
@@ -412,9 +413,9 @@ class AuthController extends GetxController {
         deleteAccountStatus.value = Status.error;
         return false;
       }
-    } catch (e) {
+    } catch (e, stack) {
       deleteAccountStatus.value = Status.error;
-      print("deleteAccount error: $e");
+      LogUtil.error("deleteAccount error: $e", name: "AuthController", error: e, stackTrace: stack);
       return false;
     } finally {
       deleteAccountStatus.value = Status.init;

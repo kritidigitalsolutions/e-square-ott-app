@@ -1,9 +1,9 @@
 import 'dart:convert';
-
 import 'package:e_square_ott_app/constants/app_url.dart';
 import 'package:e_square_ott_app/models/response/search_discorvey_model.dart';
 import 'package:e_square_ott_app/models/response/search_suggestion_response.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
+import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:http/http.dart' as http;
 
 class SearchDatasource {
@@ -22,12 +22,21 @@ class SearchDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[SearchDatasource] searchDiscovery [${response.statusCode}]: ${response.body}",
+        name: "SearchDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return SearchDiscoveryResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[SeachDatasource] searchDiscovery error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[SearchDatasource] searchDiscovery error: $e",
+        name: "SearchDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
@@ -50,12 +59,21 @@ class SearchDatasource {
           'Accept': 'application/json',
         },
       );
+      LogUtil.log(
+        "[SearchDatasource] searchSuggestion [${response.statusCode}]: ${response.body}",
+        name: "SearchDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return SearchSuggestionsResponse.fromJson(jsonDecode(response.body));
       }
       return null;
-    } catch (e) {
-      print("[SeachDatasource] searchSuggestion error: $e");
+    } catch (e, stack) {
+      LogUtil.error(
+        "[SearchDatasource] searchSuggestion error: $e",
+        name: "SearchDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }
