@@ -68,7 +68,7 @@ class OtpVerifyScreen extends GetView<AuthController> {
               Positioned.fill(
                 child: Image.asset(
                   AppImages.bg,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => const SizedBox.shrink(),
                 ),
               ),

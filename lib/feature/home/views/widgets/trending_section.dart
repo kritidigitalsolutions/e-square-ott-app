@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
 import '../../../../models/response/admin_content_model.dart';
+import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
+import '../../models/category_model.dart';
 
 class TrendingSection extends GetView<HomeController> {
   const TrendingSection({super.key});
@@ -22,7 +24,20 @@ class TrendingSection extends GetView<HomeController> {
           // ── Section Header: Trending >
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildSectionHeader('Trending'.tr, onTap: () {}),
+            child: _buildSectionHeader(
+              'Trending'.tr,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Get.toNamed(
+                  Routes.categoryDramas,
+                  arguments: CategoryModel(
+                    id: 'trending',
+                    title: 'Trending',
+                    seriesCount: '${trendingMovies.length} Dramas',
+                  ),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -216,7 +231,7 @@ class _TrendingCardState extends State<_TrendingCard> {
                         // Poster Image
                         Image.network(
                           posterUrl,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fill,
                           errorBuilder: (_, __, ___) => Container(
                             color: const Color(0xFF1E1E26),
                             child: const Center(

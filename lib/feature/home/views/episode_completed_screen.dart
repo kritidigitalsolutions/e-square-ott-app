@@ -191,7 +191,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
           // ── Blurred & Dimmed Backdrop Artwork
           Image.asset(
             _backdropImage,
-            fit: BoxFit.cover,
+            fit: BoxFit.fill,
             errorBuilder: (_, e, s) =>
                 Container(color: const Color(0xFF0A0A0F)),
           ),
@@ -612,7 +612,7 @@ class _EpisodeCompletedScreenState extends State<EpisodeCompletedScreen> {
                   children: [
                     Image.network(
                       poster,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fill,
                       errorBuilder: (_, __, ___) => Container(
                         color: const Color(0xFF22222E),
                         child: const Center(

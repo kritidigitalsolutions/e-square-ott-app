@@ -207,7 +207,7 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                         // Image
                         Image.network(
                           posterUrl,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fill,
                           errorBuilder: (_, __, ___) => Container(
                             color: const Color(0xFF222230),
                             child: const Center(

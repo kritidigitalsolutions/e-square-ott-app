@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/app_text_styles.dart';
 import '../../../../models/response/admin_content_model.dart';
+import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
+import '../../models/category_model.dart';
 
 class RecommendedSection extends GetView<HomeController> {
   const RecommendedSection({super.key});
@@ -22,7 +24,20 @@ class RecommendedSection extends GetView<HomeController> {
           // ── Section Header: Recommended for you >
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildSectionHeader('Recommended for you'.tr, onTap: () {}),
+            child: _buildSectionHeader(
+              'Recommended for you'.tr,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Get.toNamed(
+                  Routes.categoryDramas,
+                  arguments: CategoryModel(
+                    id: 'recommended',
+                    title: 'Recommended',
+                    seriesCount: '${recommended.length} Dramas',
+                  ),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -155,7 +170,7 @@ class _RecommendedPosterCardState extends State<_RecommendedPosterCard> {
                 // Poster Image
                 Image.network(
                   posterUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, __, ___) => Container(
                     color: const Color(0xFF1E1E26),
                     child: const Center(

@@ -371,7 +371,7 @@ class SearchTabView extends StatelessWidget {
                             height: 50,
                             child: Image.network(
                               item.posterUrl,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                               errorBuilder: (_, __, ___) => Container(
                                 color: const Color(0xFF22222E),
                                 child: const Center(
@@ -514,7 +514,7 @@ class SearchTabView extends StatelessWidget {
                   // Poster Artwork from API
                   Image.network(
                     drama.posterUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     errorBuilder: (_, __, ___) => Container(
                       color: const Color(0xFF1E1E28),
                       child: const Center(
@@ -694,7 +694,7 @@ class SearchTabView extends StatelessWidget {
                               height: 50,
                               child: Image.network(
                                 suggestion.posterUrl,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fill,
                                 errorBuilder: (_, __, ___) => Container(
                                   color: const Color(0xFF22222E),
                                   child: const Center(
@@ -807,7 +807,7 @@ class SearchTabView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
                                 rows[r][c].posterUrl,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fill,
                                 errorBuilder: (_, __, ___) => Container(
                                   color: const Color(0xFF1E1E28),
                                   child: const Center(

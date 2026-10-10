@@ -53,6 +53,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   bool _isInitialized = false;
   bool _isPlaying = false;
   bool _showPlayCenterIcon = false;
+  bool _isCleanMode = false;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
@@ -521,7 +522,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     return '$minutes:$seconds';
   }
 
-  Widget _buildBackdropWidget({BoxFit fit = BoxFit.cover}) {
+  Widget _buildBackdropWidget({BoxFit fit = BoxFit.fill}) {
     if (_backdropImage.startsWith('http://') ||
         _backdropImage.startsWith('https://')) {
       return Image.network(
@@ -1161,6 +1162,12 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   Widget _buildUnlockedEpisodeView(Map<String, dynamic> ep, int index) {
     return GestureDetector(
       onTap: _togglePlayPause,
+      onDoubleTap: () {
+        HapticFeedback.mediumImpact();
+        setState(() {
+          _isCleanMode = !_isCleanMode;
+        });
+      },
       behavior: HitTestBehavior.opaque,
       child: Stack(
         fit: StackFit.expand,
@@ -1169,7 +1176,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           if (_isInitialized && _videoPlayerController != null)
             SizedBox.expand(
               child: FittedBox(
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 child: SizedBox(
                   width: _videoPlayerController!.value.size.width,
                   height: _videoPlayerController!.value.size.height,
@@ -1182,17 +1189,24 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
 
           // Gradient Vignette Overlay
           Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha: 0.65),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.85),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: const [0.0, 0.45, 1.0],
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: _isCleanMode ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isCleanMode,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1222,20 +1236,88 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
               ),
             ),
 
+          // Floating Exit Full Screen Button (When Clean Mode Active)
+          if (_isCleanMode)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  setState(() => _isCleanMode = false);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0C0B10).withValues(alpha: 0.78),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.6),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 2),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      FaIcon(
+                        FontAwesomeIcons.compress,
+                        color: AppColors.primary,
+                        size: 13,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Exit Full Screen',
+                        style: TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Top Navigation Bar and Bottom Controls
           SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildTopNavBar(ep['episodeNumber']?.toString()),
-                _buildBottomControls(ep),
-              ],
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: _isCleanMode ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isCleanMode,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTopNavBar(ep['episodeNumber']?.toString()),
+                    _buildBottomControls(ep),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
 
   // ── 2. Locked Episode View (Paywall Screen matching Screenshot 2)
   Widget _buildLockedEpisodeView(Map<String, dynamic> ep, int index) {
@@ -1449,19 +1531,41 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
             ),
           ),
 
-          // Options button -> opens Playback Settings Sheet
-          IconButton(
-            onPressed: _openPlaybackSettings,
-            icon: const FaIcon(
-              FontAwesomeIcons.ellipsisVertical,
-              color: Colors.white,
-              size: 18,
-            ),
+          Row(
+            children: [
+              // Fullscreen / Clean View Button
+              IconButton(
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  setState(() {
+                    _isCleanMode = !_isCleanMode;
+                  });
+                },
+                icon: FaIcon(
+                  _isCleanMode
+                      ? FontAwesomeIcons.compress
+                      : FontAwesomeIcons.expand,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+              ),
+
+              // Options button -> opens Playback Settings Sheet
+              IconButton(
+                onPressed: _openPlaybackSettings,
+                icon: const FaIcon(
+                  FontAwesomeIcons.ellipsisVertical,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
 
   // ── Bottom Controls (Episodes > button, Title, Description, Progress bar)
   Widget _buildBottomControls(Map<String, dynamic> ep) {
@@ -2016,7 +2120,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                   children: [
                     Image.network(
                       poster,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fill,
                       errorBuilder: (_, __, ___) => Container(
                         color: const Color(0xFF22222E),
                         child: const Center(

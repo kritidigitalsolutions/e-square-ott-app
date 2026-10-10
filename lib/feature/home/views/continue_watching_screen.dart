@@ -831,14 +831,14 @@ class _SpotlightHeroCardState extends State<_SpotlightHeroCard> {
                 if (poster.startsWith('http'))
                   Image.network(
                     poster,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     errorBuilder: (_, e, s) =>
                         Container(color: const Color(0xFF181824)),
                   )
                 else
                   Image.asset(
                     poster,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     errorBuilder: (_, e, s) =>
                         Container(color: const Color(0xFF181824)),
                   ),
@@ -1120,7 +1120,7 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                       if (poster.startsWith('http'))
                         Image.network(
                           poster,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fill,
                           errorBuilder: (_, e, s) => Container(
                             color: const Color(0xFF1E1E2C),
                             child: const Center(
@@ -1135,7 +1135,7 @@ class _GridContinueWatchingCardState extends State<_GridContinueWatchingCard> {
                       else
                         Image.asset(
                           poster,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fill,
                           errorBuilder: (_, e, s) => Container(
                             color: const Color(0xFF1E1E2C),
                             child: const Center(
@@ -1431,7 +1431,7 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                               if (poster.startsWith('http'))
                                 Image.network(
                                   poster,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.fill,
                                   errorBuilder: (_, e, s) => Container(
                                     color: const Color(0xFF1E1E2C),
                                   ),
@@ -1439,7 +1439,7 @@ class _ListContinueWatchingCardState extends State<_ListContinueWatchingCard> {
                               else
                                 Image.asset(
                                   poster,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.fill,
                                   errorBuilder: (_, e, s) => Container(
                                     color: const Color(0xFF1E1E2C),
                                   ),

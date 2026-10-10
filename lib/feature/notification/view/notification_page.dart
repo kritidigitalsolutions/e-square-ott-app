@@ -653,7 +653,7 @@ class _NotificationCard extends StatelessWidget {
                 item.imageUrl,
                 width: 60,
                 height: 82,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: 60,
                   height: 82,

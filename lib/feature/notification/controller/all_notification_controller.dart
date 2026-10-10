@@ -1,7 +1,6 @@
 import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:e_square_ott_app/feature/notification/datasource/notification_datasource.dart';
 import 'package:e_square_ott_app/models/response/all_notification_model.dart';
-import 'package:e_square_ott_app/shared/service/notification_service.dart';
 import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:get/get.dart';
@@ -24,17 +23,15 @@ class AllNotificationController extends GetxController {
   final hasNextPage = false.obs;
   final selectedType = Rxn<String>(); // null means all types
 
-  final Set<String> _shownLocalNotificationIds = {};
-
   @override
   void onInit() {
     super.onInit();
-    allNotification(showLocalForUnread: true);
+    allNotification();
     fetchUnreadCount();
   }
 
   // ── 1. Fetch First Page of Notifications ──
-  Future<void> allNotification({bool showLocalForUnread = false}) async {
+  Future<void> allNotification() async {
     allNotificationStatus.value = Status.loading;
     pageNo.value = 0;
 
@@ -66,10 +63,6 @@ class AllNotificationController extends GetxController {
 
         groups.assignAll(result.data.groups);
         allNotificationStatus.value = Status.success;
-
-        if (showLocalForUnread) {
-          _showUnreadNotificationsLocally(result.data.groups);
-        }
       } else {
         allNotificationStatus.value = Status.error;
       }
@@ -82,42 +75,6 @@ class AllNotificationController extends GetxController {
         stackTrace: stack,
       );
     }
-  }
-
-  void _showUnreadNotificationsLocally(List<NotificationGroup> groups) {
-    try {
-      for (final group in groups) {
-        for (final item in group.notifications) {
-          if (!item.isRead && !_shownLocalNotificationIds.contains(item.id)) {
-            _shownLocalNotificationIds.add(item.id);
-            NotificationService.instance.showLocalNotification(
-              title: item.title.isNotEmpty ? item.title : 'E-Square OTT',
-              body: item.body,
-              data: {
-                'id': item.id,
-                'type': item.type,
-                'contentId': item.contentId,
-              },
-            );
-          }
-        }
-      }
-    } catch (e, stack) {
-      LogUtil.error(
-        "Error showing local notification for API notifications: $e",
-        name: "AllNotificationController",
-        error: e,
-        stackTrace: stack,
-      );
-    }
-  }
-
-  Future<void> showLocalNotificationForItem(AppNotification item) async {
-    await NotificationService.instance.showLocalNotification(
-      title: item.title.isNotEmpty ? item.title : 'E-Square OTT',
-      body: item.body,
-      data: {'id': item.id, 'type': item.type, 'contentId': item.contentId},
-    );
   }
 
   // ── Pagination: Load More Notifications ──

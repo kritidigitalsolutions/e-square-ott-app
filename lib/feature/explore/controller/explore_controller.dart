@@ -7,6 +7,7 @@ import 'package:e_square_ott_app/models/response/episode_drawer_model.dart';
 import 'package:e_square_ott_app/routes/app_pages.dart';
 import 'package:e_square_ott_app/shared/widgets/custom_sncakbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class ExploreController extends GetxController {
@@ -18,6 +19,7 @@ class ExploreController extends GetxController {
   final RxList<PriorityDrama> exploreList = <PriorityDrama>[].obs;
   final RxInt currentExploreIndex = 0.obs;
   final RxBool isMuted = false.obs;
+  final RxBool isFullScreenCleanMode = false.obs;
   final RxInt currentPage = 1.obs;
   final RxBool hasMore = true.obs;
   final RxBool isLoadingMore = false.obs;
@@ -83,7 +85,9 @@ class ExploreController extends GetxController {
               genreDisplay: d.genreDisplay,
               totalEpisodes: d.totalEpisodes,
               viewsCount: d.viewsCount,
-              viewsFormatted: d.rating > 0 ? '★ ${d.rating}' : '${d.viewsCount}',
+              viewsFormatted: d.rating > 0
+                  ? '★ ${d.rating}'
+                  : '${d.viewsCount}',
               rating: d.rating,
               priority: 1,
               isTrending: d.isTrending,
@@ -140,6 +144,11 @@ class ExploreController extends GetxController {
     isMuted.value = !isMuted.value;
   }
 
+  void toggleFullScreenCleanMode() {
+    isFullScreenCleanMode.value = !isFullScreenCleanMode.value;
+    HapticFeedback.mediumImpact();
+  }
+
   void toggleLike(String dramaId) {
     if (likedDramaIds.contains(dramaId)) {
       likedDramaIds.remove(dramaId);
@@ -161,8 +170,7 @@ class ExploreController extends GetxController {
       final whislistController = Get.isRegistered<WhislistController>()
           ? Get.find<WhislistController>()
           : Get.put(WhislistController());
-      final res =
-          await whislistController.toggleSavedSeries(dramaId: drama.id);
+      final res = await whislistController.toggleSavedSeries(dramaId: drama.id);
       if (res != null && res.success) {
         if (res.data.isSaved) {
           myWatchlistDramaIds.add(drama.id);
@@ -196,9 +204,6 @@ class ExploreController extends GetxController {
   }
 
   void watchNow(PriorityDrama drama, {int episodeIndex = 0}) {
-    Get.toNamed(
-      Routes.dramaPlayer,
-      arguments: drama,
-    );
+    Get.toNamed(Routes.dramaPlayer, arguments: drama);
   }
 }

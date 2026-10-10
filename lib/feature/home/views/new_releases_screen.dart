@@ -352,7 +352,7 @@ class NewReleasesScreen extends GetView<HomeController> {
               if (poster.startsWith('http'))
                 Image.network(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF22222E),
                     child: const Center(
@@ -367,7 +367,7 @@ class NewReleasesScreen extends GetView<HomeController> {
               else
                 Image.asset(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF22222E),
                     child: const Center(

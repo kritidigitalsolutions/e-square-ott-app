@@ -351,6 +351,80 @@ class SubscriptionPage extends StatelessWidget {
                               ),
                             ],
                           ),
+                          // ── Redeem Gift Voucher Banner ──
+                          GestureDetector(
+                            onTap: () => Get.toNamed(Routes.redeemVoucher),
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF221706), Color(0xFF16151E)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: FaIcon(
+                                        FontAwesomeIcons.gift,
+                                        color: AppColors.primary,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'Have a Gift Voucher?',
+                                          style: TextStyle(
+                                            fontFamily: AppTextStyles.fontFamily,
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Redeem code for instant free VIP access',
+                                          style: TextStyle(
+                                            fontFamily: AppTextStyles.fontFamily,
+                                            color: Color(0xFF9E9EAE),
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const FaIcon(
+                                    FontAwesomeIcons.chevronRight,
+                                    color: AppColors.primary,
+                                    size: 13,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 24),
 
                           // ── Bottom Action Button ──
@@ -397,13 +471,14 @@ class SubscriptionPage extends StatelessWidget {
                                     subController.isTrialSelected.value;
                                 final selected =
                                     subController.selectedPlan.value;
+                                final payable = subController.payableAmount.toInt();
 
                                 String buttonLabel = 'Continue';
                                 if (isTrial) {
                                   buttonLabel = 'Start 7-Day Free Trial (₹2)';
                                 } else if (selected != null) {
                                   buttonLabel =
-                                      'Continue with ${selected.name} (₹${selected.price.toInt()})';
+                                      'Continue with ${selected.name} (₹$payable)';
                                 }
 
                                 return AppButton(

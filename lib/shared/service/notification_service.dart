@@ -55,9 +55,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         >()
         ?.createNotificationChannel(androidChannel);
 
-    if (title.isNotEmpty || body.isNotEmpty) {
+    // Only show a local notification if Android FCM didn't automatically display one
+    // (FCM automatically displays notifications with a 'notification' payload in background).
+    if (message.notification == null && (title.isNotEmpty || body.isNotEmpty)) {
       await flutterLocalNotificationsPlugin.show(
-        id: message.hashCode,
+        id: message.messageId?.hashCode ?? message.hashCode,
         title: title,
         body: body,
         notificationDetails: NotificationDetails(
@@ -88,6 +90,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       stackTrace: stack,
     );
   }
+
 }
 
 class NotificationService {
@@ -106,11 +109,14 @@ class NotificationService {
   void Function(RemoteMessage message)? onNotificationTapHandler;
 
   String? _lastRegisteredToken;
+  bool _isListenersSetup = false;
+  final Set<String> _processedMessageIds = {};
 
   // ── Initialization ───────────────────────────────────────────
   static Future<void> initialize() async {
     await instance._initService();
   }
+
 
   Future<void> _initService() async {
     // 1. Android notification channel
@@ -231,13 +237,17 @@ class NotificationService {
         sound: true,
       );
 
-      LogUtil.log(
-        '[FCM Service] Initializing FCM listeners & token fetch...',
-        name: 'FCM',
-      );
       await _subscribeToToken();
-      _listenForeground();
-      _listenOnOpen();
+
+      if (!_isListenersSetup) {
+        _isListenersSetup = true;
+        LogUtil.log(
+          '[FCM Service] Initializing FCM listeners & token fetch...',
+          name: 'FCM',
+        );
+        _listenForeground();
+        _listenOnOpen();
+      }
     } catch (e, stack) {
       LogUtil.error(
         '[FCM Service] Initialization error: $e',
@@ -341,8 +351,18 @@ class NotificationService {
   // ── Foreground messages ──────────────────────────────────────
   void _listenForeground() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final msgId = message.messageId ?? '${message.sentTime?.millisecondsSinceEpoch}_${message.data.hashCode}';
+      if (_processedMessageIds.contains(msgId)) {
+        LogUtil.log('[FCM] Skipping duplicate foreground message: $msgId', name: 'FCM');
+        return;
+      }
+      _processedMessageIds.add(msgId);
+      if (_processedMessageIds.length > 50) {
+        _processedMessageIds.remove(_processedMessageIds.first);
+      }
+
       LogUtil.log(
-        '[FCM] Foreground message received: ${message.messageId}',
+        '[FCM] Foreground message received: $msgId',
         name: 'FCM',
       );
       LogUtil.log(
@@ -368,7 +388,7 @@ class NotificationService {
 
       if (title.isNotEmpty || body.isNotEmpty) {
         _localNotifications.show(
-          id: message.hashCode,
+          id: message.messageId?.hashCode ?? message.hashCode,
           title: title,
           body: body,
           notificationDetails: const NotificationDetails(
@@ -399,6 +419,7 @@ class NotificationService {
       }
     });
   }
+
 
   // ── Notification tap ─────────────────────────────────────────
   void _listenOnOpen() {

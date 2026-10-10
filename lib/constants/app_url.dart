@@ -1,5 +1,6 @@
 class AppUrl {
-  static const baseUrl = "http://192.168.1.39:5001/api/v1";
+  // static const baseUrl = "https://esquarebackend.vercel.app/api/v1";
+  static const baseUrl = "http://192.168.1.34:5001/api/v1";
   static const requestOtp = "$baseUrl/auth/request-otp";
   static const verifyOtp = "$baseUrl/auth/verify-otp";
   static const resendOtp = "$baseUrl/auth/resend-otp";
@@ -100,4 +101,14 @@ class AppUrl {
   }
 
   static String allHomePageBanner = "$baseUrl/home/banners?limit=100";
+
+  // Promo / Coupon endpoints
+  static const validatePromo = "$baseUrl/promos/validate";
+  static const applyPromo = "$baseUrl/promos/apply";
+
+  // Voucher endpoints
+  static const validateVoucher = "$baseUrl/vouchers/validate";
+  static const redeemVoucher = "$baseUrl/vouchers/redeem";
+  static String voucherHistory({required String phoneNumber}) =>
+      "$baseUrl/vouchers/my-history?phoneNumber=$phoneNumber";
 }

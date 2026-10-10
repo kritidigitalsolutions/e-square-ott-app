@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:e_square_ott_app/constants/enum.dart';
+import 'package:e_square_ott_app/feature/subscription/datasource/promo_datasource.dart';
 import 'package:e_square_ott_app/feature/subscription/datasource/subscription_datasource.dart';
 import 'package:e_square_ott_app/models/request/create_order_payload.dart';
 import 'package:e_square_ott_app/models/request/verify_subscription_payload.dart';
@@ -6,6 +8,7 @@ import 'package:e_square_ott_app/models/response/all_plans_model.dart';
 import 'package:e_square_ott_app/models/response/create_order_model.dart';
 import 'package:e_square_ott_app/models/response/subscription_status_model.dart';
 import 'package:e_square_ott_app/models/response/upgrade_order_response.dart';
+import 'package:e_square_ott_app/models/response/validate_promo_response.dart';
 import 'package:e_square_ott_app/models/response/verify_subscription_model.dart';
 import 'package:get/get.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
@@ -13,6 +16,7 @@ import '../../profile/controller/profile_controller.dart';
 
 class SubscriptionController extends GetxController {
   final SubscriptionDatasource datasource = SubscriptionDatasource();
+  final PromoDatasource promoDatasource = PromoDatasource();
 
   // ── Reactive States ──
   final RxBool isSubscribed = false.obs;
@@ -21,6 +25,12 @@ class SubscriptionController extends GetxController {
   // Selected Plan & Trial State
   final Rxn<SubscriptionPlan> selectedPlan = Rxn<SubscriptionPlan>();
   final RxBool isTrialSelected = false.obs;
+
+  // Promo Code State
+  final Rxn<PromoData> appliedPromo = Rxn<PromoData>();
+  final RxBool isApplyingPromo = false.obs;
+  final RxString promoError = ''.obs;
+  final TextEditingController promoTextController = TextEditingController();
 
   // API Responses
   final Rxn<SubscriptionPlansResponse> allPlanResponse =
@@ -84,15 +94,105 @@ class SubscriptionController extends GetxController {
       selectedPlan.value?.name ??
       (isVip ? (planStatusResponse.value?.data.planName ?? '') : '');
 
-  String get activePlanPrice => selectedPlan.value != null
-      ? '₹${selectedPlan.value!.price.toInt()}'
-      : '';
+  String get activePlanPrice {
+    if (isTrialSelected.value) return '₹2';
+    final promo = appliedPromo.value;
+    if (promo?.pricing != null) {
+      return '₹${promo!.pricing!.finalPrice.toInt()}';
+    }
+    return selectedPlan.value != null
+        ? '₹${selectedPlan.value!.price.toInt()}'
+        : '';
+  }
+
+  num get payableAmount {
+    if (isTrialSelected.value) return 2;
+    if (appliedPromo.value?.pricing != null) {
+      return appliedPromo.value!.pricing!.finalPrice;
+    }
+    return selectedPlan.value?.price ?? 99;
+  }
+
+  num get originalAmount {
+    if (isTrialSelected.value) return 2;
+    return selectedPlan.value?.price ?? 99;
+  }
+
+  num get discountAmount {
+    if (appliedPromo.value?.pricing != null) {
+      return appliedPromo.value!.pricing!.discountAmount;
+    }
+    return 0;
+  }
+
+  // ── Promo Code Actions ──
+  Future<bool> applyPromoCode({String? code}) async {
+    final promoCode = (code ?? promoTextController.text).trim().toUpperCase();
+    if (promoCode.isEmpty) {
+      AppSnackbar.error('Please enter a valid coupon/promo code.', title: 'Empty Code');
+      return false;
+    }
+
+    final targetPlan = selectedPlan.value;
+    if (targetPlan == null) {
+      AppSnackbar.warning('Please select a subscription plan first.', title: 'Select Plan');
+      return false;
+    }
+
+    isApplyingPromo.value = true;
+    promoError.value = '';
+
+    try {
+      final res = await promoDatasource.validatePromo(
+        code: promoCode,
+        planId: targetPlan.id,
+      );
+
+      isApplyingPromo.value = false;
+
+      if (res != null && res.success && res.data != null) {
+        appliedPromo.value = res.data;
+        promoTextController.text = res.data!.code;
+        AppSnackbar.success(
+          res.message.isNotEmpty
+              ? res.message
+              : 'Promo code applied! You saved ₹${res.data!.pricing?.discountAmount ?? 0}',
+          title: 'Promo Applied',
+        );
+        return true;
+      } else {
+        appliedPromo.value = null;
+        promoError.value = res?.message ?? 'This promo code is invalid or has expired';
+        AppSnackbar.error(promoError.value, title: 'Promo Invalid');
+        return false;
+      }
+    } catch (e) {
+      isApplyingPromo.value = false;
+      appliedPromo.value = null;
+      promoError.value = 'Failed to validate promo code';
+      AppSnackbar.error(promoError.value, title: 'Error');
+      return false;
+    }
+  }
+
+  void removePromoCode() {
+    appliedPromo.value = null;
+    promoTextController.clear();
+    promoError.value = '';
+    AppSnackbar.info('Promo code has been removed.', title: 'Promo Removed');
+  }
 
   @override
   void onInit() {
     super.onInit();
     getAllPlans();
     userPlanStatus();
+  }
+
+  @override
+  void onClose() {
+    promoTextController.dispose();
+    super.onClose();
   }
 
   // ── Status Getters ──
@@ -144,6 +244,11 @@ class SubscriptionController extends GetxController {
     isTrialSelected.value = false;
     setPlanId(plan.id);
     setIsTrial(false);
+
+    // If a promo was applied, re-validate with the new plan if appropriate or reset
+    if (appliedPromo.value != null) {
+      applyPromoCode(code: appliedPromo.value!.code);
+    }
   }
 
   /// Select 7-Day Free Trial (Rs. 2 Token Mandate)
@@ -155,8 +260,10 @@ class SubscriptionController extends GetxController {
       );
       return;
     }
+    appliedPromo.value = null;
     isTrialSelected.value = true;
     setIsTrial(true);
+
     final trialPlan = plans.firstWhereOrNull(
           (p) => p.trialEligible || p.code == 'PLAN_1M',
         ) ??

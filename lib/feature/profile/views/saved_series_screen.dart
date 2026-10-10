@@ -580,7 +580,7 @@ class _SavedSeriesCard extends StatelessWidget {
                         if (poster.startsWith('http'))
                           Image.network(
                             poster,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFF1E1E28),
                               child: const Center(
@@ -595,7 +595,7 @@ class _SavedSeriesCard extends StatelessWidget {
                         else
                           Image.asset(
                             poster,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFF1E1E28),
                               child: const Center(

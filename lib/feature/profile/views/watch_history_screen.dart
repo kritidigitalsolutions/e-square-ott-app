@@ -374,7 +374,7 @@ class _WatchHistoryCard extends StatelessWidget {
                       children: [
                         Image.asset(
                           item.posterAsset,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fill,
                           errorBuilder: (_, __, ___) => Container(
                             color: const Color(0xFF1E1E28),
                             child: const Center(

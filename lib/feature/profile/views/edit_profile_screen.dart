@@ -267,7 +267,7 @@ class EditProfileScreen extends GetView<ProfileController> {
                                               if (avatar.startsWith('http'))
                                                 Image.network(
                                                   avatar,
-                                                  fit: BoxFit.cover,
+                                                  fit: BoxFit.fill,
                                                   errorBuilder: (_, __, ___) =>
                                                       _buildAvatarFallback(),
                                                 )

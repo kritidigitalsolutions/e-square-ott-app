@@ -9,6 +9,7 @@ import '../../../../constants/app_text_styles.dart';
 import '../../../../models/response/home_section_model.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
+import '../../models/category_model.dart';
 import 'popular_genres_section.dart';
 
 class DynamicHomeSections extends GetView<HomeController> {
@@ -256,61 +257,91 @@ class DynamicHomeSections extends GetView<HomeController> {
   }
 
   Widget _buildSectionHeader(HomeSection section) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Row(
-            children: [
-              // Red Accent Bar
-              Container(
-                width: 3.5,
-                height: 16,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.6),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        final titleLower = section.title.toLowerCase();
+        final slugLower = section.slug.toLowerCase();
 
-              // Dynamic Title Only
-              Flexible(
-                child: Text(
-                  section.title,
-                  style: AppTextStyles.text18Bold.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
+        if (titleLower.contains('new release') ||
+            slugLower.contains('new_release') ||
+            slugLower.contains('new-release') ||
+            titleLower.contains('latest')) {
+          Get.toNamed(Routes.newReleases);
+        } else if (titleLower.contains('popular genre') ||
+            titleLower.contains('categories') ||
+            slugLower.contains('category')) {
+          Get.toNamed(Routes.categories);
+        } else {
+          Get.toNamed(
+            Routes.categoryDramas,
+            arguments: CategoryModel(
+              id: section.id,
+              title: section.title,
+              seriesCount: '${section.dramas.length} Dramas',
+            ),
+          );
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                // Red Accent Bar
+                Container(
+                  width: 3.5,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.6),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(width: 8),
 
-        // Optional View All Icon
-        if (section.viewAllEnabled)
+                // Dynamic Title Only
+                Flexible(
+                  child: Text(
+                    section.title,
+                    style: AppTextStyles.text18Bold.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // View All Arrow Button
           Container(
-            padding: const EdgeInsets.all(6),
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withValues(alpha: 0.06),
               shape: BoxShape.circle,
             ),
-            child: const FaIcon(
-              FontAwesomeIcons.chevronRight,
-              color: AppColors.primary,
-              size: 11,
+            child: const Center(
+              child: FaIcon(
+                FontAwesomeIcons.chevronRight,
+                color: AppColors.primary,
+                size: 11,
+              ),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -392,11 +423,11 @@ class _DynamicDramaPosterCard extends StatelessWidget {
             children: [
               CachedNetworkImage(
                 imageUrl: poster,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 placeholder: (context, url) =>
                     Container(color: const Color(0xFF1B1B26)),
                 errorWidget: (context, url, error) =>
-                    Image.asset(AppImages.banner1, fit: BoxFit.cover),
+                    Image.asset(AppImages.banner1, fit: BoxFit.fill),
               ),
 
               // Dark Bottom Gradient
@@ -558,11 +589,11 @@ class _DynamicTrendingCard extends StatelessWidget {
                   children: [
                     CachedNetworkImage(
                       imageUrl: poster,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fill,
                       placeholder: (context, url) =>
                           Container(color: const Color(0xFF1B1B26)),
                       errorWidget: (context, url, error) =>
-                          Image.asset(AppImages.banner1, fit: BoxFit.cover),
+                          Image.asset(AppImages.banner1, fit: BoxFit.fill),
                     ),
                     Positioned.fill(
                       child: DecoratedBox(

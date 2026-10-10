@@ -151,6 +151,10 @@ class ProfileController extends GetxController {
     Get.toNamed(Routes.subscriptionPage);
   }
 
+  void openRedeemVoucher() {
+    Get.toNamed(Routes.redeemVoucher);
+  }
+
   void openNotification() {
     Get.toNamed(Routes.notificationPage);
   }

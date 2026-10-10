@@ -247,7 +247,7 @@ class _GenreCardState extends State<_GenreCard> {
                 Positioned.fill(
                   child: Image.asset(
                     genre.posterImage,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     errorBuilder: (_, e, s) => const SizedBox.shrink(),
                   ),
                 ),

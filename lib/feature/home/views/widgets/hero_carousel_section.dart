@@ -156,7 +156,7 @@ class _HeroHomeBannerCard extends GetView<HomeController> {
               if (poster.startsWith('http'))
                 Image.network(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF161622),
                     child: const Center(
@@ -171,7 +171,7 @@ class _HeroHomeBannerCard extends GetView<HomeController> {
               else if (poster.isNotEmpty)
                 Image.asset(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF161622),
                     child: const Center(
@@ -521,7 +521,7 @@ class _HeroPriorityDramaCard extends GetView<HomeController> {
               if (poster.startsWith('http'))
                 Image.network(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF161622),
                     child: const Center(
@@ -536,7 +536,7 @@ class _HeroPriorityDramaCard extends GetView<HomeController> {
               else
                 Image.asset(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF161622),
                     child: const Center(

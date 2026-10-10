@@ -14,8 +14,8 @@ class CategoryModel {
   CategoryModel({
     required this.id,
     required this.title,
-    required this.icon,
-    required this.gradientColors,
+    this.icon = FontAwesomeIcons.film,
+    this.gradientColors = const [Color(0xFF261D0C), Color(0xFF14141E)],
     this.posterImage,
     this.seriesCount,
     this.tag,

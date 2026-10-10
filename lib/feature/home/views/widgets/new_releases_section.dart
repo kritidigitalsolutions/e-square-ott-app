@@ -159,7 +159,7 @@ class _NewReleasePosterCardState extends State<_NewReleasePosterCard> {
                 // Poster
                 Image.network(
                   posterUrl,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, __, ___) => Container(
                     color: const Color(0xFF1E1E26),
                     child: const Center(

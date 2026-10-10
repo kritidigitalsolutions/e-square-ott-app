@@ -52,13 +52,20 @@ class CategoryDramasScreen extends GetView<HomeController> {
                         CustomBackButton(onTap: () => Get.back()),
                         const SizedBox(width: 14),
 
-                        // Two-line Title (e.g. "Romance Dramas")
+                        // Two-line Title
                         Expanded(
                           child: Obx(() {
-                            final title =
+                            final rawTitle =
                                 controller.selectedCategory.value.title;
+                            final lower = rawTitle.toLowerCase();
+                            final displayTitle = lower.contains('drama') ||
+                                    lower.contains('series') ||
+                                    lower.contains('show')
+                                ? rawTitle
+                                : '$rawTitle ${'Dramas'.tr}';
+
                             return Text(
-                              '${title.tr} ${'Dramas'.tr}',
+                              displayTitle,
                               style: AppTextStyles.text24Bold.copyWith(
                                 color: Colors.white,
                                 height: 1.15,
@@ -75,22 +82,79 @@ class CategoryDramasScreen extends GetView<HomeController> {
                   // ── 2-Column Category Poster Grid
                   Expanded(
                     child: Obx(() {
-                      final categoryTitle =
-                          controller.selectedCategory.value.title.toLowerCase();
-                      final allDramas = controller.allPriorityDramas;
+                      final category = controller.selectedCategory.value;
+                      final categoryTitle = category.title.toLowerCase();
+                      final categoryId = category.id.toLowerCase();
 
-                      final filtered = allDramas.where((d) {
-                        final inGenreDisplay = d.genreDisplay
-                            .toLowerCase()
-                            .contains(categoryTitle);
-                        final inGenres = d.genres.any(
-                          (g) => g.toLowerCase().contains(categoryTitle),
-                        );
-                        return inGenreDisplay || inGenres;
-                      }).toList();
+                      // 1. Check if matching dynamic HomeSection exists
+                      final matchingSection = controller.homeSections.firstWhereOrNull(
+                        (sec) =>
+                            sec.id.toLowerCase() == categoryId ||
+                            sec.slug.toLowerCase() == categoryId ||
+                            sec.title.toLowerCase() == categoryTitle,
+                      );
 
-                      final dramas =
-                          filtered.isNotEmpty ? filtered : allDramas;
+                      List<PriorityDrama> dramas = [];
+
+                      if (matchingSection != null && matchingSection.dramas.isNotEmpty) {
+                        dramas = matchingSection.dramas.map((d) {
+                          return PriorityDrama(
+                            id: d.id.isNotEmpty ? d.id : d.mongoId,
+                            title: d.title.isNotEmpty ? d.title : d.name,
+                            slug: d.slug.isNotEmpty
+                                ? d.slug
+                                : (d.title.isNotEmpty ? d.title : d.name)
+                                    .toLowerCase()
+                                    .replaceAll(' ', '-'),
+                            synopsis: d.synopsis.isNotEmpty
+                                ? d.synopsis
+                                : d.description,
+                            posterUrl: d.posterUrl.isNotEmpty
+                                ? d.posterUrl
+                                : d.poster,
+                            bannerUrl: d.bannerUrl.isNotEmpty
+                                ? d.bannerUrl
+                                : d.banner,
+                            trailerUrl: d.trailerUrl.isNotEmpty
+                                ? d.trailerUrl
+                                : d.trailer,
+                            genres: d.genres,
+                            genreDisplay: d.genreDisplay,
+                            totalEpisodes: d.totalEpisodes > 0
+                                ? d.totalEpisodes
+                                : d.episodesCount,
+                            viewsCount: d.viewsCount,
+                            viewsFormatted: d.viewsFormatted,
+                            rating: d.rating,
+                            priority: d.priority,
+                            isTrending: d.isTrending,
+                            isNewRelease: d.isNewRelease,
+                            trendingRank: d.trendingRank,
+                            releaseDate: d.releaseDate,
+                          );
+                        }).toList();
+                      }
+
+                      // 2. Check Trending
+                      if (dramas.isEmpty && categoryTitle.contains('trending')) {
+                        dramas = controller.trendingDramas;
+                      }
+
+                      // 3. Fallback to priority dramas matching genre
+                      if (dramas.isEmpty) {
+                        final allDramas = controller.allPriorityDramas;
+                        final filtered = allDramas.where((d) {
+                          final inGenreDisplay = d.genreDisplay
+                              .toLowerCase()
+                              .contains(categoryTitle);
+                          final inGenres = d.genres.any(
+                            (g) => g.toLowerCase().contains(categoryTitle),
+                          );
+                          return inGenreDisplay || inGenres;
+                        }).toList();
+
+                        dramas = filtered.isNotEmpty ? filtered : allDramas;
+                      }
 
                       if (dramas.isEmpty) {
                         return Center(
@@ -157,7 +221,7 @@ class CategoryDramasScreen extends GetView<HomeController> {
               if (poster.startsWith('http'))
                 Image.network(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF22222E),
                     child: const Center(
@@ -172,7 +236,7 @@ class CategoryDramasScreen extends GetView<HomeController> {
               else
                 Image.asset(
                   poster,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   errorBuilder: (_, e, s) => Container(
                     color: const Color(0xFF22222E),
                     child: const Center(

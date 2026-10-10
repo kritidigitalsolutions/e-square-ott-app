@@ -48,13 +48,64 @@ class AppSnackbar {
       _currentEntry = null;
     } catch (_) {}
 
-    final context = Get.overlayContext ?? Get.context;
-    if (context == null) return;
+    OverlayState? overlay;
+    try {
+      if (Get.key.currentState?.overlay != null) {
+        overlay = Get.key.currentState!.overlay;
+      }
+    } catch (_) {}
 
-    final overlay = Overlay.maybeOf(context);
-    if (overlay == null) return;
+    if (overlay == null && Get.overlayContext != null) {
+      try {
+        overlay = Overlay.maybeOf(Get.overlayContext!);
+      } catch (_) {}
+    }
+
+    if (overlay == null && Get.context != null) {
+      try {
+        overlay = Overlay.maybeOf(Get.context!);
+      } catch (_) {}
+    }
 
     final config = _getConfig(type);
+
+    if (overlay == null) {
+      Get.rawSnackbar(
+        titleText: Text(
+          title.tr,
+          style: const TextStyle(
+            fontFamily: AppTextStyles.fontFamily,
+            color: Colors.white,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+        messageText: Text(
+          message.tr,
+          style: TextStyle(
+            fontFamily: AppTextStyles.fontFamily,
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 12.5,
+            fontWeight: FontWeight.w400,
+            height: 1.3,
+          ),
+        ),
+        backgroundColor: const Color(0xFF11111A),
+        borderColor: config.accent.withValues(alpha: 0.35),
+        borderWidth: 1.2,
+        borderRadius: 18,
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 3),
+        icon: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: FaIcon(config.icon, color: config.accent, size: 16),
+        ),
+      );
+      return;
+    }
+
     late final OverlayEntry entry;
 
     entry = OverlayEntry(

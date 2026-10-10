@@ -123,7 +123,7 @@ class ProfileTabView extends StatelessWidget {
                             if (avatar.startsWith('http')) {
                               return Image.network(
                                 avatar,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fill,
                                 errorBuilder: (_, __, ___) =>
                                     _buildAvatarFallback(iconSize: 16),
                               );
@@ -195,6 +195,11 @@ class ProfileTabView extends StatelessWidget {
                             icon: FontAwesomeIcons.crown,
                             title: 'Subscription'.tr,
                             onTap: controller.openSubscription,
+                          ),
+                          _ProfileMenuItem(
+                            icon: FontAwesomeIcons.gift,
+                            title: 'Redeem Voucher'.tr,
+                            onTap: controller.openRedeemVoucher,
                           ),
                           _ProfileMenuItem(
                             icon: FontAwesomeIcons.bell,
@@ -316,7 +321,7 @@ class ProfileTabView extends StatelessWidget {
                         if (avatar.startsWith('http')) {
                           return Image.network(
                             avatar,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             errorBuilder: (_, __, ___) =>
                                 _buildAvatarFallback(iconSize: 26),
                           );

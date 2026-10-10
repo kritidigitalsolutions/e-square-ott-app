@@ -29,6 +29,7 @@ abstract class Routes {
   static const notificationSetting = _Paths.notificationSetting;
   static const episodeCompleted = _Paths.episodeCompleted;
   static const editProfile = _Paths.editProfile;
+  static const redeemVoucher = _Paths.redeemVoucher;
 }
 
 abstract class _Paths {
@@ -60,4 +61,6 @@ abstract class _Paths {
   static const notificationSetting = "/notification-setting";
   static const episodeCompleted = "/episode-completed";
   static const editProfile = "/edit-profile";
+  static const redeemVoucher = "/redeem-voucher";
 }
+

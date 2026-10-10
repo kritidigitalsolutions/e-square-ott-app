@@ -123,7 +123,7 @@ class CategoriesSection extends GetView<HomeController> {
                 Positioned.fill(
                   child: Image.asset(
                     cat.posterImage!,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     errorBuilder: (_, e, s) => const SizedBox.shrink(),
                   ),
                 ),

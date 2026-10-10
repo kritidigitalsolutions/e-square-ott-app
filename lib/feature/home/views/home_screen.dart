@@ -1,3 +1,4 @@
+import 'package:e_square_ott_app/feature/explore/controller/explore_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -88,7 +89,16 @@ class HomeScreen extends GetView<HomeController> {
               }),
             ],
           ),
-          bottomNavigationBar: const CustomBottomAppBar(),
+          bottomNavigationBar: Obx(() {
+            final isExplore = controller.currentNavIndex.value == 1;
+            if (isExplore && Get.isRegistered<ExploreController>()) {
+              final exploreController = Get.find<ExploreController>();
+              if (exploreController.isFullScreenCleanMode.value) {
+                return const SizedBox.shrink();
+              }
+            }
+            return const CustomBottomAppBar();
+          }),
         ),
       ),
     );

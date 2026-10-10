@@ -188,7 +188,7 @@ class ChooseInterestScreen extends GetView<AuthController> {
             Positioned.fill(
               child: Image.asset(
                 AppImages.bg,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 errorBuilder: (_, e, s) => const SizedBox.shrink(),
               ),
             ),
@@ -603,11 +603,11 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
                             genre.networkImageUrl!.startsWith('http'))
                         ? Image.network(
                             genre.networkImageUrl!,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             alignment: genre.imageAlignment,
                             errorBuilder: (_, __, ___) => Image.asset(
                               genre.localPosterImage,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                               alignment: genre.imageAlignment,
                               errorBuilder: (_, __, ___) =>
                                   Container(color: const Color(0xFF1E1E28)),
@@ -615,7 +615,7 @@ class _CinematicGenreCardState extends State<_CinematicGenreCard> {
                           )
                         : Image.asset(
                             genre.localPosterImage,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             alignment: genre.imageAlignment,
                             errorBuilder: (_, __, ___) =>
                                 Container(color: const Color(0xFF1E1E28)),

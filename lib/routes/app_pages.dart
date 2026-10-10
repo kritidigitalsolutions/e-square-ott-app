@@ -14,6 +14,8 @@ import 'package:e_square_ott_app/feature/profile/views/delete_account2.dart';
 import 'package:e_square_ott_app/feature/profile/views/edit_profile_screen.dart';
 import 'package:e_square_ott_app/feature/subscription/views/subscription_confirm_page.dart';
 import 'package:e_square_ott_app/feature/subscription/views/subscription_page.dart';
+import 'package:e_square_ott_app/feature/voucher/bindings/voucher_binding.dart';
+import 'package:e_square_ott_app/feature/voucher/views/redeem_voucher_page.dart';
 import 'package:get/get.dart';
 import '../feature/auth/bindings/auth_binding.dart';
 import '../feature/auth/views/choose_interest_screen.dart';
@@ -217,5 +219,12 @@ class AppPages {
       page: () => const EditProfileScreen(),
       transitionDuration: const Duration(milliseconds: 350),
     ),
+    GetPage(
+      name: Routes.redeemVoucher,
+      page: () => const RedeemVoucherPage(),
+      binding: VoucherBinding(),
+      transitionDuration: const Duration(milliseconds: 350),
+    ),
   ];
 }
+

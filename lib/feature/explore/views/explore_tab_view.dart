@@ -101,11 +101,21 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
   bool _isPlaying = false;
   bool _showPlayIcon = false;
   bool _isExpanded = false;
+  Worker? _indexWorker;
+  Worker? _muteWorker;
 
   @override
   void initState() {
     super.initState();
     _initVideoIfActive();
+    _indexWorker = ever(controller.currentExploreIndex, (_) {
+      if (mounted) _syncPlaybackWithIndex();
+    });
+    _muteWorker = ever(controller.isMuted, (bool muted) {
+      if (mounted) {
+        _videoPlayerController?.setVolume(muted ? 0.0 : 1.0);
+      }
+    });
   }
 
   void _initVideoIfActive() async {
@@ -204,8 +214,12 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
     if (mounted && _videoPlayerController != null) {
       final playing = _videoPlayerController!.value.isPlaying;
       if (playing != _isPlaying) {
-        setState(() {
-          _isPlaying = playing;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _isPlaying = playing;
+            });
+          }
         });
       }
     }
@@ -216,10 +230,14 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
     final isActive = controller.currentExploreIndex.value == widget.index;
     if (isActive) {
       _videoPlayerController?.setVolume(controller.isMuted.value ? 0.0 : 1.0);
-      _videoPlayerController?.play();
+      if (!_videoPlayerController!.value.isPlaying && !_showPlayIcon) {
+        _videoPlayerController?.play();
+      }
     } else {
-      _videoPlayerController?.pause();
-      _videoPlayerController?.seekTo(Duration.zero);
+      if (_videoPlayerController!.value.isPlaying) {
+        _videoPlayerController?.pause();
+        _videoPlayerController?.seekTo(Duration.zero);
+      }
     }
   }
 
@@ -231,6 +249,8 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
 
   @override
   void dispose() {
+    _indexWorker?.dispose();
+    _muteWorker?.dispose();
     _videoPlayerController?.removeListener(_onVideoUpdate);
     _videoPlayerController?.dispose();
     super.dispose();
@@ -264,23 +284,11 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
         : drama.bannerUrl;
 
     return Obx(() {
-      // Listen to current page & mute changes
-      final isActive = controller.currentExploreIndex.value == widget.index;
-      if (isActive && _isInitialized && _videoPlayerController != null) {
-        _videoPlayerController!.setVolume(controller.isMuted.value ? 0.0 : 1.0);
-        if (!_videoPlayerController!.value.isPlaying && !_showPlayIcon) {
-          _videoPlayerController!.play();
-        }
-      } else if (!isActive &&
-          _isInitialized &&
-          _videoPlayerController != null) {
-        if (_videoPlayerController!.value.isPlaying) {
-          _videoPlayerController!.pause();
-        }
-      }
+      final isClean = controller.isFullScreenCleanMode.value;
 
       return GestureDetector(
         onTap: _togglePlayPause,
+        onDoubleTap: controller.toggleFullScreenCleanMode,
         behavior: HitTestBehavior.opaque,
         child: Stack(
           fit: StackFit.expand,
@@ -289,7 +297,7 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
             if (_isInitialized && _videoPlayerController != null)
               SizedBox.expand(
                 child: FittedBox(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   child: SizedBox(
                     width: _videoPlayerController!.value.size.width,
                     height: _videoPlayerController!.value.size.height,
@@ -300,7 +308,7 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
             else
               Image.network(
                 posterUrl,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFF161620),
                   child: const Center(
@@ -315,18 +323,25 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
 
             // ── 2. Cinematic Gradient Overlays
             Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0x77000000),
-                      Colors.transparent,
-                      Color(0x99000000),
-                      Color(0xFA000000),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: [0.0, 0.35, 0.65, 1.0],
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: isClean ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: isClean,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0x77000000),
+                          Colors.transparent,
+                          Color(0x99000000),
+                          Color(0xFA000000),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: [0.0, 0.35, 0.65, 1.0],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -362,44 +377,117 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                 ),
               ),
 
-            // ── 4. Right Floating Action Column (Reels Sidebar)
+            // ── 4. Floating Exit Full Screen Button (When Clean Mode Active)
+            if (isClean)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 16,
+                right: 16,
+                child: GestureDetector(
+                  onTap: controller.toggleFullScreenCleanMode,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0C0B10).withValues(alpha: 0.78),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.6),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          blurRadius: 12,
+                          offset: const Offset(0, 2),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        FaIcon(
+                          FontAwesomeIcons.compress,
+                          color: AppColors.primary,
+                          size: 13,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Exit Full Screen',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // ── 5. Right Floating Action Column (Reels Sidebar)
             Positioned(
               right: 14,
               bottom: 110,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Mute / Unmute Button
-                  _buildFloatingAction(
-                    icon: controller.isMuted.value
-                        ? FontAwesomeIcons.volumeXmark
-                        : FontAwesomeIcons.volumeHigh,
-                    label: controller.isMuted.value ? 'Muted' : 'Sound',
-                    onTap: controller.toggleMute,
-                  ),
-                  const SizedBox(height: 18),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: isClean ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: isClean,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Full Screen Clean Mode Button
+                      _buildFloatingAction(
+                        icon: FontAwesomeIcons.expand,
+                        label: 'Full Screen',
+                        iconColor: AppColors.primary,
+                        onTap: controller.toggleFullScreenCleanMode,
+                      ),
+                      const SizedBox(height: 18),
 
-                  // Episodes Drawer Button
-                  _buildFloatingAction(
-                    icon: FontAwesomeIcons.layerGroup,
-                    label: 'Episodes',
-                    onTap: () => _openEpisodesSheet(context, drama),
-                  ),
-                  const SizedBox(height: 18),
+                      // Mute / Unmute Button
+                      _buildFloatingAction(
+                        icon: controller.isMuted.value
+                            ? FontAwesomeIcons.volumeXmark
+                            : FontAwesomeIcons.volumeHigh,
+                        label: controller.isMuted.value ? 'Muted' : 'Sound',
+                        onTap: controller.toggleMute,
+                      ),
+                      const SizedBox(height: 18),
 
-                  // Watchlist (+ My List) Button
-                  Obx(() {
-                    final isInList = controller.isDramaInMyList(drama.id);
-                    return _buildFloatingAction(
-                      icon: isInList
-                          ? FontAwesomeIcons.check
-                          : FontAwesomeIcons.plus,
-                      label: 'My List',
-                      iconColor: isInList ? AppColors.primary : Colors.white,
-                      onTap: () => controller.toggleMyList(drama),
-                    );
-                  }),
-                ],
+                      // Episodes Drawer Button
+                      _buildFloatingAction(
+                        icon: FontAwesomeIcons.layerGroup,
+                        label: 'Episodes',
+                        onTap: () => _openEpisodesSheet(context, drama),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Watchlist (+ My List) Button
+                      Obx(() {
+                        final isInList = controller.isDramaInMyList(drama.id);
+                        return _buildFloatingAction(
+                          icon: isInList
+                              ? FontAwesomeIcons.check
+                              : FontAwesomeIcons.plus,
+                          label: 'My List',
+                          iconColor: isInList ? AppColors.primary : Colors.white,
+                          onTap: () => controller.toggleMyList(drama),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
               ),
             ),
 
@@ -408,170 +496,178 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
               left: 18,
               right: 80,
               bottom: 28,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Tag: TRAILER PREVIEW
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: const Text(
-                      'TRAILER PREVIEW',
-                      style: TextStyle(
-                        fontFamily: AppTextStyles.fontFamily,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0C0B10),
-                        letterSpacing: 1.1,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: isClean ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: isClean,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Tag: TRAILER PREVIEW
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text(
+                          'TRAILER PREVIEW',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0C0B10),
+                            letterSpacing: 1.1,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                  // Title
-                  Text(
-                    drama.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.text22Bold.copyWith(
-                      color: Colors.white,
-                      height: 1.15,
-                      shadows: [
-                        const Shadow(color: Colors.black, blurRadius: 10),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Genre & Views
-                  Text(
-                    [
-                      if (drama.genreDisplay.isNotEmpty) drama.genreDisplay,
-                      if (drama.viewsFormatted.isNotEmpty)
-                        '${drama.viewsFormatted} plays',
-                      if (drama.rating > 0)
-                        '★ ${drama.rating.toStringAsFixed(1)}',
-                    ].join(' • '),
-                    style: AppTextStyles.text12Medium.copyWith(
-                      color: const Color(0xFFB0B0C0),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Synopsis with expand/collapse
-                  if (drama.synopsis.isNotEmpty) ...[
-                    GestureDetector(
-                      onTap: () => setState(() => _isExpanded = !_isExpanded),
-                      child: Text(
-                        drama.synopsis,
-                        maxLines: _isExpanded ? 6 : 2,
+                      // Title
+                      Text(
+                        drama.title,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.text13.copyWith(
-                          color: const Color(0xFFCCCCCC),
-                          height: 1.4,
+                        style: AppTextStyles.text22Bold.copyWith(
+                          color: Colors.white,
+                          height: 1.15,
                           shadows: [
-                            const Shadow(color: Colors.black87, blurRadius: 6),
+                            const Shadow(color: Colors.black, blurRadius: 10),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                  ],
+                      const SizedBox(height: 4),
 
-                  // ── Action Buttons Row
-                  Row(
-                    children: [
-                      // Watch Now CTA Button
-                      GestureDetector(
-                        onTap: () => controller.watchNow(drama),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 11,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.45,
-                                ),
-                                blurRadius: 14,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const FaIcon(
-                                FontAwesomeIcons.play,
-                                color: Colors.white,
-                                size: 13,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Watch Series'.tr,
-                                style: AppTextStyles.text13Bold.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                      // Genre & Views
+                      Text(
+                        [
+                          if (drama.genreDisplay.isNotEmpty) drama.genreDisplay,
+                          if (drama.viewsFormatted.isNotEmpty)
+                            '${drama.viewsFormatted} plays',
+                          if (drama.rating > 0)
+                            '★ ${drama.rating.toStringAsFixed(1)}',
+                        ].join(' • '),
+                        style: AppTextStyles.text12Medium.copyWith(
+                          color: const Color(0xFFB0B0C0),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(height: 8),
 
-                      // Quick Episodes CTA
-                      GestureDetector(
-                        onTap: () => _openEpisodesSheet(context, drama),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 11,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF181822,
-                            ).withValues(alpha: 0.88),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFF383848),
-                              width: 1,
+                      // Synopsis with expand/collapse
+                      if (drama.synopsis.isNotEmpty) ...[
+                        GestureDetector(
+                          onTap: () => setState(() => _isExpanded = !_isExpanded),
+                          child: Text(
+                            drama.synopsis,
+                            maxLines: _isExpanded ? 6 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.text13.copyWith(
+                              color: const Color(0xFFCCCCCC),
+                              height: 1.4,
+                              shadows: [
+                                const Shadow(color: Colors.black87, blurRadius: 6),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const FaIcon(
-                                FontAwesomeIcons.layerGroup,
-                                color: Colors.white,
-                                size: 13,
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      // ── Action Buttons Row
+                      Row(
+                        children: [
+                          // Watch Now CTA Button
+                          GestureDetector(
+                            onTap: () => controller.watchNow(drama),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 11,
                               ),
-                              const SizedBox(width: 7),
-                              Text(
-                                'Episodes'.tr,
-                                style: AppTextStyles.text13SemiBold.copyWith(
-                                  color: Colors.white,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.45,
+                                    ),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const FaIcon(
+                                    FontAwesomeIcons.play,
+                                    color: Colors.white,
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Watch Series'.tr,
+                                    style: AppTextStyles.text13Bold.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+
+                          // Quick Episodes CTA
+                          GestureDetector(
+                            onTap: () => _openEpisodesSheet(context, drama),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 11,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF181822,
+                                ).withValues(alpha: 0.88),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFF383848),
+                                  width: 1,
                                 ),
                               ),
-                            ],
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const FaIcon(
+                                    FontAwesomeIcons.layerGroup,
+                                    color: Colors.white,
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    'Episodes'.tr,
+                                    style: AppTextStyles.text13SemiBold.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
+
 
             // ── 7. Slim Video Progress Bar at Very Bottom
             if (_isInitialized && _videoPlayerController != null)
@@ -790,7 +886,7 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                                               ep.thumbnailUrl.isNotEmpty
                                                   ? ep.thumbnailUrl
                                                   : drama.posterUrl,
-                                              fit: BoxFit.cover,
+                                              fit: BoxFit.fill,
                                               errorBuilder: (_, __, ___) =>
                                                   Container(
                                                     color: const Color(

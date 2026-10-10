@@ -143,9 +143,14 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
           ? '7-Day Free Trial (₹2 Token)'
           : (selectedPlan?.name ?? 'VIP Membership');
 
+      final appliedPromo = subController.appliedPromo.value;
+      final originalPriceVal = selectedPlan != null ? selectedPlan.price.toInt() : 99;
+      final discountVal = subController.discountAmount.toInt();
+      final finalPayVal = subController.payableAmount.toInt();
+
       final payAmount = isTrial
           ? '₹2'
-          : (selectedPlan != null ? '₹${selectedPlan.price.toInt()}' : '₹99');
+          : '₹$finalPayVal';
 
       return Container(
         width: double.infinity,
@@ -240,6 +245,79 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
                       ),
                     ],
                   ),
+                  if (appliedPromo != null && !isTrial) ...[
+                    const Divider(color: Color(0xFF20202C), height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Original Price',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF8E8E9E),
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          '₹$originalPriceVal',
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF8E8E9E),
+                            fontSize: 13.5,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Coupon Discount',
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Color(0xFF10B981),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                appliedPromo.code,
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Color(0xFF10B981),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '- ₹$discountVal',
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFF10B981),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const Divider(color: Color(0xFF20202C), height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -317,7 +395,155 @@ class _SubscriptionConfirmCardState extends State<SubscriptionConfirmCard> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
+
+            // ── Promo Code Input (when not trial) ──
+            if (!isTrial && !subController.isVip) ...[
+              if (appliedPromo == null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0E0E14),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF242432)),
+                  ),
+                  child: Row(
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.tag,
+                        size: 13,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: subController.promoTextController,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Colors.white,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Apply Promo / Coupon',
+                            hintStyle: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              color: Color(0xFF6E6E82),
+                              fontSize: 12.5,
+                              letterSpacing: 0,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: subController.isApplyingPromo.value
+                            ? null
+                            : () => subController.applyPromoCode(),
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: subController.isApplyingPromo.value
+                              ? const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF0C0B10),
+                                  ),
+                                )
+                              : const Text(
+                                  'APPLY',
+                                  style: TextStyle(
+                                    fontFamily: AppTextStyles.fontFamily,
+                                    color: Color(0xFF0C0B10),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Applied promo card with remove action
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const FaIcon(
+                            FontAwesomeIcons.circleCheck,
+                            color: Color(0xFF10B981),
+                            size: 15,
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${appliedPromo.code} applied!',
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Color(0xFF10B981),
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              Text(
+                                appliedPromo.description.isNotEmpty
+                                    ? appliedPromo.description
+                                    : 'Saved ₹$discountVal with promo',
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: Color(0xFF8E8E9E),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: subController.removePromoCode,
+                        child: const Text(
+                          'REMOVE',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: Color(0xFFFF4D6D),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+            ],
+
 
             // ── AutoPay Info ──
             if (!subController.isVip)
