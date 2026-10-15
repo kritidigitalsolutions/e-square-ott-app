@@ -80,9 +80,11 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           final isNonEnglish =
               localeController.currentLocale.value.languageCode != 'en';
+          // Proportionally scale down typography globally across all screens for a compact, sleek OTT feel
+          final baseScale = isNonEnglish ? 0.82 : 0.91;
           return MediaQuery(
             data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(isNonEnglish ? 0.90 : 1.0),
+              textScaler: TextScaler.linear(baseScale),
             ),
             child: child ?? const SizedBox.shrink(),
           );

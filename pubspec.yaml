@@ -54,6 +54,7 @@ dependencies:
   video_player: ^2.14.0
   chewie: ^1.17.2
   cached_network_image: ^4.0.2
+  url_launcher: ^6.3.3
 
 
 dev_dependencies:

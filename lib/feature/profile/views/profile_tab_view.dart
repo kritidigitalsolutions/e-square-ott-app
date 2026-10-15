@@ -234,6 +234,90 @@ class ProfileTabView extends StatelessWidget {
                         ]),
                         const SizedBox(height: 28),
 
+                        // ── Pending Deletion Notice Banner
+                        Obx(() {
+                          final user = controller.profileData.value?.data?.user;
+                          final isDeletionPending = user?.isDeletionRequested == true ||
+                              user?.status == 'PENDING_DELETION';
+
+                          if (!isDeletionPending) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 20),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2C1A04),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFFFF9800).withValues(alpha: 0.6),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const FaIcon(
+                                      FontAwesomeIcons.triangleExclamation,
+                                      color: Color(0xFFFF9800),
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Account Deletion Pending'.tr,
+                                        style: const TextStyle(
+                                          fontFamily: 'sans-serif',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFFFB74D),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Your account deletion request has been submitted to administrators. It will be verified and deleted within 24 hours.'.tr,
+                                  style: TextStyle(
+                                    fontFamily: 'sans-serif',
+                                    fontSize: 12,
+                                    height: 1.4,
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 38,
+                                  child: OutlinedButton(
+                                    onPressed: controller.cancelDeletionRequest,
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Color(0xFFFF9800)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Cancel Deletion Request'.tr,
+                                      style: const TextStyle(
+                                        fontFamily: 'sans-serif',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFFB74D),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
                         // ── Log Out Action Button
                         AppButton(
                           label: 'Log Out'.tr,
@@ -245,14 +329,24 @@ class ProfileTabView extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
 
-                        // ── Delete Account Button (Red solid)
-                        AppButton(
-                          label: 'Delete Account'.tr,
-                          onPressed: controller.showDeleteAccountDialog,
-                          backgroundColor: AppColors.primary,
-                          height: 50,
-                          borderRadius: 12,
-                        ),
+                        // ── Delete Account Button (or Cancel button if already requested)
+                        Obx(() {
+                          final user = controller.profileData.value?.data?.user;
+                          final isDeletionPending = user?.isDeletionRequested == true ||
+                              user?.status == 'PENDING_DELETION';
+
+                          if (isDeletionPending) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return AppButton(
+                            label: 'Delete Account'.tr,
+                            onPressed: controller.showDeleteAccountDialog,
+                            backgroundColor: AppColors.primary,
+                            height: 50,
+                            borderRadius: 12,
+                          );
+                        }),
                         const SizedBox(height: 16),
                       ],
                     ),

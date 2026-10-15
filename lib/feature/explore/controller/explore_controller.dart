@@ -181,22 +181,160 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<EpisodesDrawerResponse?> fetchEpisodesForDrama(String dramaId) async {
-    if (episodesCache.containsKey(dramaId)) {
-      return episodesCache[dramaId];
+  Future<EpisodesDrawerResponse?> fetchEpisodesForDrama(
+    String dramaId, {
+    String? slug,
+  }) async {
+    final cacheKey = dramaId.isNotEmpty ? dramaId : (slug ?? '');
+    if (cacheKey.isNotEmpty && episodesCache.containsKey(cacheKey)) {
+      return episodesCache[cacheKey];
     }
     isLoadingEpisodes.value = true;
     try {
-      final res = await datasource.allEpisode(
-        dramaId: dramaId,
-        pageNo: 1,
-        limit: 50,
-      );
-      if (res != null) {
-        episodesCache[dramaId] = res;
+      final targetId = dramaId.isNotEmpty ? dramaId : (slug ?? '');
+
+      // 1. Primary: Fetch full drama detail via GET /dramas/:id (contains all episodes)
+      if (targetId.isNotEmpty) {
+        final detailRes = await datasource.dramaDetail(id: targetId);
+        if (detailRes != null && detailRes.data.drama.episodes.isNotEmpty) {
+          final drawerResponse = EpisodesDrawerResponse(
+            success: true,
+            statusCode: 200,
+            message: detailRes.message,
+            data: EpisodesDrawerData(
+              drama: DrawerDrama(
+                id: detailRes.data.drama.id.isNotEmpty
+                    ? detailRes.data.drama.id
+                    : targetId,
+                title: detailRes.data.drama.title,
+                slug: detailRes.data.drama.slug,
+                posterUrl: detailRes.data.drama.posterUrl,
+                totalEpisodes: detailRes.data.drama.totalEpisodes > 0
+                    ? detailRes.data.drama.totalEpisodes
+                    : detailRes.data.drama.episodes.length,
+                genreDisplay: detailRes.data.drama.genres.join(' / '),
+              ),
+              episodes: detailRes.data.drama.episodes.map((ep) {
+                return DrawerEpisode(
+                  id: ep.id,
+                  seasonNumber: 1,
+                  episodeNumber: ep.episodeNumber,
+                  seasonEpisodeTag:
+                      'S1 · E${ep.episodeNumber.toString().padLeft(2, '0')}',
+                  title: ep.title,
+                  durationSeconds: ep.durationSeconds,
+                  formattedDuration:
+                      ep.duration.isNotEmpty ? ep.duration : '2:00',
+                  thumbnailUrl: ep.thumbnailUrl.isNotEmpty
+                      ? ep.thumbnailUrl
+                      : detailRes.data.drama.posterUrl,
+                  videoUrl: ep.videoUrl,
+                  isFree: ep.isFree,
+                  hasAccess: ep.isFree,
+                  isLocked: !ep.isFree,
+                  isCurrent: ep.episodeNumber == 1,
+                  watched: false,
+                );
+              }).toList(),
+              pagination: EpisodesPagination(
+                page: 1,
+                limit: detailRes.data.drama.episodes.length,
+                total: detailRes.data.drama.episodes.length,
+                totalPages: 1,
+                hasNextPage: false,
+                hasPrevPage: false,
+              ),
+              userHasVip: false,
+            ),
+          );
+
+          if (cacheKey.isNotEmpty) episodesCache[cacheKey] = drawerResponse;
+          if (dramaId.isNotEmpty) episodesCache[dramaId] = drawerResponse;
+          if (slug != null && slug.isNotEmpty) episodesCache[slug] = drawerResponse;
+          isLoadingEpisodes.value = false;
+          return drawerResponse;
+        }
       }
+
+      // 2. Fallback: allEpisode API (GET /player/episodes/:id)
+      if (targetId.isNotEmpty) {
+        final res = await datasource.allEpisode(
+          dramaId: targetId,
+          pageNo: 1,
+          limit: 100,
+        );
+        if (res != null && res.data.episodes.isNotEmpty) {
+          if (cacheKey.isNotEmpty) episodesCache[cacheKey] = res;
+          if (dramaId.isNotEmpty) episodesCache[dramaId] = res;
+          if (slug != null && slug.isNotEmpty) episodesCache[slug] = res;
+          isLoadingEpisodes.value = false;
+          return res;
+        }
+      }
+
+      // 3. Fallback: Try with slug if dramaId failed and slug is different
+      if (slug != null && slug.isNotEmpty && slug != targetId) {
+        final detailRes = await datasource.dramaDetail(id: slug);
+        if (detailRes != null && detailRes.data.drama.episodes.isNotEmpty) {
+          final drawerResponse = EpisodesDrawerResponse(
+            success: true,
+            statusCode: 200,
+            message: detailRes.message,
+            data: EpisodesDrawerData(
+              drama: DrawerDrama(
+                id: detailRes.data.drama.id.isNotEmpty
+                    ? detailRes.data.drama.id
+                    : slug,
+                title: detailRes.data.drama.title,
+                slug: detailRes.data.drama.slug,
+                posterUrl: detailRes.data.drama.posterUrl,
+                totalEpisodes: detailRes.data.drama.totalEpisodes,
+                genreDisplay: detailRes.data.drama.genres.join(' / '),
+              ),
+              episodes: detailRes.data.drama.episodes.map((ep) {
+                return DrawerEpisode(
+                  id: ep.id,
+                  seasonNumber: 1,
+                  episodeNumber: ep.episodeNumber,
+                  seasonEpisodeTag:
+                      'S1 · E${ep.episodeNumber.toString().padLeft(2, '0')}',
+                  title: ep.title,
+                  durationSeconds: ep.durationSeconds,
+                  formattedDuration:
+                      ep.duration.isNotEmpty ? ep.duration : '2:00',
+                  thumbnailUrl: ep.thumbnailUrl.isNotEmpty
+                      ? ep.thumbnailUrl
+                      : detailRes.data.drama.posterUrl,
+                  videoUrl: ep.videoUrl,
+                  isFree: ep.isFree,
+                  hasAccess: ep.isFree,
+                  isLocked: !ep.isFree,
+                  isCurrent: ep.episodeNumber == 1,
+                  watched: false,
+                );
+              }).toList(),
+              pagination: EpisodesPagination(
+                page: 1,
+                limit: detailRes.data.drama.episodes.length,
+                total: detailRes.data.drama.episodes.length,
+                totalPages: 1,
+                hasNextPage: false,
+                hasPrevPage: false,
+              ),
+              userHasVip: false,
+            ),
+          );
+
+          if (cacheKey.isNotEmpty) episodesCache[cacheKey] = drawerResponse;
+          if (dramaId.isNotEmpty) episodesCache[dramaId] = drawerResponse;
+          episodesCache[slug] = drawerResponse;
+          isLoadingEpisodes.value = false;
+          return drawerResponse;
+        }
+      }
+
       isLoadingEpisodes.value = false;
-      return res;
+      return null;
     } catch (e) {
       isLoadingEpisodes.value = false;
       return null;
@@ -204,6 +342,15 @@ class ExploreController extends GetxController {
   }
 
   void watchNow(PriorityDrama drama, {int episodeIndex = 0}) {
-    Get.toNamed(Routes.dramaPlayer, arguments: drama);
+    Get.toNamed(
+      Routes.dramaPlayer,
+      arguments: {
+        'id': drama.id.isNotEmpty ? drama.id : drama.slug,
+        'title': drama.title,
+        'description': drama.synopsis,
+        'image': drama.posterUrl,
+        'initialEpisodeIndex': episodeIndex,
+      },
+    );
   }
 }

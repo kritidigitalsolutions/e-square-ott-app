@@ -362,7 +362,10 @@ class _PhoneInputField extends StatelessWidget {
                   children: [
                     Text(
                       controller.selectedCountryCode.value,
-                      style: AppTextStyles.text14SemiBold.copyWith(
+                      style: const TextStyle(
+                        fontFamily: 'sans-serif',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
@@ -388,9 +391,12 @@ class _PhoneInputField extends StatelessWidget {
                 focusNode: controller.phoneFocusNode,
                 keyboardType: TextInputType.phone,
                 cursorColor: AppColors.primary,
-                style: AppTextStyles.text14Medium.copyWith(
+                style: const TextStyle(
+                  fontFamily: 'sans-serif',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                   color: Colors.white,
-                  letterSpacing: 0.4,
+                  letterSpacing: 0.5,
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
@@ -484,8 +490,11 @@ class _CountryDropdown extends StatelessWidget {
                   ),
                   Text(
                     country['code']!,
-                    style: AppTextStyles.text14.copyWith(
-                      color: const Color(0xFF8A8A9E),
+                    style: const TextStyle(
+                      fontFamily: 'sans-serif',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF8A8A9E),
                     ),
                   ),
                   if (isSelected)

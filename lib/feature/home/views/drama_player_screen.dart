@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:e_square_ott_app/constants/app_url.dart';
 import 'package:e_square_ott_app/feature/home/datasource/home_datasource.dart';
+import 'package:e_square_ott_app/feature/home/datasource/search.dart';
 import 'package:e_square_ott_app/models/response/home_screen_model.dart';
 import 'package:e_square_ott_app/models/response/home_section_model.dart'
     as section_model;
@@ -22,13 +24,15 @@ import '../../subscription/controller/subscription_controller.dart';
 import '../../../models/response/admin_content_model.dart';
 import '../../../models/response/countinue_watching_model.dart';
 import '../../../models/response/drama_response.dart';
+import '../../../models/response/drama_detail_response.dart';
 import '../../../models/response/search_discorvey_model.dart';
 import '../../../models/response/search_suggestion_response.dart';
 import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/shimmer_loader.dart';
-import '../datasource/search.dart';
+import '../controller/home_controller.dart';
 import '../controller/search_tab_controller.dart';
 import '../controller/whislist_controller.dart';
+import '../../../models/request/playback_progress_payload.dart';
 
 class DramaPlayerScreen extends StatefulWidget {
   const DramaPlayerScreen({super.key});
@@ -52,6 +56,9 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
   VideoPlayerController? _videoPlayerController;
   bool _isInitialized = false;
   bool _isPlaying = false;
+  bool _isVideoLoading = false;
+  bool _hasVideoError = false;
+  String _videoErrorMessage = '';
   bool _showPlayCenterIcon = false;
   bool _isCleanMode = false;
   Duration _currentPosition = Duration.zero;
@@ -121,15 +128,15 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       _dramaDescription = args.synopsis.isNotEmpty
           ? args.synopsis
           : (args.description.isNotEmpty
-              ? args.description
-              : args.genreDisplay);
+                ? args.description
+                : args.genreDisplay);
       _backdropImage = args.posterUrl.isNotEmpty
           ? args.posterUrl
           : (args.bannerUrl.isNotEmpty
-              ? args.bannerUrl
-              : (args.thumbnailUrl.isNotEmpty
-                  ? args.thumbnailUrl
-                  : AppImages.banner1));
+                ? args.bannerUrl
+                : (args.thumbnailUrl.isNotEmpty
+                      ? args.thumbnailUrl
+                      : AppImages.banner1));
     } else if (args is PriorityDrama) {
       _dramaId = args.id;
       _seriesTitle = args.title;
@@ -201,8 +208,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
           args['description'] ??
           'He finally discovers the truth. But the promise he made could cost him everything.';
       _backdropImage = args['image'] ?? AppImages.banner1;
-      _videoUrl =
-          args['videoUrl'] ?? args['streamUrl'] ?? '';
+      _videoUrl = args['videoUrl'] ?? args['streamUrl'] ?? '';
       if (args['initialEpisodeIndex'] != null) {
         initialIndex = (args['initialEpisodeIndex'] as int);
       }
@@ -231,15 +237,67 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     setState(() {
       _isLoadingEpisodes = true;
     });
+
     try {
-      final res = await HomeDatasource().allEpisode(
-        dramaId: _dramaId,
-        pageNo: 1,
-        limit: 100,
+      // 1. Fetch drama detail API (GET /dramas/:id) which contains full drama details, poster, trailer, and episodes with videoStreamUrl
+      print(
+        "[DramaPlayerScreen] Calling dramaDetail API for dramaId: $_dramaId",
       );
-      if (res != null && res.data.episodes.isNotEmpty && mounted) {
-        setState(() {
-          _episodes = res.data.episodes.map((ep) {
+      final detailRes = await HomeDatasource().dramaDetail(id: _dramaId);
+
+      List<Map<String, dynamic>> resolvedEpisodes = [];
+
+      if (detailRes != null && detailRes.data.drama.episodes.isNotEmpty) {
+        final drama = detailRes.data.drama;
+
+        // Update drama details if available from API
+        if (mounted) {
+          setState(() {
+            if (drama.title.isNotEmpty) _seriesTitle = drama.title;
+            if (drama.synopsis.isNotEmpty) _dramaDescription = drama.synopsis;
+            if (drama.posterUrl.isNotEmpty) {
+              _backdropImage = drama.posterUrl;
+            } else if (drama.bannerUrl.isNotEmpty) {
+              _backdropImage = drama.bannerUrl;
+            }
+            if (drama.trailerUrl.isNotEmpty) {
+              _videoUrl = drama.trailerUrl;
+            }
+          });
+        }
+
+        resolvedEpisodes = drama.episodes.map((ep) {
+          return {
+            'id': ep.id,
+            'episodeNumber':
+                'S1 · E${ep.episodeNumber.toString().padLeft(2, '0')}',
+            'rawEpisodeNumber': ep.episodeNumber,
+            'title': ep.title.isNotEmpty
+                ? ep.title
+                : 'Episode ${ep.episodeNumber}',
+            'duration': ep.duration.isNotEmpty ? ep.duration : '2:00',
+            'currentTime': '0:00',
+            'totalTime': ep.duration.isNotEmpty ? ep.duration : '2:00',
+            'progress': 0.0,
+            'status': ep.isFree ? 'Unwatched' : 'Locked',
+            'isLocked': !ep.isFree,
+            'isFree': ep.isFree,
+            'hasAccess': ep.isFree,
+            'thumbnailUrl': ep.thumbnailUrl,
+            'videoUrl': ep.videoUrl,
+          };
+        }).toList();
+      }
+
+      // 2. If dramaDetail did not return episodes, fallback to allEpisode (GET /player/episodes/:id)
+      if (resolvedEpisodes.isEmpty) {
+        final res = await HomeDatasource().allEpisode(
+          dramaId: _dramaId,
+          pageNo: 1,
+          limit: 100,
+        );
+        if (res != null && res.data.episodes.isNotEmpty) {
+          resolvedEpisodes = res.data.episodes.map((ep) {
             return {
               'id': ep.id,
               'episodeNumber': ep.seasonEpisodeTag.isNotEmpty
@@ -267,15 +325,20 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
               'videoUrl': ep.videoUrl,
             };
           }).toList();
-        });
-        if (_episodes.isNotEmpty) {
-          final targetIndex = initialIndex.clamp(0, _episodes.length - 1);
-          _currentEpisodeIndex = targetIndex;
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(targetIndex);
-          }
-          _initEpisodeVideo(targetIndex);
         }
+      }
+
+      if (resolvedEpisodes.isNotEmpty && mounted) {
+        setState(() {
+          _episodes = resolvedEpisodes;
+        });
+
+        final targetIndex = initialIndex.clamp(0, _episodes.length - 1);
+        _currentEpisodeIndex = targetIndex;
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(targetIndex);
+        }
+        _initEpisodeVideo(targetIndex);
       }
     } catch (e) {
       print("[DramaPlayerScreen] _fetchEpisodes error: $e");
@@ -317,16 +380,31 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     _videoPlayerController?.removeListener(_onVideoUpdate);
     _videoPlayerController?.dispose();
     _videoPlayerController = null;
-    _isInitialized = false;
-    _isPlaying = false;
+
+    if (mounted) {
+      setState(() {
+        _isInitialized = false;
+        _isPlaying = false;
+        _isVideoLoading = true;
+        _hasVideoError = false;
+        _videoErrorMessage = '';
+      });
+    }
 
     if (_episodes.isEmpty || index >= _episodes.length) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {
+          _isVideoLoading = false;
+        });
+      }
       return;
     }
 
     final ep = _episodes[index];
     String rawUrl = (ep['videoUrl'] ?? _videoUrl).toString().trim();
+    print(
+      "[DramaPlayerScreen] _initEpisodeVideo ep #$index initial rawUrl: '$rawUrl'",
+    );
 
     // If videoUrl not directly in episode list, fetch from episode access
     if (rawUrl.isEmpty && _dramaId.isNotEmpty) {
@@ -334,22 +412,38 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
         final epNum = ep['rawEpisodeNumber'] ?? (index + 1);
         final accessRes = await HomeDatasource().episodeAccess(
           id: _dramaId,
-          episodeId: epNum is int ? epNum : int.tryParse(epNum.toString()) ?? (index + 1),
+          episodeId: epNum is int
+              ? epNum
+              : int.tryParse(epNum.toString()) ?? (index + 1),
         );
-        if (accessRes != null && accessRes.data.episode.videoUrl.isNotEmpty) {
-          rawUrl = accessRes.data.episode.videoUrl.trim();
-          ep['videoUrl'] = rawUrl;
+        if (accessRes != null) {
+          final fetchedUrl = accessRes.data.episode.videoUrl.trim();
+          if (fetchedUrl.isNotEmpty) {
+            rawUrl = fetchedUrl;
+            ep['videoUrl'] = rawUrl;
+            print("[DramaPlayerScreen] episodeAccess fetched url: $rawUrl");
+          }
         }
       } catch (e) {
         print("[DramaPlayerScreen] episodeAccess error: $e");
       }
     }
 
+    // Fallback to series trailer or global videoUrl if episode url is still missing
+    if (rawUrl.isEmpty && _videoUrl.isNotEmpty) {
+      rawUrl = _videoUrl.trim();
+    }
+
     if (rawUrl.isEmpty ||
         (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://'))) {
+      print("[DramaPlayerScreen] Invalid or empty video url: '$rawUrl'");
       if (mounted) {
         setState(() {
           _isInitialized = false;
+          _isVideoLoading = false;
+          _hasVideoError = true;
+          _videoErrorMessage =
+              'Video source URL is unavailable for this episode.';
         });
       }
       return;
@@ -368,82 +462,97 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       formatHint = VideoFormat.other;
     }
 
-    final token = await StorageService.getToken();
-    final headers = <String, String>{
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
+    print(
+      "[DramaPlayerScreen] Attempting to play URL: $rawUrl (formatHint: $formatHint)",
+    );
 
-    _videoPlayerController =
-        VideoPlayerController.networkUrl(
-            Uri.parse(rawUrl),
-            formatHint: formatHint,
-            httpHeaders: headers,
-            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-          )
-          ..initialize()
-              .then((_) {
-                if (mounted) {
-                  setState(() {
-                    _isInitialized = true;
-                    _totalDuration =
-                        _videoPlayerController?.value.duration ?? Duration.zero;
-                  });
-                  _videoPlayerController?.setLooping(false);
-                  _applyCurrentSpeed();
-                  _videoPlayerController?.play();
-                }
-              })
-              .catchError((e) {
-                if (formatHint != null) {
-                  _retryEpisodeWithoutFormatHint(rawUrl);
-                } else {
-                  if (mounted) {
-                    setState(() {
-                      _isInitialized = false;
-                    });
-                  }
-                }
-              });
+    // Only attach Authorization Bearer header if the URL points to our backend API domain.
+    // Attaching Bearer tokens to external CDNs (Cloudflare, S3, Vimeo, AWS, Bunny, etc.) causes HTTP 400/401/403 errors.
+    Map<String, String>? headers;
+    final parsedUri = Uri.tryParse(rawUrl);
+    final backendUri = Uri.tryParse(AppUrl.baseUrl);
+    if (parsedUri != null &&
+        backendUri != null &&
+        parsedUri.host == backendUri.host) {
+      final token = await StorageService.getToken();
+      if (token != null && token.isNotEmpty) {
+        headers = {'Authorization': 'Bearer $token'};
+      }
+    }
 
-    _videoPlayerController?.addListener(_onVideoUpdate);
+    try {
+      _videoPlayerController = VideoPlayerController.networkUrl(
+        Uri.parse(rawUrl),
+        formatHint: formatHint,
+        httpHeaders: headers ?? const {},
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      );
+
+      await _videoPlayerController!.initialize();
+
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _isVideoLoading = false;
+          _hasVideoError = false;
+          _totalDuration =
+              _videoPlayerController?.value.duration ?? Duration.zero;
+        });
+        _videoPlayerController?.setLooping(false);
+        _applyCurrentSpeed();
+        _videoPlayerController?.play();
+      }
+      _videoPlayerController?.addListener(_onVideoUpdate);
+    } catch (e) {
+      print(
+        "[DramaPlayerScreen] Primary playback init failed: $e. Retrying fallback without formatHint...",
+      );
+      _retryEpisodeWithoutFormatHint(rawUrl, headers);
+    }
   }
 
-  void _retryEpisodeWithoutFormatHint(String url) async {
+  void _retryEpisodeWithoutFormatHint(
+    String url,
+    Map<String, String>? headers,
+  ) async {
     _videoPlayerController?.removeListener(_onVideoUpdate);
     _videoPlayerController?.dispose();
+    _videoPlayerController = null;
 
-    final token = await StorageService.getToken();
-    final headers = <String, String>{
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
+    try {
+      // Retry 1: Network URL without format hint and without headers (clean request)
+      _videoPlayerController = VideoPlayerController.networkUrl(
+        Uri.parse(url),
+        httpHeaders: const {},
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      );
 
-    _videoPlayerController =
-        VideoPlayerController.networkUrl(
-            Uri.parse(url),
-            httpHeaders: headers,
-            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-          )
-          ..initialize()
-              .then((_) {
-                if (mounted) {
-                  setState(() {
-                    _isInitialized = true;
-                    _totalDuration =
-                        _videoPlayerController?.value.duration ?? Duration.zero;
-                  });
-                  _videoPlayerController?.setLooping(false);
-                  _applyCurrentSpeed();
-                  _videoPlayerController?.play();
-                }
-              })
-              .catchError((e) {
-                if (mounted) {
-                  setState(() {
-                    _isInitialized = false;
-                  });
-                }
-              });
-    _videoPlayerController?.addListener(_onVideoUpdate);
+      await _videoPlayerController!.initialize();
+
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _isVideoLoading = false;
+          _hasVideoError = false;
+          _totalDuration =
+              _videoPlayerController?.value.duration ?? Duration.zero;
+        });
+        _videoPlayerController?.setLooping(false);
+        _applyCurrentSpeed();
+        _videoPlayerController?.play();
+      }
+      _videoPlayerController?.addListener(_onVideoUpdate);
+    } catch (e) {
+      print("[DramaPlayerScreen] Fallback init failed: $e");
+      if (mounted) {
+        setState(() {
+          _isInitialized = false;
+          _isVideoLoading = false;
+          _hasVideoError = true;
+          _videoErrorMessage = 'Failed to load video. Tap to retry.';
+        });
+      }
+    }
   }
 
   void _onVideoUpdate() {
@@ -485,6 +594,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       if (_videoPlayerController!.value.isPlaying) {
         _videoPlayerController?.pause();
         _showPlayCenterIcon = true;
+        _syncPlaybackProgress();
       } else {
         _videoPlayerController?.play();
         _showPlayCenterIcon = false;
@@ -538,8 +648,42 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     );
   }
 
+  void _syncPlaybackProgress() {
+    if (_dramaId.isEmpty || _videoPlayerController == null || !_isInitialized)
+      return;
+    final pos = _currentPosition.inSeconds;
+    final dur = _totalDuration.inSeconds;
+    if (pos <= 0 || dur <= 0) return;
+
+    final epNum =
+        (_episodes.isNotEmpty && _currentEpisodeIndex < _episodes.length)
+        ? (_episodes[_currentEpisodeIndex]['rawEpisodeNumber'] ??
+              (_currentEpisodeIndex + 1))
+        : (_currentEpisodeIndex + 1);
+
+    final episodeNumber = epNum is int
+        ? epNum
+        : int.tryParse(epNum.toString()) ?? 1;
+
+    try {
+      final payload = PlaybackProgressPayload(
+        dramaId: _dramaId,
+        episodeNumber: episodeNumber,
+        watchedSeconds: pos,
+        durationSeconds: dur,
+      );
+      HomeDatasource().playBackProgress(payload: payload).then((_) {
+        // Refresh continue watching on home controller so the widget updates immediately
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().getAllContinueWatching();
+        }
+      });
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
+    _syncPlaybackProgress();
     _videoPlayerController?.removeListener(_onVideoUpdate);
     _videoPlayerController?.dispose();
     _pageController.dispose();
@@ -1069,9 +1213,7 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                   vertical: 10,
                 ),
                 child: Row(
-                  children: [
-                    CustomBackButton(onTap: () => Get.back()),
-                  ],
+                  children: [CustomBackButton(onTap: () => Get.back())],
                 ),
               ),
 
@@ -1212,8 +1354,116 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
             ),
           ),
 
+          // Video Buffering / Loading Indicator
+          if (_isVideoLoading)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.5),
+                ),
+                child: const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Video Error State / Tap to Retry
+          if (_hasVideoError && !_isVideoLoading)
+            Center(
+              child: GestureDetector(
+                onTap: () => _initEpisodeVideo(index),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E28).withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF38384A),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const FaIcon(
+                        FontAwesomeIcons.circleExclamation,
+                        color: Color(0xFFFFA726),
+                        size: 24,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _videoErrorMessage.isNotEmpty
+                            ? _videoErrorMessage
+                            : 'Playback Error. Tap to retry.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.fontFamily,
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FaIcon(
+                              FontAwesomeIcons.arrowRotateRight,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Retry',
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Center Play/Pause Indicator
-          if (_showPlayCenterIcon || (!_isPlaying && _isInitialized))
+          if (!_isVideoLoading &&
+              !_hasVideoError &&
+              (_showPlayCenterIcon || (!_isPlaying && _isInitialized)))
             Center(
               child: Container(
                 width: 60,
@@ -1317,7 +1567,6 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
       ),
     );
   }
-
 
   // ── 2. Locked Episode View (Paywall Screen matching Screenshot 2)
   Widget _buildLockedEpisodeView(Map<String, dynamic> ep, int index) {
@@ -1566,10 +1815,10 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
     );
   }
 
-
   // ── Bottom Controls (Episodes > button, Title, Description, Progress bar)
   Widget _buildBottomControls(Map<String, dynamic> ep) {
-    final isLastEpisode = ep['episodeNumber'] == 'S1 · E12' ||
+    final isLastEpisode =
+        ep['episodeNumber'] == 'S1 · E12' ||
         (_episodes.isNotEmpty && _currentEpisodeIndex == _episodes.length - 1);
 
     return Padding(
@@ -1720,12 +1969,13 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                     child: Container(height: 3, color: const Color(0xFFE42429)),
                   ),
                   Expanded(
-                    flex: (((1.0 -
-                                    ((ep['progress'] as num?)?.toDouble() ??
-                                        0.0)) *
-                                100)
-                            .toInt())
-                        .clamp(0, 100),
+                    flex:
+                        (((1.0 -
+                                        ((ep['progress'] as num?)?.toDouble() ??
+                                            0.0)) *
+                                    100)
+                                .toInt())
+                            .clamp(0, 100),
                     child: Container(
                       height: 3,
                       color: Colors.white.withValues(alpha: 0.5),
@@ -1757,8 +2007,8 @@ class _DramaPlayerScreenState extends State<DramaPlayerScreen> {
                         _totalDuration > Duration.zero)
                     ? _formatDuration(_totalDuration)
                     : (ep['totalTime']?.toString() ??
-                        ep['duration']?.toString() ??
-                        '2:00'),
+                          ep['duration']?.toString() ??
+                          '2:00'),
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: Color(0xFFA0A0B0),

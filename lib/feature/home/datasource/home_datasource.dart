@@ -11,6 +11,7 @@ import 'package:e_square_ott_app/models/response/home_screen_model.dart';
 import 'package:e_square_ott_app/models/response/home_section_model.dart';
 import 'package:e_square_ott_app/models/response/playback_progress_response.dart';
 import 'package:e_square_ott_app/models/response/upload_file_model.dart';
+import 'package:e_square_ott_app/models/response/watch_history_model.dart';
 import 'package:e_square_ott_app/shared/service/storage_service.dart';
 import 'package:e_square_ott_app/shared/utils/log_util.dart';
 import 'package:http/http.dart' as http;
@@ -83,7 +84,12 @@ class HomeDatasource {
 
   Future<DramaDetailsResponse?> dramaDetail({required String id}) async {
     final url = Uri.parse(AppUrl.dramaDetail(id: id));
-    var response = await http.get(url);
+    final token = await StorageService.getToken();
+    final headers = <String, String>{
+      "Accept": "application/json",
+      if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+    };
+    var response = await http.get(url, headers: headers);
     LogUtil.log(
       "[HomeDatasource] dramaDetail [${response.statusCode}]: ${response.body}",
       name: "HomeDatasource",
@@ -105,28 +111,36 @@ class HomeDatasource {
     required int pageNo,
     required int limit,
   }) async {
-    final token = await StorageService.getToken();
-    if (token == null) {
-      return null;
-    }
-    final url = Uri.parse(
-      AppUrl.allEpisode(dramaId: dramaId, pageNo: pageNo, limit: limit),
-    );
-    final response = await http.get(
-      url,
-      headers: {"Authorization": "Bearer $token"},
-    );
-    LogUtil.log(
-      "[HomeDatasource] allEpisode [${response.statusCode}]: ${response.body}",
-      name: "HomeDatasource",
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return EpisodesDrawerResponse.fromJson(data);
-    } else {
-      LogUtil.error(
-        'All Episode failed with status: ${response.statusCode}',
+    try {
+      final token = await StorageService.getToken();
+      final url = Uri.parse(
+        AppUrl.allEpisode(dramaId: dramaId, pageNo: pageNo, limit: limit),
+      );
+      final headers = <String, String>{
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+      final response = await http.get(url, headers: headers);
+      LogUtil.log(
+        "[HomeDatasource] allEpisode [${response.statusCode}]: ${response.body}",
         name: "HomeDatasource",
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return EpisodesDrawerResponse.fromJson(data);
+      } else {
+        LogUtil.error(
+          'All Episode failed with status: ${response.statusCode}',
+          name: "HomeDatasource",
+        );
+        return null;
+      }
+    } catch (e, stack) {
+      LogUtil.error(
+        'All Episode error: $e',
+        name: "HomeDatasource",
+        error: e,
+        stackTrace: stack,
       );
       return null;
     }
@@ -234,29 +248,192 @@ class HomeDatasource {
     required int limit,
   }) async {
     final token = await StorageService.getToken();
-    if (token == null) {
-      return null;
-    }
-    final url = Uri.parse(
-      AppUrl.countinueWatching(pageNo: pageNo, limit: limit),
-    );
-    final response = await http.get(
-      url,
-      headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
-    );
-    LogUtil.log(
-      "[HomeDatasource] allCountinueWatching [${response.statusCode}]: ${response.body}",
-      name: "HomeDatasource",
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return ContinueWatchingResponse.fromJson(data);
-    } else {
-      LogUtil.error(
-        "All Countinue Watching failed with status: ${response.statusCode}",
+    if (token == null || token.isEmpty) {
+      LogUtil.log(
+        "[HomeDatasource] allCountinueWatching: token is null or empty, user not logged in",
         name: "HomeDatasource",
       );
       return null;
+    }
+    try {
+      final url = Uri.parse(
+        AppUrl.countinueWatching(pageNo: pageNo, limit: limit),
+      );
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+        },
+      );
+      LogUtil.log(
+        "[HomeDatasource] allCountinueWatching [${response.statusCode}]: ${response.body}",
+        name: "HomeDatasource",
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final parsed = ContinueWatchingResponse.fromJson(data);
+        if (parsed.data.items.isNotEmpty) {
+          return parsed;
+        }
+      }
+
+      // Fallback: If /player/continue-watching has no items or fails, try /watch-history?status=in-progress
+      LogUtil.log(
+        "[HomeDatasource] Trying fallback to getWatchHistory for continue watching...",
+        name: "HomeDatasource",
+      );
+      final histRes = await getWatchHistory(
+        pageNo: pageNo,
+        limit: limit,
+        status: 'in-progress',
+      );
+      if (histRes != null && histRes.data.history.isNotEmpty) {
+        final convertedItems = histRes.data.history.map((h) {
+          return ContinueWatchingItem(
+            historyId: h.id.isNotEmpty ? h.id : h.historyId,
+            drama: ContinueWatchingDrama(
+              id: h.drama.id,
+              title: h.drama.title,
+              slug: h.drama.slug,
+              posterUrl: h.drama.posterUrl,
+              bannerUrl: '',
+              trailerUrl: '',
+              rating: h.drama.rating,
+              totalEpisodes: h.drama.totalEpisodes,
+              genres: h.drama.genres,
+              genreDisplay: h.drama.genreDisplay,
+            ),
+            episode: ContinueWatchingEpisode(
+              id: h.episode.id,
+              episodeNumber: h.episode.episodeNumber,
+              seasonNumber: h.episode.seasonNumber,
+              seasonEpisodeTag: h.episode.seasonEpisodeTag,
+              title: h.episode.title,
+              durationSeconds: h.episode.durationSeconds,
+              formattedDuration: h.episode.formattedDuration,
+            ),
+            playback: PlaybackHistory(
+              watchedSeconds: h.playback.watchedSeconds,
+              formattedWatched: h.playback.formattedWatched,
+              durationSeconds: h.playback.durationSeconds,
+              formattedDuration: h.playback.formattedDuration,
+              remainingSeconds: h.playback.remainingSeconds,
+              formattedRemaining: h.playback.formattedRemaining,
+              progressPercentage: h.playback.progressPercentage,
+              isCompleted: h.playback.isCompleted,
+              lastWatchedAt: h.timeline.lastWatchedAt,
+            ),
+          );
+        }).toList();
+
+        return ContinueWatchingResponse(
+          success: true,
+          statusCode: 200,
+          message: 'Retrieved from watch history',
+          data: ContinueWatchingData(
+            items: convertedItems,
+            pagination: ContinueWatchingPagination(
+              page: histRes.data.pagination.page,
+              limit: histRes.data.pagination.limit,
+              total: histRes.data.pagination.total,
+              totalPages: histRes.data.pagination.totalPages,
+              hasNextPage: histRes.data.pagination.hasNextPage,
+              hasPrevPage: histRes.data.pagination.hasPrevPage,
+            ),
+          ),
+        );
+      }
+      return null;
+    } catch (e, stack) {
+      LogUtil.error(
+        "allCountinueWatching error: $e",
+        name: "HomeDatasource",
+        error: e,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
+
+  Future<WatchHistoryResponseModel?> getWatchHistory({
+    required int pageNo,
+    required int limit,
+    String? search,
+    String? status,
+    String? sortBy,
+    String? period,
+  }) async {
+    try {
+      final token = await StorageService.getToken();
+      final url = Uri.parse(
+        AppUrl.watchHistory(
+          pageNo: pageNo,
+          limit: limit,
+          search: search,
+          status: status,
+          sortBy: sortBy,
+          period: period,
+        ),
+      );
+      final headers = <String, String>{
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+      final response = await http.get(url, headers: headers);
+      LogUtil.log(
+        "[HomeDatasource] getWatchHistory [${response.statusCode}]: ${response.body}",
+        name: "HomeDatasource",
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return WatchHistoryResponseModel.fromJson(data);
+      } else {
+        LogUtil.error(
+          "getWatchHistory failed with status: ${response.statusCode}",
+          name: "HomeDatasource",
+        );
+        return null;
+      }
+    } catch (e, stack) {
+      LogUtil.error(
+        "getWatchHistory error: $e",
+        name: "HomeDatasource",
+        error: e,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
+
+  Future<bool> deleteWatchHistoryItem(String historyId) async {
+    try {
+      final token = await StorageService.getToken();
+      final url = Uri.parse(AppUrl.removeWatchHistoryItem(historyId));
+      final headers = <String, String>{
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+      final response = await http.delete(url, headers: headers);
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> clearAllWatchHistory() async {
+    try {
+      final token = await StorageService.getToken();
+      final url = Uri.parse(AppUrl.clearAllWatchHistory);
+      final headers = <String, String>{
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+      final response = await http.delete(url, headers: headers);
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -269,14 +446,22 @@ class HomeDatasource {
         if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
       var response = await http.get(url, headers: headers);
-      LogUtil.log("Banner response [${response.statusCode}] -> ${response.body}", name: "HomeDatasource");
+      LogUtil.log(
+        "Banner response [${response.statusCode}] -> ${response.body}",
+        name: "HomeDatasource",
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return HomeBannersResponse.fromJson(jsonDecode(response.body));
       } else {
         return null;
       }
     } catch (e, stack) {
-      LogUtil.error("allBanners error: $e", name: "HomeDatasource", error: e, stackTrace: stack);
+      LogUtil.error(
+        "allBanners error: $e",
+        name: "HomeDatasource",
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }

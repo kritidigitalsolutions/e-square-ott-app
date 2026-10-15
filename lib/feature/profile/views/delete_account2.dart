@@ -1,11 +1,11 @@
+import 'package:e_square_ott_app/feature/home/controller/home_controller.dart';
+import 'package:e_square_ott_app/feature/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_text_styles.dart';
 import '../../../routes/app_pages.dart';
-import '../../../shared/service/notification_service.dart';
-import '../../../shared/service/storage_service.dart';
 import '../../../shared/widgets/custom_animation.dart';
 import '../../../shared/widgets/custom_bottomsheet.dart';
 import '../../../shared/widgets/custom_loading.dart';
@@ -183,24 +183,116 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
     });
 
     try {
-      final success = await AuthDatasource().deleteAccount();
+      final res = await AuthDatasource().requestAccountDeletion();
 
       if (mounted) {
-        if (success) {
-          await NotificationService.instance.unregisterTokenFromBackend();
-          await StorageService.logout();
-          AppSnackbar.success(
-            'Your account and all associated data have been permanently removed.'
-                .tr,
-            title: 'Account Deleted'.tr,
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (res != null && res['success'] == true) {
+          // Refresh profile in controller if active
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
+
+          // Show success popup modal informing user of 24h verification
+          await Get.dialog(
+            Dialog(
+              backgroundColor: const Color(0xFF14141E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF2E2E3E), width: 1),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFFF9800).withValues(alpha: 0.15),
+                        border: Border.all(
+                          color: const Color(0xFFFF9800),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Center(
+                        child: FaIcon(
+                          FontAwesomeIcons.clock,
+                          color: Color(0xFFFF9800),
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Deletion Request Submitted'.tr,
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Your account deletion request has been sent to our administrator team. After verifying your account details and subscriptions, your account will be permanently deleted within 24 hours.'
+                          .tr,
+                      style: TextStyle(
+                        fontFamily: 'sans-serif',
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE42429),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Get.back(); // Close dialog
+                        },
+                        child: Text(
+                          'Got It'.tr,
+                          style: const TextStyle(
+                            fontFamily: 'sans-serif',
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            barrierDismissible: false,
           );
-          Get.offAllNamed(Routes.login);
+
+          // Return to Home screen (Profile tab)
+          if (Get.isRegistered<HomeController>()) {
+            Get.find<HomeController>().changeNavIndex(2);
+          }
+          Get.until(
+            (route) => route.settings.name == Routes.home || route.isFirst,
+          );
         } else {
-          setState(() {
-            _isLoading = false;
-          });
           AppSnackbar.error(
-            'Failed to delete account. Please try again.'.tr,
+            'Failed to submit deletion request. Please try again.'.tr,
             title: 'Error'.tr,
           );
         }
@@ -210,7 +302,7 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
         setState(() {
           _isLoading = false;
         });
-        AppSnackbar.error('Error deleting account: $e');
+        AppSnackbar.error('Error submitting deletion request: $e');
       }
     }
   }
@@ -268,11 +360,11 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
 
           // ── Title
           Text(
-            'Confirm your decision'.tr,
+            'Request Account Deletion'.tr,
             style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: Colors.white,
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.3,
             ),
@@ -284,12 +376,13 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'To permanently delete your account, type DELETE below.'.tr,
+              'Your request will be verified and permanently deleted within 24 hours by an administrator. To proceed, type DELETE below.'
+                  .tr,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: AppTextStyles.fontFamily,
                 color: Color(0xFF9E9EA8),
-                fontSize: 14.0,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w400,
                 height: 1.45,
               ),
@@ -379,11 +472,11 @@ class _DeleteAccount2ContentCardState extends State<DeleteAccount2ContentCard> {
                         child: LoadingWidget(size: 30),
                       )
                     : Text(
-                        'Delete My Account'.tr,
+                        'Submit Deletion Request'.tr,
                         style: const TextStyle(
                           fontFamily: AppTextStyles.fontFamily,
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

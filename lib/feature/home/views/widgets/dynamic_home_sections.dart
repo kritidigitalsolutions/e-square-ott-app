@@ -10,6 +10,7 @@ import '../../../../models/response/home_section_model.dart';
 import '../../../../routes/app_pages.dart';
 import '../../controller/home_controller.dart';
 import '../../models/category_model.dart';
+import 'home_custom_ad_banner_widget.dart';
 import 'popular_genres_section.dart';
 
 class DynamicHomeSections extends GetView<HomeController> {
@@ -159,22 +160,45 @@ class DynamicHomeSections extends GetView<HomeController> {
                   ),
                 ),
 
+                // ── Insert Custom Sponsor Ad Banner between sections (after 1st section)
+                if (index == 0 && controller.homeAdBanner.value != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: HomeCustomAdBannerWidget(
+                      ad: controller.homeAdBanner.value!,
+                    ),
+                  ),
+
                 // ── Insert Popular Genres after 2nd Section (Index 1)
                 if (index == 1)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 24),
                     child: PopularGenresSection(),
                   ),
+
+                // ── If there is only 1 section, show the banner below it
+                if (sections.length == 1 &&
+                    index == 0 &&
+                    controller.homeAdBanner.value != null)
+                  const SizedBox.shrink(),
               ],
             );
           }),
 
-          // Fallback: If less than 2 dynamic sections, still show Popular Genres at the end
-          if (sections.length < 2)
+          // Fallback: If sections is empty but ad is available, or less than 2 dynamic sections
+          if (sections.length < 2) ...[
+            if (sections.isEmpty && controller.homeAdBanner.value != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: HomeCustomAdBannerWidget(
+                  ad: controller.homeAdBanner.value!,
+                ),
+              ),
             const Padding(
               padding: EdgeInsets.only(bottom: 24),
               child: PopularGenresSection(),
             ),
+          ],
         ],
       );
     });

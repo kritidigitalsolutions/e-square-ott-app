@@ -1,6 +1,6 @@
 class AppUrl {
-  // static const baseUrl = "https://esquarebackend.vercel.app/api/v1";
-  static const baseUrl = "http://192.168.1.34:5001/api/v1";
+  static const baseUrl = "https://esquarebackend.vercel.app/api/v1";
+  // static const baseUrl = "http://192.168.1.34:5001/api/v1";
   static const requestOtp = "$baseUrl/auth/request-otp";
   static const verifyOtp = "$baseUrl/auth/verify-otp";
   static const resendOtp = "$baseUrl/auth/resend-otp";
@@ -11,6 +11,8 @@ class AppUrl {
   static const selectGenre = "$baseUrl/auth/interests";
   static const refreshToken = "$baseUrl/auth/refresh-token";
   static const deleteAccount = "$baseUrl/auth/profile";
+  static const requestDeleteAccount = "$baseUrl/auth/delete-request";
+  static const cancelDeleteRequest = "$baseUrl/auth/cancel-delete-request";
   static const uploadFileSingle = "$baseUrl/upload/single";
   static const editProfile = "$baseUrl/auth/profile";
   static const updateNotficationsetting = "$baseUrl/notifications/settings";
@@ -73,7 +75,7 @@ class AppUrl {
   static String homeAllContent({required int pageNo, required int size}) =>
       "$baseUrl/home/content?page=$pageNo&limit=$size&genre=&sortOrder=asc";
   static String countinueWatching({required int pageNo, required int limit}) =>
-      "$baseUrl/home/continue-watching?page=$pageNo&limit=$limit";
+      "$baseUrl/player/continue-watching?page=$pageNo&limit=$limit";
   static String homeSection({required int pageNo, required int limit}) =>
       "$baseUrl/home/sections?page=$pageNo&limit=$limit";
   static String savedWhistlist({required String dramaId}) =>
@@ -102,6 +104,28 @@ class AppUrl {
 
   static String allHomePageBanner = "$baseUrl/home/banners?limit=100";
 
+  // Watch History endpoints
+  static String watchHistory({
+    required int pageNo,
+    required int limit,
+    String? search,
+    String? status,
+    String? sortBy,
+    String? period,
+  }) {
+    String url = "$baseUrl/watch-history?page=$pageNo&limit=$limit";
+    if (search != null && search.isNotEmpty) url += "&search=$search";
+    if (status != null && status.isNotEmpty) url += "&status=$status";
+    if (sortBy != null && sortBy.isNotEmpty) url += "&sortBy=$sortBy";
+    if (period != null && period.isNotEmpty) url += "&period=$period";
+    return url;
+  }
+
+  static String watchHistorySummary = "$baseUrl/watch-history/summary";
+  static String removeWatchHistoryItem(String historyId) =>
+      "$baseUrl/watch-history/$historyId";
+  static String clearAllWatchHistory = "$baseUrl/watch-history";
+
   // Promo / Coupon endpoints
   static const validatePromo = "$baseUrl/promos/validate";
   static const applyPromo = "$baseUrl/promos/apply";
@@ -111,4 +135,22 @@ class AppUrl {
   static const redeemVoucher = "$baseUrl/vouchers/redeem";
   static String voucherHistory({required String phoneNumber}) =>
       "$baseUrl/vouchers/my-history?phoneNumber=$phoneNumber";
+
+  // Ads & Monetization endpoints
+  static String serveAd({
+    required String placement,
+    required String format,
+    String platform = "android",
+    required bool isVip,
+    required String page,
+  }) {
+    return "$baseUrl/ads/serve?placement=$placement&format=$format&platform=$platform&isVip=$isVip&page=$page";
+  }
+
+  static String trackAdImpression({required String adId}) =>
+      "$baseUrl/ads/track/$adId/impression";
+  static String trackAdClick({required String adId}) =>
+      "$baseUrl/ads/track/$adId/click";
+  static String trackAdVideoEvent({required String adId}) =>
+      "$baseUrl/ads/track/$adId/video-event";
 }

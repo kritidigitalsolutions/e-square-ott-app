@@ -743,7 +743,7 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
 
   // ── Episodes Bottom Sheet for Reel/Explore View with Real API Data
   void _openEpisodesSheet(BuildContext context, PriorityDrama drama) {
-    controller.fetchEpisodesForDrama(drama.id);
+    controller.fetchEpisodesForDrama(drama.id, slug: drama.slug);
 
     CustomBottomSheet.show(
       context: context,
@@ -757,7 +757,8 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
         child: SafeArea(
           top: false,
           child: Obx(() {
-            final drawerResponse = controller.episodesCache[drama.id];
+            final drawerResponse = controller.episodesCache[drama.id] ??
+                (drama.slug.isNotEmpty ? controller.episodesCache[drama.slug] : null);
             final episodes = drawerResponse?.data.episodes ?? [];
             final isLoading = controller.isLoadingEpisodes.value;
 
@@ -817,12 +818,32 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                         )
                       : episodes.isEmpty
                       ? Center(
-                          child: Text(
-                            'No episodes available for this drama yet'.tr,
-                            style: const TextStyle(
-                              color: Color(0xFF8E8E9E),
-                              fontSize: 14,
-                            ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'No episodes available for this drama yet'.tr,
+                                style: const TextStyle(
+                                  color: Color(0xFF8E8E9E),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () => controller.fetchEpisodesForDrama(
+                                  drama.id,
+                                  slug: drama.slug,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text('Retry'.tr),
+                              ),
+                            ],
                           ),
                         )
                       : ListView.separated(
@@ -843,7 +864,9 @@ class _ExploreReelCardState extends State<_ExploreReelCard> {
                                 Get.toNamed(
                                   Routes.dramaPlayer,
                                   arguments: {
-                                    'id': drama.id,
+                                    'id': drama.id.isNotEmpty
+                                        ? drama.id
+                                        : drama.slug,
                                     'title': drama.title,
                                     'description': drama.synopsis,
                                     'image': ep.thumbnailUrl.isNotEmpty

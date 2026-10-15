@@ -21,11 +21,19 @@ import '../../../routes/app_pages.dart';
 import '../../../shared/utils/log_util.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../explore/controller/explore_controller.dart';
+import '../../subscription/controller/subscription_controller.dart';
+import '../../../models/response/custom_ad_model.dart';
+import '../../../shared/service/custom_ads_service.dart';
 import '../models/category_model.dart';
 
 class HomeController extends GetxController {
   final NotificationDatasource _notificationDatasource =
       NotificationDatasource();
+  final CustomAdsService _adsService = CustomAdsService();
+
+  // ── Custom Sponsor Ad Banner State (for Home feed) ──
+  final Rxn<CustomAdModel> homeAdBanner = Rxn<CustomAdModel>();
+  final RxBool isLoadingHomeAd = false.obs;
 
   // ── Bottom Navigation State (0: Home, 1: Explore, 2: Profile, 3: Search)
   final RxInt currentNavIndex = 0.obs;
@@ -256,6 +264,7 @@ class HomeController extends GetxController {
     getAllContent();
     getAllContinueWatching();
     getAllDrama();
+    fetchHomeCustomAd();
   }
 
   // ── Dynamic Getters for Home Sections (Using Live API Data) ──
@@ -434,6 +443,7 @@ class HomeController extends GetxController {
       getAllContent(),
       getAllDrama(),
       fetchUnreadCount(),
+      fetchHomeCustomAd(),
     ];
 
     if (Get.isRegistered<ExploreController>()) {
@@ -441,6 +451,50 @@ class HomeController extends GetxController {
     }
 
     await Future.wait(futures);
+  }
+
+  /// Fetch custom sponsor ad banner for Home content feed
+  Future<void> fetchHomeCustomAd() async {
+    try {
+      bool isUserVip = false;
+      if (Get.isRegistered<SubscriptionController>()) {
+        isUserVip = Get.find<SubscriptionController>().isVip;
+      }
+
+      if (isUserVip) {
+        homeAdBanner.value = null;
+        return;
+      }
+
+      isLoadingHomeAd.value = true;
+      final res = await _adsService.serveAd(
+        placement: 'HOME_BANNER',
+        format: 'BANNER',
+        isVip: isUserVip,
+        page: 'HOME_ONLY',
+      );
+
+      isLoadingHomeAd.value = false;
+
+      if (res != null && res.showAd && res.adSource == 'CUSTOM' && res.ad != null) {
+        homeAdBanner.value = res.ad;
+        // Track ad impression
+        if (res.ad!.id != null && res.ad!.id!.isNotEmpty) {
+          _adsService.trackImpression(res.ad!.id!);
+        }
+      } else {
+        homeAdBanner.value = null;
+      }
+    } catch (e, stack) {
+      isLoadingHomeAd.value = false;
+      homeAdBanner.value = null;
+      LogUtil.error(
+        '[HomeController] fetchHomeCustomAd error: $e',
+        name: 'ADS',
+        error: e,
+        stackTrace: stack,
+      );
+    }
   }
 
   Future<void> fetchAllSectionsHome() async {

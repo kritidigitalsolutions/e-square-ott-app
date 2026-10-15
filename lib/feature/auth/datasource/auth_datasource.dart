@@ -414,13 +414,52 @@ class AuthDatasource {
     }
   }
 
+  Future<Map<String, dynamic>?> requestAccountDeletion({
+    String? reason,
+    String? feedback,
+  }) async {
+    final token = await StorageService.getToken();
+    if (token == null) {
+      return null;
+    }
+    final url = Uri.parse(AppUrl.requestDeleteAccount);
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+        if (feedback != null && feedback.isNotEmpty) 'feedback': feedback,
+      }),
+    );
+    LogUtil.log(
+      "[AuthDatasource] requestAccountDeletion response [${response.statusCode}]: ${response.body}",
+      name: "AuthDatasource",
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final decoded = jsonDecode(response.body);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } else {
+      LogUtil.warning("requestAccountDeletion failed!", name: "AuthDatasource");
+      return null;
+    }
+  }
+
   Future<bool> deleteAccount() async {
+    final res = await requestAccountDeletion();
+    return res != null && res['success'] == true;
+  }
+
+  Future<bool> cancelAccountDeletionRequest() async {
     final token = await StorageService.getToken();
     if (token == null) {
       return false;
     }
-    final url = Uri.parse(AppUrl.deleteAccount);
-    final response = await http.delete(
+    final url = Uri.parse(AppUrl.cancelDeleteRequest);
+    final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
@@ -429,14 +468,13 @@ class AuthDatasource {
       },
     );
     LogUtil.log(
-      "[AuthDatasource] deleteAccount response [${response.statusCode}]: ${response.body}",
+      "[AuthDatasource] cancelAccountDeletionRequest response [${response.statusCode}]: ${response.body}",
       name: "AuthDatasource",
     );
-    if (response.statusCode == 200) {
-      LogUtil.info("account delete!", name: "AuthDatasource");
-      return true;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final decoded = jsonDecode(response.body);
+      return decoded['success'] == true;
     } else {
-      LogUtil.warning("account not delete!", name: "AuthDatasource");
       return false;
     }
   }

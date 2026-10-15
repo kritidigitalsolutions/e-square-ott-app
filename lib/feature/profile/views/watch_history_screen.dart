@@ -1,3 +1,4 @@
+import 'package:e_square_ott_app/constants/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,10 +15,9 @@ class WatchHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController controller =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController());
+    final ProfileController controller = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController());
 
     return CustomScaffold(
       showAppBar: false,
@@ -40,8 +40,10 @@ class WatchHistoryScreen extends StatelessWidget {
               children: [
                 // ── Top Header
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -57,8 +59,9 @@ class WatchHistoryScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(2),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.6),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   blurRadius: 6,
                                 ),
                               ],
@@ -155,25 +158,41 @@ class WatchHistoryScreen extends StatelessWidget {
                 // ── Watch History List / Empty State
                 Expanded(
                   child: Obx(() {
+                    if (controller.watchHistoryStatus.value == Status.loading &&
+                        controller.watchHistoryList.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      );
+                    }
+
                     final items = controller.watchHistoryList;
 
                     if (items.isEmpty) {
                       return _buildEmptyState();
                     }
 
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return _WatchHistoryCard(
-                          item: item,
-                          onRemove: () =>
-                              controller.removeWatchHistory(item.id),
-                        );
-                      },
+                    return RefreshIndicator(
+                      onRefresh: () => controller.fetchWatchHistory(),
+                      color: AppColors.primary,
+                      backgroundColor: const Color(0xFF161622),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        itemCount: items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          return _WatchHistoryCard(
+                            item: item,
+                            onRemove: () =>
+                                controller.removeWatchHistory(item.id),
+                          );
+                        },
+                      ),
                     );
                   }),
                 ),
@@ -229,8 +248,7 @@ class WatchHistoryScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your recently watched dramas and episodes will appear here.'
-                  .tr,
+              'Your recently watched dramas and episodes will appear here.'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: AppTextStyles.fontFamily,
@@ -320,10 +338,7 @@ class _WatchHistoryCard extends StatelessWidget {
   final WatchHistoryItemModel item;
   final VoidCallback onRemove;
 
-  const _WatchHistoryCard({
-    required this.item,
-    required this.onRemove,
-  });
+  const _WatchHistoryCard({required this.item, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -359,8 +374,12 @@ class _WatchHistoryCard extends StatelessWidget {
                   Get.toNamed(
                     Routes.dramaPlayer,
                     arguments: {
+                      'id': item.dramaId,
                       'title': item.title,
-                      'image': item.posterAsset,
+                      'image': item.posterUrl ?? item.posterAsset,
+                      'initialEpisodeIndex': item.currentEpisode > 0
+                          ? item.currentEpisode - 1
+                          : 0,
                     },
                   );
                 },
@@ -372,20 +391,41 @@ class _WatchHistoryCard extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.asset(
-                          item.posterAsset,
-                          fit: BoxFit.fill,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF1E1E28),
-                            child: const Center(
-                              child: FaIcon(
-                                FontAwesomeIcons.film,
-                                color: Colors.white24,
-                                size: 22,
+                        if (item.posterUrl != null &&
+                            item.posterUrl!.isNotEmpty)
+                          Image.network(
+                            item.posterUrl!,
+                            fit: BoxFit.fill,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              item.posterAsset,
+                              fit: BoxFit.fill,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFF1E1E28),
+                                child: const Center(
+                                  child: FaIcon(
+                                    FontAwesomeIcons.film,
+                                    color: Colors.white24,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Image.asset(
+                            item.posterAsset,
+                            fit: BoxFit.fill,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1E1E28),
+                              child: const Center(
+                                child: FaIcon(
+                                  FontAwesomeIcons.film,
+                                  color: Colors.white24,
+                                  size: 22,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
                         // Vignette
                         Positioned.fill(
@@ -413,8 +453,7 @@ class _WatchHistoryCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: Colors.black.withValues(alpha: 0.65),
                               border: Border.all(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.8),
+                                color: AppColors.primary.withValues(alpha: 0.8),
                                 width: 1,
                               ),
                             ),
@@ -529,8 +568,12 @@ class _WatchHistoryCard extends StatelessWidget {
                             Get.toNamed(
                               Routes.dramaPlayer,
                               arguments: {
+                                'id': item.dramaId,
                                 'title': item.title,
-                                'image': item.posterAsset,
+                                'image': item.posterUrl ?? item.posterAsset,
+                                'initialEpisodeIndex': item.currentEpisode > 0
+                                    ? item.currentEpisode - 1
+                                    : 0,
                               },
                             );
                           },
@@ -544,8 +587,9 @@ class _WatchHistoryCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary
-                                      .withValues(alpha: 0.3),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),

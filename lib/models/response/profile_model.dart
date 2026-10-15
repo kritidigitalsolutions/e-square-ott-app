@@ -61,6 +61,9 @@ class ProfileUser {
   final List<String> preferredContentLanguages;
   final UserSettings? settings;
   final String status;
+  final bool isDeletionRequested;
+  final String? deletionRequestedAt;
+  final String? scheduledDeletionAt;
   final bool isProfileCompleted;
   final String createdAt;
 
@@ -79,6 +82,9 @@ class ProfileUser {
     required this.preferredContentLanguages,
     this.settings,
     required this.status,
+    this.isDeletionRequested = false,
+    this.deletionRequestedAt,
+    this.scheduledDeletionAt,
     required this.isProfileCompleted,
     required this.createdAt,
   });
@@ -107,6 +113,11 @@ class ProfileUser {
           ? UserSettings.fromJson(json['settings'])
           : null,
       status: json['status']?.toString() ?? '',
+      isDeletionRequested: json['isDeletionRequested'] == true ||
+          json['status'] == 'PENDING_DELETION' ||
+          json['deletionRequested'] == true,
+      deletionRequestedAt: json['deletionRequestedAt']?.toString(),
+      scheduledDeletionAt: json['scheduledDeletionAt']?.toString(),
       isProfileCompleted: json['isProfileCompleted'] ?? false,
       createdAt: json['createdAt']?.toString() ?? '',
     );
@@ -128,6 +139,9 @@ class ProfileUser {
       'preferredContentLanguages': preferredContentLanguages,
       'settings': settings?.toJson(),
       'status': status,
+      'isDeletionRequested': isDeletionRequested,
+      'deletionRequestedAt': deletionRequestedAt,
+      'scheduledDeletionAt': scheduledDeletionAt,
       'isProfileCompleted': isProfileCompleted,
       'createdAt': createdAt,
     };
@@ -146,8 +160,10 @@ class ProfileUser {
     String? avatarUrl,
     List<String>? interests,
     List<String>? preferredContentLanguages,
-    UserSettings? settings,
     String? status,
+    bool? isDeletionRequested,
+    String? deletionRequestedAt,
+    String? scheduledDeletionAt,
     bool? isProfileCompleted,
     String? createdAt,
   }) {
@@ -167,6 +183,9 @@ class ProfileUser {
           preferredContentLanguages ?? this.preferredContentLanguages,
       settings: settings ?? this.settings,
       status: status ?? this.status,
+      isDeletionRequested: isDeletionRequested ?? this.isDeletionRequested,
+      deletionRequestedAt: deletionRequestedAt ?? this.deletionRequestedAt,
+      scheduledDeletionAt: scheduledDeletionAt ?? this.scheduledDeletionAt,
       isProfileCompleted: isProfileCompleted ?? this.isProfileCompleted,
       createdAt: createdAt ?? this.createdAt,
     );

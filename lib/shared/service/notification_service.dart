@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import '../widgets/custom_sncakbar.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Background message handler — MUST be a top-level function.
@@ -16,6 +17,13 @@ import 'package:get/get.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
+    // Drop internal empty pings or messages with no notification & empty data
+    final hasNotification = message.notification != null;
+    final hasData = message.data.isNotEmpty;
+    if (!hasNotification && !hasData) {
+      return;
+    }
+
     await Firebase.initializeApp();
     LogUtil.log(
       '[FCM] Background message received: ${message.messageId}',
@@ -29,16 +37,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         message.notification?.title ??
         message.data['title'] ??
         message.data['heading'] ??
-        message.data['name'] ??
-        'E-Square OTT';
+        message.data['name'];
     final body =
         message.notification?.body ??
         message.data['body'] ??
         message.data['message'] ??
-        message.data['description'] ??
-        '';
+        message.data['description'];
+
+    // Don't show notification if both title and body are null/empty
+    if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
+      return;
+    }
 
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const initSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
+    );
+    await flutterLocalNotificationsPlugin.initialize(settings: initSettings);
 
     const androidChannel = AndroidNotificationChannel(
       'high_importance_channel',
@@ -90,7 +110,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       stackTrace: stack,
     );
   }
-
 }
 
 class NotificationService {
@@ -117,63 +136,95 @@ class NotificationService {
     await instance._initService();
   }
 
-
   Future<void> _initService() async {
-    // 1. Android notification channel
-    const androidChannel = AndroidNotificationChannel(
-      'high_importance_channel',
-      'High Importance Notifications',
-      description: 'This channel is used for important notifications.',
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-    );
+    try {
+      LogUtil.log(
+        '[NotificationService] Initializing notifications...',
+        name: 'FCM',
+      );
 
-    final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    await androidPlugin?.createNotificationChannel(androidChannel);
+      // 1. Android notification channels
+      const highImportanceChannel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
-    // 2. Initialize local notifications plugin
-    const initSettings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-      iOS: DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
-      ),
-    );
+      const inAppSilentChannel = AndroidNotificationChannel(
+        'in_app_silent_channel',
+        'In-App Silent Notifications',
+        description: 'Silent notifications when user is inside the app.',
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      );
 
-    await _localNotifications.initialize(
-      settings: initSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        if (response.payload != null && response.payload!.isNotEmpty) {
-          try {
-            final Map<String, dynamic> data = jsonDecode(response.payload!);
-            _handleNotificationTap(RemoteMessage(data: data));
-          } catch (e) {
-            LogUtil.error(
-              "[NotificationService] payload decode error: $e",
-              name: "FCM",
-            );
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await androidPlugin?.createNotificationChannel(highImportanceChannel);
+      await androidPlugin?.createNotificationChannel(inAppSilentChannel);
+
+      // 2. Initialize local notifications plugin
+      const initSettings = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
+      );
+
+      final initialized = await _localNotifications.initialize(
+        settings: initSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) {
+          LogUtil.log(
+            '[NotificationService] onDidReceiveNotificationResponse payload: ${response.payload}',
+            name: 'FCM',
+          );
+          if (response.payload != null && response.payload!.isNotEmpty) {
+            try {
+              final Map<String, dynamic> data = jsonDecode(response.payload!);
+              _handleNotificationTap(RemoteMessage(data: data));
+            } catch (e) {
+              LogUtil.error(
+                "[NotificationService] payload decode error: $e",
+                name: "FCM",
+              );
+            }
           }
-        }
-      },
-    );
+        },
+      );
 
-    // 3. Request permissions
-    await _requestPermissions();
+      LogUtil.log(
+        '[NotificationService] LocalNotifications initialized: $initialized',
+        name: 'FCM',
+      );
 
-    // 4. Foreground presentation options for iOS
-    await _fcm.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+      // 3. Request permissions
+      await _requestPermissions();
 
-    // 5. Setup token listeners & FCM event listeners
-    await _setupListeners();
+      // 4. Foreground presentation options for iOS
+      await _fcm.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // 5. Setup token listeners & FCM event listeners
+      await _setupListeners();
+    } catch (e, stack) {
+      LogUtil.error(
+        '[NotificationService] Error initializing notifications: $e',
+        name: 'FCM',
+        error: e,
+        stackTrace: stack,
+      );
+    }
   }
 
   // ── Request permissions ───────────────────────────────────────
@@ -210,26 +261,7 @@ class NotificationService {
   // ── Listeners ────────────────────────────────────────────────
   Future<void> _setupListeners() async {
     try {
-      final token = await StorageService.getToken();
-      if (token == null || token.isEmpty) {
-        return;
-      }
-
-      await _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
-
-      await _fcm.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
+      await _requestPermissions();
 
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,
@@ -237,8 +269,7 @@ class NotificationService {
         sound: true,
       );
 
-      await _subscribeToToken();
-
+      // Always setup listeners for foreground and background message handling
       if (!_isListenersSetup) {
         _isListenersSetup = true;
         LogUtil.log(
@@ -248,6 +279,9 @@ class NotificationService {
         _listenForeground();
         _listenOnOpen();
       }
+
+      // Fetch FCM device token and register if user is logged in
+      await _subscribeToToken();
     } catch (e, stack) {
       LogUtil.error(
         '[FCM Service] Initialization error: $e',
@@ -351,9 +385,36 @@ class NotificationService {
   // ── Foreground messages ──────────────────────────────────────
   void _listenForeground() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final msgId = message.messageId ?? '${message.sentTime?.millisecondsSinceEpoch}_${message.data.hashCode}';
+      // Drop internal empty pings or messages with no notification & empty data
+      final hasNotification = message.notification != null;
+      final hasData = message.data.isNotEmpty;
+      if (!hasNotification && !hasData) {
+        return;
+      }
+
+      final title =
+          message.notification?.title ??
+          message.data['title'] ??
+          message.data['heading'] ??
+          message.data['name'];
+      final body =
+          message.notification?.body ??
+          message.data['body'] ??
+          message.data['message'] ??
+          message.data['description'];
+
+      if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
+        return;
+      }
+
+      final msgId =
+          message.messageId ??
+          '${message.sentTime?.millisecondsSinceEpoch}_${message.data.hashCode}';
       if (_processedMessageIds.contains(msgId)) {
-        LogUtil.log('[FCM] Skipping duplicate foreground message: $msgId', name: 'FCM');
+        LogUtil.log(
+          '[FCM] Skipping duplicate foreground message: $msgId',
+          name: 'FCM',
+        );
         return;
       }
       _processedMessageIds.add(msgId);
@@ -361,10 +422,7 @@ class NotificationService {
         _processedMessageIds.remove(_processedMessageIds.first);
       }
 
-      LogUtil.log(
-        '[FCM] Foreground message received: $msgId',
-        name: 'FCM',
-      );
+      LogUtil.log('[FCM] Foreground message received: $msgId', name: 'FCM');
       LogUtil.log(
         '[FCM] Title: ${message.notification?.title} | Body: ${message.notification?.body}',
         name: 'FCM',
@@ -373,40 +431,28 @@ class NotificationService {
 
       latestMessage.value = message;
 
-      final title =
-          message.notification?.title ??
-          message.data['title'] ??
-          message.data['heading'] ??
-          message.data['name'] ??
-          'E-Square OTT';
-      final body =
-          message.notification?.body ??
-          message.data['body'] ??
-          message.data['message'] ??
-          message.data['description'] ??
-          '';
-
       if (title.isNotEmpty || body.isNotEmpty) {
+        // Show silent notification in status bar tray only (no sound, no vibration, no popup banner)
         _localNotifications.show(
           id: message.messageId?.hashCode ?? message.hashCode,
           title: title,
           body: body,
           notificationDetails: const NotificationDetails(
             android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'High Importance Notifications',
+              'in_app_silent_channel',
+              'In-App Silent Notifications',
               channelDescription:
-                  'This channel is used for important notifications.',
-              importance: Importance.max,
-              priority: Priority.high,
+                  'Silent notifications when user is inside the app.',
+              importance: Importance.low,
+              priority: Priority.low,
               icon: '@mipmap/ic_launcher',
-              playSound: true,
-              enableVibration: true,
+              playSound: false,
+              enableVibration: false,
             ),
             iOS: DarwinNotificationDetails(
-              presentAlert: true,
+              presentAlert: false,
               presentBadge: true,
-              presentSound: true,
+              presentSound: false,
             ),
           ),
           payload: jsonEncode(message.data),
@@ -419,7 +465,6 @@ class NotificationService {
       }
     });
   }
-
 
   // ── Notification tap ─────────────────────────────────────────
   void _listenOnOpen() {

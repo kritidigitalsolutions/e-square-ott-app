@@ -46,6 +46,7 @@ class DramaDetails {
   final int totalEpisodes;
   final FirstEpisode? firstEpisode;
   final ContinueWatching? continueWatching;
+  final List<DramaEpisodeDetail> episodes;
 
   DramaDetails({
     required this.id,
@@ -62,28 +63,81 @@ class DramaDetails {
     required this.totalEpisodes,
     required this.firstEpisode,
     required this.continueWatching,
+    this.episodes = const [],
   });
 
   factory DramaDetails.fromJson(Map<String, dynamic> json) {
     return DramaDetails(
-      id: json['id'] ?? '',
-      title: json['title'] ?? '',
+      id: json['id'] ?? json['_id'] ?? '',
+      title: json['title'] ?? json['name'] ?? '',
       slug: json['slug'] ?? '',
-      synopsis: json['synopsis'] ?? '',
-      posterUrl: json['posterUrl'] ?? '',
-      bannerUrl: json['bannerUrl'] ?? '',
-      trailerUrl: json['trailerUrl'] ?? '',
+      synopsis: json['synopsis'] ?? json['description'] ?? json['overview'] ?? '',
+      posterUrl: json['posterUrl'] ?? json['poster'] ?? json['thumbnailUrl'] ?? json['thumbnail'] ?? json['coverImage'] ?? '',
+      bannerUrl: json['bannerUrl'] ?? json['banner'] ?? '',
+      trailerUrl: json['trailerUrl'] ?? json['trailer'] ?? '',
       genres: List<String>.from(json['genres'] ?? []),
       genreDisplay: json['genreDisplay'] ?? '',
       rating: (json['rating'] ?? 0).toDouble(),
       viewsCount: json['viewsCount'] ?? 0,
-      totalEpisodes: json['totalEpisodes'] ?? 0,
+      totalEpisodes: json['totalEpisodes'] ?? json['episodesCount'] ?? 0,
       firstEpisode: json['firstEpisode'] != null
           ? FirstEpisode.fromJson(json['firstEpisode'])
           : null,
       continueWatching: json['continueWatching'] != null
           ? ContinueWatching.fromJson(json['continueWatching'])
           : null,
+      episodes: (json['episodes'] as List<dynamic>? ?? [])
+          .map((e) => DramaEpisodeDetail.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class DramaEpisodeDetail {
+  final String id;
+  final String dramaId;
+  final int episodeNumber;
+  final String title;
+  final String synopsis;
+  final String thumbnailUrl;
+  final String videoUrl;
+  final String duration;
+  final int durationSeconds;
+  final bool isFree;
+  final String views;
+
+  DramaEpisodeDetail({
+    required this.id,
+    required this.dramaId,
+    required this.episodeNumber,
+    required this.title,
+    required this.synopsis,
+    required this.thumbnailUrl,
+    required this.videoUrl,
+    required this.duration,
+    required this.durationSeconds,
+    required this.isFree,
+    required this.views,
+  });
+
+  factory DramaEpisodeDetail.fromJson(Map<String, dynamic> json) {
+    return DramaEpisodeDetail(
+      id: json['id'] ?? json['_id'] ?? '',
+      dramaId: json['dramaId'] ?? '',
+      episodeNumber: json['episodeNumber'] ?? 0,
+      title: json['title'] ?? 'Episode ${json['episodeNumber'] ?? 1}',
+      synopsis: json['synopsis'] ?? '',
+      thumbnailUrl: json['thumbnailUrl'] ?? json['thumbnail'] ?? '',
+      videoUrl: (json['videoStreamUrl'] ??
+              json['videoUrl'] ??
+              json['streamUrl'] ??
+              json['video'] ??
+              '')
+          .toString(),
+      duration: json['duration'] ?? '',
+      durationSeconds: json['durationSeconds'] ?? 0,
+      isFree: json['isFree'] ?? false,
+      views: (json['views'] ?? '0').toString(),
     );
   }
 }

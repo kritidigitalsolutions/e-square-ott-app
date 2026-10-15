@@ -120,7 +120,14 @@ class _SavedSeriesScreenState extends State<SavedSeriesScreen> {
                           ),
                           const SizedBox(width: 8),
                           Obx(() {
-                            final count = controller.totalSavedCount;
+                            final allItems = controller.savedSeriesList;
+                            final count = _selectedGenre == 'All'
+                                ? controller.totalSavedCount
+                                : allItems.where((e) {
+                                    final genre = _selectedGenre.toLowerCase();
+                                    return e.drama.genreDisplay.toLowerCase().contains(genre) ||
+                                        e.drama.genres.any((g) => g.toLowerCase().contains(genre));
+                                  }).length;
                             return Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
@@ -683,22 +690,26 @@ class _SavedSeriesCard extends StatelessWidget {
                     Row(
                       children: [
                         if (item.drama.genreDisplay.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              item.drama.genreDisplay.tr,
-                              style: const TextStyle(
-                                fontFamily: AppTextStyles.fontFamily,
-                                color: AppColors.primaryLight,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                item.drama.genreDisplay.tr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontFamily: AppTextStyles.fontFamily,
+                                  color: AppColors.primaryLight,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
@@ -708,6 +719,8 @@ class _SavedSeriesCard extends StatelessWidget {
                         if (item.drama.totalEpisodes > 0)
                           Text(
                             '${item.drama.totalEpisodes} ${"Episodes".tr}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontFamily: AppTextStyles.fontFamily,
                               color: Colors.white.withValues(alpha: 0.6),

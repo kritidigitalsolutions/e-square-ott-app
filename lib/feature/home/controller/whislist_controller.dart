@@ -37,8 +37,16 @@ class WhislistController extends GetxController {
   List<SavedSeries> get savedSeriesList =>
       allSavedWhislist.value?.data.savedSeries ?? [];
 
-  int get totalSavedCount =>
-      allSavedWhislist.value?.data.stats.totalSaved ?? savedSeriesList.length;
+  int get totalSavedCount {
+    final response = allSavedWhislist.value;
+    if (response == null) return 0;
+    final listCount = savedSeriesList.length;
+    final paginationTotal = response.data.pagination.total;
+    final statsTotal = response.data.stats.totalSaved;
+    if (statsTotal > 0 && statsTotal >= listCount) return statsTotal;
+    if (paginationTotal > 0 && paginationTotal >= listCount) return paginationTotal;
+    return listCount;
+  }
 
   bool get hasSavedSeries => savedSeriesList.isNotEmpty;
 
@@ -145,13 +153,21 @@ class WhislistController extends GetxController {
                   (dramaId == null || item.drama.id != dramaId))
               .toList();
 
+          final oldPagination = allSavedWhislist.value!.data.pagination;
           allSavedWhislist.value = SavedSeriesResponse(
             success: allSavedWhislist.value!.success,
             statusCode: allSavedWhislist.value!.statusCode,
             message: allSavedWhislist.value!.message,
             data: SavedSeriesData(
               savedSeries: updatedList,
-              pagination: allSavedWhislist.value!.data.pagination,
+              pagination: SavedSeriesPagination(
+                page: oldPagination.page,
+                limit: oldPagination.limit,
+                total: updatedList.length,
+                totalPages: oldPagination.totalPages,
+                hasNextPage: oldPagination.hasNextPage,
+                hasPrevPage: oldPagination.hasPrevPage,
+              ),
               stats: SavedSeriesStats(
                 totalSaved: updatedList.length,
                 currentFilteredCount: updatedList.length,
@@ -190,13 +206,21 @@ class WhislistController extends GetxController {
       final success = await datasource.clearAllSavedSeries();
       if (success) {
         if (allSavedWhislist.value != null) {
+          final oldPagination = allSavedWhislist.value!.data.pagination;
           allSavedWhislist.value = SavedSeriesResponse(
             success: allSavedWhislist.value!.success,
             statusCode: allSavedWhislist.value!.statusCode,
             message: allSavedWhislist.value!.message,
             data: SavedSeriesData(
               savedSeries: [],
-              pagination: allSavedWhislist.value!.data.pagination,
+              pagination: SavedSeriesPagination(
+                page: 1,
+                limit: oldPagination.limit,
+                total: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPrevPage: false,
+              ),
               stats: SavedSeriesStats(
                 totalSaved: 0,
                 currentFilteredCount: 0,
@@ -251,6 +275,7 @@ class WhislistController extends GetxController {
             final updatedList = allSavedWhislist.value!.data.savedSeries
                 .where((item) => item.drama.id != dramaId)
                 .toList();
+            final oldPagination = allSavedWhislist.value!.data.pagination;
 
             allSavedWhislist.value = SavedSeriesResponse(
               success: allSavedWhislist.value!.success,
@@ -258,9 +283,20 @@ class WhislistController extends GetxController {
               message: allSavedWhislist.value!.message,
               data: SavedSeriesData(
                 savedSeries: updatedList,
-                pagination: allSavedWhislist.value!.data.pagination,
+                pagination: SavedSeriesPagination(
+                  page: oldPagination.page,
+                  limit: oldPagination.limit,
+                  total: response.data.totalSaved > 0
+                      ? response.data.totalSaved
+                      : updatedList.length,
+                  totalPages: oldPagination.totalPages,
+                  hasNextPage: oldPagination.hasNextPage,
+                  hasPrevPage: oldPagination.hasPrevPage,
+                ),
                 stats: SavedSeriesStats(
-                  totalSaved: response.data.totalSaved,
+                  totalSaved: response.data.totalSaved > 0
+                      ? response.data.totalSaved
+                      : updatedList.length,
                   currentFilteredCount: updatedList.length,
                 ),
               ),

@@ -10,12 +10,15 @@ import '../../../shared/service/storage_service.dart';
 import '../../../shared/utils/log_util.dart';
 import '../../../shared/widgets/custom_sncakbar.dart';
 import '../../auth/datasource/auth_datasource.dart';
+import '../../home/datasource/home_datasource.dart';
 import '../../subscription/controller/subscription_controller.dart';
+import '../../../models/response/watch_history_model.dart';
 
 
 
 class WatchHistoryItemModel {
   final String id;
+  final String dramaId;
   final String title;
   final String category;
   final int currentEpisode;
@@ -23,9 +26,12 @@ class WatchHistoryItemModel {
   final double progress;
   final String remainingTime;
   final String posterAsset;
+  final String? posterUrl;
+  final String relativeTime;
 
   const WatchHistoryItemModel({
     required this.id,
+    this.dramaId = '',
     required this.title,
     required this.category,
     required this.currentEpisode,
@@ -33,6 +39,8 @@ class WatchHistoryItemModel {
     required this.progress,
     required this.remainingTime,
     required this.posterAsset,
+    this.posterUrl,
+    this.relativeTime = '',
   });
 }
 
@@ -53,49 +61,9 @@ class ProfileController extends GetxController {
   final TextEditingController emailEditController = TextEditingController();
   final TextEditingController phoneEditController = TextEditingController();
   final Rx<Status> updateProfileStatus = Status.init.obs;
-  final RxList<WatchHistoryItemModel> watchHistoryList =
-      <WatchHistoryItemModel>[
-        const WatchHistoryItemModel(
-          id: 'wh1',
-          title: 'FATAL ATTRACTION: DARK MAFIA ROMANCE',
-          category: 'Romance',
-          currentEpisode: 14,
-          totalEpisodes: 36,
-          progress: 0.72,
-          remainingTime: '8 min left',
-          posterAsset: AppImages.banner1,
-        ),
-        const WatchHistoryItemModel(
-          id: 'wh2',
-          title: 'FROM DIVORCEE TO BILLIONAIRE BRIDE',
-          category: 'Drama',
-          currentEpisode: 8,
-          totalEpisodes: 24,
-          progress: 0.45,
-          remainingTime: '16 min left',
-          posterAsset: AppImages.banner2,
-        ),
-        const WatchHistoryItemModel(
-          id: 'wh3',
-          title: 'SECURITY GUARD KI CEO GF',
-          category: 'Romance',
-          currentEpisode: 17,
-          totalEpisodes: 18,
-          progress: 0.94,
-          remainingTime: '2 min left',
-          posterAsset: AppImages.banner3,
-        ),
-        const WatchHistoryItemModel(
-          id: 'wh4',
-          title: 'ZINDA HOON MAIN: REVENGE',
-          category: 'Thriller',
-          currentEpisode: 4,
-          totalEpisodes: 20,
-          progress: 0.28,
-          remainingTime: '22 min left',
-          posterAsset: AppImages.thrillerImage,
-        ),
-      ].obs;
+  final Rx<Status> watchHistoryStatus = Status.init.obs;
+  final Rx<WatchHistorySummary?> watchHistorySummary = Rxn<WatchHistorySummary>();
+  final RxList<WatchHistoryItemModel> watchHistoryList = <WatchHistoryItemModel>[].obs;
 
   @override
   void onInit() {
@@ -144,6 +112,7 @@ class ProfileController extends GetxController {
   }
 
   void openWatchHistory() {
+    fetchWatchHistory();
     Get.toNamed(Routes.watchHistory);
   }
 
@@ -262,20 +231,33 @@ class ProfileController extends GetxController {
     Get.offAllNamed(Routes.login);
   }
 
-  Future<void> performDeleteAccount() async {
-    final success = await _datasource.deleteAccount();
-    if (success) {
-      await NotificationService.instance.unregisterTokenFromBackend();
-      await StorageService.logout();
-      userName.value = '';
-      userEmail.value = '';
-      userPhone.value = '';
-      userAvatar.value = '';
-      profileData.value = null;
-      AppSnackbar.success('Account deleted successfully');
-      Get.offAllNamed(Routes.login);
+  Future<void> performDeleteAccount({String? reason, String? feedback}) async {
+    final result = await _datasource.requestAccountDeletion(
+      reason: reason,
+      feedback: feedback,
+    );
+    if (result != null && result['success'] == true) {
+      await fetchProfile();
+      AppSnackbar.success(
+        'Your account deletion request has been sent. Your account will be verified and deleted within 24 hours by an administrator.'.tr,
+        title: 'Deletion Requested'.tr,
+      );
+      Get.back();
     } else {
-      AppSnackbar.error('Failed to delete account. Please try again.');
+      AppSnackbar.error('Failed to submit deletion request. Please try again.'.tr);
+    }
+  }
+
+  Future<void> cancelDeletionRequest() async {
+    final success = await _datasource.cancelAccountDeletionRequest();
+    if (success) {
+      await fetchProfile();
+      AppSnackbar.success(
+        'Your account deletion request has been cancelled. Your account remains active.'.tr,
+        title: 'Request Cancelled'.tr,
+      );
+    } else {
+      AppSnackbar.error('Failed to cancel deletion request. Please try again.'.tr);
     }
   }
 
@@ -291,17 +273,60 @@ class ProfileController extends GetxController {
 
 
   // ── Watch History Actions
-  void removeWatchHistory(String id) {
+  Future<void> fetchWatchHistory() async {
+    watchHistoryStatus.value = Status.loading;
+    try {
+      final res = await HomeDatasource().getWatchHistory(pageNo: 1, limit: 50);
+      if (res != null && res.success) {
+        watchHistorySummary.value = res.data.summary;
+        final mapped = res.data.history.map((it) {
+          final progress = (it.playback.progressPercentage / 100.0).clamp(0.0, 1.0);
+          final remSeconds = it.playback.remainingSeconds;
+          final remTime = it.playback.formattedRemaining.isNotEmpty
+              ? it.playback.formattedRemaining
+              : (remSeconds > 0 ? '${(remSeconds / 60).ceil()} min left' : 'Completed');
+
+          return WatchHistoryItemModel(
+            id: it.id.isNotEmpty ? it.id : it.historyId,
+            dramaId: it.drama.id,
+            title: it.drama.title,
+            category: it.drama.genreDisplay.isNotEmpty
+                ? it.drama.genreDisplay
+                : (it.drama.genres.isNotEmpty ? it.drama.genres.join(' / ') : 'Drama'),
+            currentEpisode: it.episode.episodeNumber,
+            totalEpisodes: it.drama.totalEpisodes,
+            progress: progress,
+            remainingTime: remTime,
+            posterAsset: AppImages.banner1,
+            posterUrl: it.drama.posterUrl.isNotEmpty ? it.drama.posterUrl : null,
+            relativeTime: it.timeline.relativeTime,
+          );
+        }).toList();
+
+        watchHistoryList.assignAll(mapped);
+        watchHistoryStatus.value = Status.success;
+      } else {
+        watchHistoryStatus.value = Status.success;
+      }
+    } catch (e, stack) {
+      LogUtil.error("fetchWatchHistory error: $e", name: "ProfileController", error: e, stackTrace: stack);
+      watchHistoryStatus.value = Status.error;
+    }
+  }
+
+  void removeWatchHistory(String id) async {
     final item = watchHistoryList.firstWhereOrNull((e) => e.id == id);
     watchHistoryList.removeWhere((e) => e.id == id);
+    HomeDatasource().deleteWatchHistoryItem(id);
     AppSnackbar.info(
       '${item?.title ?? "Series"} removed from Watch History.',
       title: 'Removed from History',
     );
   }
 
-  void clearAllWatchHistory() {
+  void clearAllWatchHistory() async {
     watchHistoryList.clear();
+    HomeDatasource().clearAllWatchHistory();
     AppSnackbar.info(
       'Watch history has been cleared.',
       title: 'History Cleared',
